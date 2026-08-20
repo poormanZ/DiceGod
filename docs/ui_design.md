@@ -1,60 +1,61 @@
-# DiceGod — UI Design
+# DiceGod — UI 설계
 
-## 1. Main Battle Screen
+## 1. 전투 화면
 
-The battle screen should clearly show:
+전투 화면에서 다음 정보를 명확하게 보여줘야 합니다.
 
-- Player
-- Enemy
-- Player HP
-- Enemy HP
-- Dice
-- Lock state
-- Reroll button
-- Confirm button
-- Skills
-- Battle log or result feedback
+- 플레이어
+- 적
+- 플레이어 HP
+- 적 HP
+- 주사위
+- 주사위 잠금 상태
+- 리롤 버튼
+- 결과 확정 버튼
+- 스킬
+- 전투 결과 피드백
 
-## 2. Dice Presentation
+## 2. 주사위 UI
 
-Dice are the most important UI element.
+주사위는 가장 중요한 UI 요소입니다.
 
-Each die should:
-- Be clearly readable
-- Show its current value
-- Have an obvious locked state
-- Be clickable/tappable
-- Visually communicate when it is being rerolled
+각 주사위는:
 
-## 3. Prototype Layout
+- 현재 숫자가 명확하게 보여야 합니다.
+- 잠금 상태를 쉽게 구분할 수 있어야 합니다.
+- 클릭 또는 터치로 잠글 수 있어야 합니다.
+- 리롤될 때 시각적인 피드백이 있어야 합니다.
 
-Recommended simple layout:
+## 3. 프로토타입 배치
 
-Enemy
-  ↓
-Enemy HP
+권장 구조:
+
+적
+↓
+적 HP
 
 ----------------
 
-Player HP
+플레이어 HP
 
-[ Die ][ Die ][ Die ]
+[ 주사위 ][ 주사위 ][ 주사위 ]
 
-[ Reroll ]
+[ 리롤 ]
 
-[ Confirm ]
+[ 결과 확정 ]
 
-[ Skill buttons ]
+[ 스킬 ]
 
-[ Attack ]
+[ 공격 ]
 
-The exact visual style can evolve later.
+실제 디자인은 개발하면서 개선합니다.
 
-## 4. Web Considerations
+## 4. 웹 고려사항
 
-The UI should work with:
-- Mouse
-- Keyboard where useful
-- Different desktop browser sizes
+최소한 다음 환경을 고려합니다.
 
-Mobile support is not required for the first prototype.
+- 마우스
+- 키보드
+- 일반적인 데스크톱 브라우저 크기
+
+첫 번째 프로토타입에서는 모바일 대응을 필수로 하지 않습니다.

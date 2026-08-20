@@ -1,121 +1,123 @@
-# DiceGod — Development Roadmap
+# DiceGod — 개발 로드맵
 
-## Phase 0 — Project Setup
+## Phase 0 — 프로젝트 기본 설정
 
-- [ ] Create Godot 4 project
-- [ ] Set renderer to Compatibility
-- [ ] Confirm web export works
-- [ ] Initialize Git repository
-- [ ] Add README.md
-- [ ] Add AGENTS.md
-- [ ] Add design documents
-- [ ] Create basic project folders
+- [ ] Godot 4 프로젝트 생성
+- [ ] Compatibility 렌더러 설정
+- [ ] 웹 Export 가능 여부 확인
+- [ ] Git 저장소 초기화
+- [ ] README.md 추가
+- [ ] AGENTS.md 추가
+- [ ] 설계 문서 추가
+- [ ] 기본 폴더 생성
 
-## Phase 1 — Dice Core
+## Phase 1 — 주사위 핵심 시스템
 
-- [ ] Create DiceData
-- [ ] Create dice runtime state
-- [ ] Create 3-dice battle UI
-- [ ] Roll 3 dice
-- [ ] Display results
-- [ ] Toggle lock/unlock
-- [ ] Implement one reroll
-- [ ] Prevent locked dice from rerolling
-- [ ] Confirm final results
+- [ ] DiceData 생성
+- [ ] 주사위 런타임 상태 생성
+- [ ] 주사위 3개 전투 UI 생성
+- [ ] 주사위 굴리기
+- [ ] 결과 표시
+- [ ] 주사위 잠금/해제
+- [ ] 1회 리롤 구현
+- [ ] 잠긴 주사위 리롤 방지
+- [ ] 최종 결과 확정
 
-## Phase 2 — Minimal Combat
+## Phase 2 — 최소 전투
 
-- [ ] Create Battle scene
-- [ ] Create Player
-- [ ] Create one basic enemy
-- [ ] Add player HP
-- [ ] Add enemy HP
-- [ ] Calculate attack damage from final dice sum
-- [ ] Apply player attack
-- [ ] Implement enemy action
-- [ ] Implement victory
-- [ ] Implement defeat
-- [ ] Implement turn reset
+- [ ] Battle 씬 생성
+- [ ] 플레이어 생성
+- [ ] 기본 적 1마리 생성
+- [ ] 플레이어 HP
+- [ ] 적 HP
+- [ ] 최종 주사위 합으로 공격력 계산
+- [ ] 플레이어 공격
+- [ ] 적 행동
+- [ ] 승리 처리
+- [ ] 패배 처리
+- [ ] 턴 초기화
 
-## Phase 3 — Basic Skill System
+## Phase 3 — 기본 스킬 시스템
 
-- [ ] Create AbilityData
-- [ ] Create ability execution system
-- [ ] Add one simple skill
-- [ ] Display skill button
-- [ ] Allow skill use after result confirmation
-- [ ] Prevent invalid skill use
+- [ ] AbilityData 생성
+- [ ] 스킬 실행 시스템
+- [ ] 간단한 스킬 1개 추가
+- [ ] 스킬 버튼 표시
+- [ ] 결과 확정 이후 스킬 사용
+- [ ] 사용할 수 없는 스킬 처리
 
-## Phase 4 — Build Prototype
+## Phase 4 — 빌드 프로토타입
 
-- [ ] Create EquipmentData
-- [ ] Create one equipment
-- [ ] Create one special dice type
-- [ ] Make one simple dice/skill synergy
-- [ ] Make one equipment/dice synergy
-- [ ] Test whether build choices feel meaningful
+- [ ] EquipmentData 생성
+- [ ] 장비 1개 추가
+- [ ] 특수 주사위 1개 추가
+- [ ] 간단한 주사위/스킬 시너지 구현
+- [ ] 간단한 장비/주사위 시너지 구현
+- [ ] 빌드 선택의 재미 검증
 
-## Phase 5 — Dungeon Prototype
+## Phase 5 — 던전 프로토타입
 
-- [ ] Create dungeon node structure
-- [ ] Add normal battle node
-- [ ] Add reward node
-- [ ] Add shop or event node
-- [ ] Add elite node
-- [ ] Add boss node
-- [ ] Connect battle completion to dungeon progression
+- [ ] 던전 노드 구조
+- [ ] 일반 전투 노드
+- [ ] 보상 노드
+- [ ] 상점 또는 이벤트 노드
+- [ ] 엘리트 노드
+- [ ] 보스 노드
+- [ ] 전투 완료 후 던전 진행 연결
 
-## Phase 6 — Roguelike Run
+## Phase 6 — 로그라이크 런
 
-- [ ] Create run state
-- [ ] Randomize rewards
-- [ ] Add temporary build state
-- [ ] Implement run death
-- [ ] Implement run victory
-- [ ] Restart run
+- [ ] 런 상태 생성
+- [ ] 랜덤 보상
+- [ ] 런 중 빌드 상태
+- [ ] 런 사망 처리
+- [ ] 런 승리 처리
+- [ ] 새 런 시작
 
-## Phase 7 — Meta Progression
+## Phase 7 — 영구 성장
 
-- [ ] Design permanent unlocks
-- [ ] Add unlock data
-- [ ] Add persistent save
-- [ ] Add new dice unlocks
-- [ ] Add new abilities/equipment
+- [ ] 영구 해금 설계
+- [ ] 해금 데이터
+- [ ] 영구 저장
+- [ ] 새로운 주사위 해금
+- [ ] 새로운 스킬/장비 해금
 
-## Phase 8 — Content
+## Phase 8 — 콘텐츠
 
-- [ ] Add more dice
-- [ ] Add more abilities
-- [ ] Add more equipment
-- [ ] Add more enemies
-- [ ] Add elite enemies
-- [ ] Add bosses
-- [ ] Add events
+- [ ] 주사위 추가
+- [ ] 스킬 추가
+- [ ] 장비 추가
+- [ ] 몬스터 추가
+- [ ] 엘리트 추가
+- [ ] 보스 추가
+- [ ] 이벤트 추가
 
-## Phase 9 — Polish
+## Phase 9 — 완성도 개선
 
-- [ ] Improve UI
-- [ ] Add animations
-- [ ] Add sound effects
-- [ ] Add music
-- [ ] Add combat feedback
-- [ ] Improve accessibility/readability
-- [ ] Optimize web performance
+- [ ] UI 개선
+- [ ] 애니메이션
+- [ ] 효과음
+- [ ] 음악
+- [ ] 전투 피드백
+- [ ] 가독성 개선
+- [ ] 웹 성능 최적화
 
-## Phase 10 — Web Release
+## Phase 10 — 웹 출시
 
-- [ ] Test web export locally
-- [ ] Test desktop browsers
-- [ ] Configure GitHub Actions
-- [ ] Deploy to GitHub Pages
-- [ ] Test public URL
-- [ ] Fix web-specific issues
-- [ ] Release first playable version
+- [ ] 웹 Export 로컬 테스트
+- [ ] 데스크톱 브라우저 테스트
+- [ ] GitHub Actions 설정
+- [ ] GitHub Pages 배포
+- [ ] 공개 URL 테스트
+- [ ] 웹 전용 문제 수정
+- [ ] 첫 번째 플레이 가능 버전 공개
 
-## Current Priority
+## 현재 우선순위
 
-Only work on the first unchecked task unless the user explicitly requests otherwise.
+항상 가장 먼저 남아 있는 작업부터 진행합니다.
 
-Current target:
+현재 목표:
 
-Phase 0 → Godot project setup → Phase 1 Dice Core.
+Phase 0
+→ Godot 프로젝트 설정
+→ Phase 1 주사위 핵심 시스템

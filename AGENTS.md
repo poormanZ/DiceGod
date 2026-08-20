@@ -1,65 +1,76 @@
-# DiceGod — Codex Development Instructions
+# DiceGod — Codex 개발 규칙
 
-## Project Goal
+## 1. 프로젝트 목표
 
-DiceGod is a 2D turn-based roguelike dungeon RPG focused on dice manipulation, build creation, and strategic use of random results.
+DiceGod은 주사위 조작, 빌드 구성, 전략적 선택을 중심으로 하는 2D 턴제 로그라이크 던전 RPG입니다.
 
-Read the relevant files in `docs/` before implementing or changing a system.
+작업하기 전에 반드시 현재 작업과 관련된 `docs/` 문서를 확인합니다.
 
-## Mandatory Rules
+## 2. 반드시 지켜야 하는 규칙
 
-1. Use Godot 4.x and GDScript.
-2. Do not use C#.
-3. Keep the project compatible with web export.
-4. Use the Compatibility renderer.
-5. Do not introduce unnecessary third-party dependencies.
-6. Do not rewrite unrelated systems while implementing a task.
-7. Prefer small, isolated changes.
-8. Preserve existing gameplay rules unless the user explicitly requests a rule change.
-9. If code and design documentation conflict, do not silently choose one. Report the conflict.
-10. If a gameplay rule changes, update the relevant design document.
-11. Keep data and gameplay logic separated where practical.
-12. Prefer Godot Resources for static game data such as dice, abilities, equipment, enemies, and characters.
-13. Use snake_case for file names.
-14. Use clear, descriptive class and node names.
-15. Avoid hard-coding gameplay data when it should be editable data.
-16. Do not add large amounts of content before the core gameplay loop is proven fun.
-17. Do not implement future roadmap systems unless the current task requires them.
-18. After implementation, check for obvious Godot parse errors and broken references.
-19. Summarize changed files and important behavior after completing a task.
-20. If a requested task is ambiguous and could change core gameplay rules, ask before making the change.
+1. Godot 4.x와 GDScript를 사용합니다.
+2. C#을 사용하지 않습니다.
+3. 웹 배포가 가능한 구조를 유지합니다.
+4. Compatibility 렌더러를 사용합니다.
+5. 불필요한 외부 라이브러리나 의존성을 추가하지 않습니다.
+6. 요청받지 않은 기능이나 시스템을 임의로 대규모 수정하지 않습니다.
+7. 하나의 작업을 가능한 한 작고 독립적인 단위로 구현합니다.
+8. 기존 게임 규칙을 임의로 변경하지 않습니다.
+9. 코드와 설계 문서가 서로 다르면 임의로 판단하지 말고 사용자에게 보고합니다.
+10. 게임 규칙이 변경되면 관련 설계 문서도 함께 수정합니다.
+11. 게임 데이터와 게임 로직은 가능한 한 분리합니다.
+12. 주사위, 능력, 장비, 적, 캐릭터 등의 정적인 데이터에는 Godot Resource 사용을 우선 고려합니다.
+13. 파일명은 snake_case를 사용합니다.
+14. 코드와 노드의 이름은 역할이 명확하도록 작성합니다.
+15. 수정이 필요한 게임 데이터를 코드에 불필요하게 하드코딩하지 않습니다.
+16. 핵심 게임성이 검증되기 전에 대량의 콘텐츠를 구현하지 않습니다.
+17. 현재 로드맵보다 뒤의 기능을 사용자가 요청하지 않았다면 임의로 구현하지 않습니다.
+18. 구현 후 가능한 범위에서 Godot 오류와 깨진 참조를 확인합니다.
+19. 작업이 끝나면 변경한 파일, 구현 내용, 확인한 오류, 남은 문제를 보고합니다.
+20. 핵심 게임 규칙을 바꿀 수 있는 요청이 애매하다면 임의로 결정하지 말고 질문합니다.
 
-## Documentation Map
+## 3. 문서 위치
 
-- `docs/game_design.md` — overall game vision
-- `docs/combat_design.md` — battle flow and rules
-- `docs/dice_design.md` — dice mechanics
-- `docs/character_design.md` — character, skills, equipment
-- `docs/dungeon_design.md` — dungeon structure
-- `docs/progression_design.md` — progression
+- `docs/game_design.md` — 전체 게임 기획
+- `docs/combat_design.md` — 전투 규칙
+- `docs/dice_design.md` — 주사위 시스템
+- `docs/character_design.md` — 캐릭터/스킬/장비
+- `docs/dungeon_design.md` — 던전
+- `docs/progression_design.md` — 성장
 - `docs/ui_design.md` — UI
-- `docs/technical_design.md` — architecture
-- `docs/roadmap.md` — current implementation order
+- `docs/technical_design.md` — 기술 구조
+- `docs/roadmap.md` — 현재 개발 순서
 
-## Current Priority
+## 4. 현재 최우선 목표
 
-Implement the smallest playable combat prototype first.
+첫 번째 플레이 가능한 전투 프로토타입을 완성합니다.
 
-Do NOT begin with:
-- large dungeon generation
-- many enemies
-- dozens of dice
-- complex equipment
-- meta progression
-- online features
+우선 구현할 핵심:
 
-The first goal is to prove that the dice-to-combat loop is fun.
+전투 시작
+→ 주사위 3개 굴림
+→ 원하는 주사위 잠금
+→ 1회 리롤
+→ 결과 확정
+→ 스킬 사용
+→ 공격
+→ 적 행동
+→ 다음 턴
 
-## Preferred Development Workflow
+현재 단계에서는 다음 기능을 먼저 만들지 않습니다.
 
-1. Read relevant documentation.
-2. Inspect existing project structure.
-3. Implement only the requested scope.
-4. Test/check the implementation.
-5. Update documentation if rules changed.
-6. Report what changed and any remaining issues.
+- 대규모 던전 생성
+- 많은 종류의 적
+- 수십 개의 주사위
+- 복잡한 장비 시스템
+- 영구 성장
+- 온라인 기능
+
+## 5. 권장 개발 절차
+
+1. 관련 설계 문서를 읽습니다.
+2. 기존 프로젝트 구조를 확인합니다.
+3. 요청된 범위만 구현합니다.
+4. 구현 후 오류를 확인합니다.
+5. 게임 규칙이 변경되었다면 문서를 수정합니다.
+6. 변경된 내용을 사용자에게 보고합니다.

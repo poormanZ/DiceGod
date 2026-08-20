@@ -1,61 +1,62 @@
-# DiceGod — Dungeon Design
+# DiceGod — 던전 설계
 
-## 1. Overall Structure
+## 1. 전체 구조
 
-The game is a roguelike dungeon exploration game.
+DiceGod은 로그라이크 방식으로 던전을 탐험합니다.
 
-A future dungeon run may contain:
+향후 하나의 런은 다음과 같은 구조를 가질 수 있습니다.
 
-Battle
-→ Reward
-→ Choice
-→ Battle
-→ Event / Shop / Dice Upgrade
-→ Elite
-→ Boss
+전투
+→ 보상
+→ 선택
+→ 전투
+→ 이벤트 / 상점 / 주사위 강화
+→ 엘리트
+→ 보스
 
-## 2. Node Types
+## 2. 던전 노드
 
-Possible future nodes:
+향후 사용할 수 있는 노드:
 
-- Normal Battle
-- Elite Battle
-- Boss
-- Shop
-- Event
-- Rest
-- Dice Upgrade
-- Treasure
+- 일반 전투
+- 엘리트 전투
+- 보스
+- 상점
+- 이벤트
+- 휴식
+- 주사위 강화
+- 보물
 
-## 3. Path Choice
+## 3. 경로 선택
 
-A future dungeon map should allow the player to choose between different paths.
+던전 지도에서 플레이어가 여러 경로 중 하나를 선택하도록 합니다.
 
-Example:
+예:
 
-Normal Battle
-→ Shop
-→ Elite
+일반 전투
+→ 상점
+→ 엘리트
 
-or:
+또는:
 
-Normal Battle
-→ Event
-→ Treasure
+일반 전투
+→ 이벤트
+→ 보물
 
-## 4. Dungeon Rewards
+## 4. 보상
 
-Possible rewards:
-- New die
-- Dice upgrade
-- Skill
-- Equipment
-- Gold
-- Healing
-- Special event reward
+가능한 보상:
 
-## 5. Prototype
+- 새로운 주사위
+- 주사위 강화
+- 스킬
+- 장비
+- 골드
+- 회복
+- 특수 이벤트 보상
 
-Dungeon generation is NOT part of the first combat prototype.
+## 5. 프로토타입
 
-First create a single battle scene that can be launched directly.
+첫 번째 전투 프로토타입에서는 던전 생성을 구현하지 않습니다.
+
+먼저 하나의 전투 씬을 직접 실행할 수 있도록 만듭니다.

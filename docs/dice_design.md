@@ -1,99 +1,108 @@
-# DiceGod — Dice Design
+# DiceGod — 주사위 설계
 
-## 1. Dice Are the Core System
+## 1. 주사위의 역할
 
-Dice are not merely random damage generators.
+주사위는 DiceGod의 가장 중요한 시스템입니다.
 
-They are the main resource used to create builds.
+주사위는 단순히 공격 피해를 결정하는 숫자가 아니라 플레이어의 빌드를 구성하는 핵심 자원입니다.
 
-The player should eventually be able to modify:
-- Which dice they own
-- How many dice they roll
-- The faces on each die
-- The probability distribution
-- How results are manipulated
-- How results interact with skills and equipment
+향후 플레이어는 다음 요소를 조작할 수 있습니다.
 
-## 2. Base Dice
+- 보유 주사위
+- 주사위 개수
+- 주사위의 면
+- 숫자별 등장 확률
+- 주사위 결과
+- 리롤
+- 특정 결과의 효과
+- 주사위와 스킬/장비의 상호작용
 
-The prototype uses ordinary six-sided dice:
+## 2. 기본 주사위
+
+첫 번째 프로토타입은 일반적인 6면체 주사위를 사용합니다.
 
 1 / 2 / 3 / 4 / 5 / 6
 
-Each die has an integer result from 1 to 6.
+각 주사위는 1~6 중 하나의 결과를 가집니다.
 
-## 3. Dice Count
+## 3. 주사위 개수
 
-Initial count: 3
+기본: 3개
 
-Maximum count: 6
+최대: 6개
 
-The prototype must use exactly 3 dice.
+첫 번째 프로토타입: 정확히 3개
 
-## 4. Locking
+## 4. 잠금
 
-Each die has a locked/unlocked state during the dice phase.
+각 주사위에는 잠금 상태가 있습니다.
 
-Locked dice survive the reroll unchanged.
+잠긴 주사위는 리롤 시 결과가 유지됩니다.
 
-## 5. Reroll
+## 5. 리롤
 
-The base rule is one reroll per turn.
+기본 규칙은 턴당 1회입니다.
 
-Only unlocked dice are rerolled.
+잠기지 않은 주사위만 리롤됩니다.
 
-## 6. Future Dice Types
+## 6. 향후 특수 주사위 예시
 
-Possible future dice:
-
-### Berserker Die
+### 광전사 주사위
 
 1 / 1 / 2 / 4 / 6 / 6
 
-### Gambler Die
+### 도박사 주사위
 
 1 / 1 / 1 / 6 / 6 / 6
 
-### Poison Die
+### 독 주사위
 
-Poison / Poison / 2 / 3 / 4 / Poison
+독 / 독 / 2 / 3 / 4 / 독
 
-### Holy Die
+### 성스러운 주사위
 
-Defense / Defense / 2 / 3 / 4 / 6
+방어 / 방어 / 2 / 3 / 4 / 6
 
-These are design examples, not final balance values.
+위 수치는 예시이며 최종 밸런스가 아닙니다.
 
-## 7. Face Modification
+## 7. 주사위 면 변경
 
-A major future system is modifying individual faces.
+향후에는 개별 주사위의 면을 변경할 수 있도록 합니다.
 
-Examples:
+예:
 
-3 → Poison
+3 → 독
 
-5 → +2 Damage
+5 → 추가 피해
 
-6 → Critical
+6 → 치명타
 
-1 → Gold
+1 → 골드
 
-The player should eventually be able to create unusual custom dice.
+이 시스템을 통해 플레이어가 자신만의 주사위를 만들어가는 경험을 제공합니다.
 
-## 8. Dice Build Philosophy
+## 8. 주사위 빌드 철학
 
-A rare die is not automatically better.
+희귀한 주사위가 무조건 좋은 주사위가 되어서는 안 됩니다.
 
-The important question is whether the die fits the player's build.
+중요한 것은 현재 빌드와의 시너지입니다.
 
-The system should encourage:
-- Synergy
-- Risk/reward
-- Probability manipulation
-- Adaptation during a run
+목표:
 
-## 9. Prototype Restrictions
+- 시너지
+- 위험과 보상
+- 확률 조작
+- 결과 조작
+- 상황에 따른 선택
 
-Do not implement custom faces, multiple die types, or advanced probability manipulation in the first prototype.
+## 9. 프로토타입 제한
 
-First prove that rolling, locking, rerolling, confirming, and attacking are fun.
+첫 번째 프로토타입에서는 다음을 구현하지 않습니다.
+
+- 특수 주사위
+- 특수 면
+- 복잡한 확률 조작
+- 주사위 제작
+- 대량의 주사위 콘텐츠
+
+먼저 기본 주사위의 굴림, 잠금, 리롤, 결과 확정이 재미있는지 검증합니다.

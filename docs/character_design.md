@@ -1,79 +1,81 @@
-# DiceGod — Character, Skill, and Equipment Design
+# DiceGod — 캐릭터 / 스킬 / 장비 설계
 
-## 1. Character
+## 1. 캐릭터
 
-The initial prototype uses one player character.
+첫 번째 프로토타입에서는 플레이어 캐릭터 1명만 사용합니다.
 
-Basic stats:
+기본적으로 필요한 능력치:
+
 - HP
-- Attack-related values as needed
-- Defense-related values as needed
+- 공격 관련 수치
+- 방어 관련 수치
 
-Avoid creating a complex stat system before combat is proven.
+처음부터 복잡한 스탯 시스템을 만들지 않습니다.
 
-## 2. Skills
+## 2. 스킬
 
-Skills should interact with dice results.
+스킬은 주사위 결과와 상호작용해야 합니다.
 
-Good examples:
+예시:
 
-### Heavy Strike
+### 강타
 
-If the dice sum reaches a threshold, deal bonus damage.
+주사위 합이 특정 수치 이상이면 추가 피해를 줍니다.
 
-### Blessing of Six
+### 6의 축복
 
-Gain an effect for each die showing 6.
+6이 나온 주사위 개수에 따라 효과를 얻습니다.
 
-### Even Shield
+### 짝수 방패
 
-Gain defense for each even die.
+짝수 주사위 개수에 따라 방어력을 얻습니다.
 
-### Gambler's Hand
+### 도박사의 손
 
-Trigger an effect when multiple dice show the same value.
+같은 숫자의 주사위가 여러 개 나오면 특수 효과가 발동합니다.
 
-## 3. Equipment
+## 3. 장비
 
-Equipment should preferably change gameplay rules rather than only increase stats.
+장비는 단순히 공격력이나 HP를 올리는 것보다 게임 규칙을 변화시키는 방향을 우선합니다.
 
-Examples:
+예:
 
-### Lucky Ring
+### 행운의 반지
 
-Provides an additional way to manipulate dice.
+주사위 결과를 조작할 수 있는 추가 효과를 제공합니다.
 
-### Bloodied Sword
+### 피 묻은 검
 
-Rewards rolling high values.
+높은 주사위 결과를 얻었을 때 추가 피해를 줍니다.
 
-### Gambler's Cloak
+### 도박사의 망토
 
-Provides a powerful but risky reroll effect.
+강력하지만 위험한 리롤 효과를 제공합니다.
 
-### Broken Shield
+### 부서진 방패
 
-Allows defensive dice results to interact with attacks.
+방어 관련 주사위 결과를 공격으로 전환할 수 있게 합니다.
 
-## 4. Build Structure
+## 4. 최종 빌드
 
-The eventual build is:
+플레이어의 빌드는 다음 요소의 조합으로 구성됩니다.
 
-Dice
+주사위
 +
-Skills
+스킬
 +
-Equipment
+장비
 +
-Character traits
+캐릭터 특성
 
-The goal is to create meaningful synergies.
+목표는 플레이어마다 서로 다른 시너지가 발생하도록 만드는 것입니다.
 
-## 5. Prototype
+## 5. 프로토타입
 
-The first prototype should use:
-- One player
-- No equipment
-- At most one simple skill
+첫 번째 프로토타입:
 
-Do not build a full character progression system yet.
+- 플레이어 1명
+- 장비 없음
+- 스킬 0~1개
+
+먼저 주사위와 전투가 재미있는지 검증합니다.

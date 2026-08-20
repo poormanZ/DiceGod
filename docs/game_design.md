@@ -1,101 +1,110 @@
-# DiceGod — Game Design
+# DiceGod — 전체 게임 기획
 
-## 1. High Concept
+## 1. 게임 개요
 
-DiceGod is a 2D turn-based roguelike dungeon RPG.
+DiceGod은 주사위를 이용한 운과 전략을 결합한 2D 턴제 로그라이크 던전 RPG입니다.
 
-The player explores dangerous dungeons, fights monsters, obtains dice, skills, and equipment, and gradually creates a unique build.
+플레이어는 던전을 탐험하고 몬스터와 싸우면서 주사위, 능력, 장비를 획득합니다.
 
-The central idea is:
+획득한 요소들을 조합하여 자신만의 빌드를 만들고 더 강한 적과 보스에 도전합니다.
 
-> Luck creates possibilities. Strategy decides how to use them.
+## 2. 핵심 게임 컨셉
 
-## 2. Core Fantasy
+DiceGod의 핵심 질문은 다음과 같습니다.
 
-The player is a character who manipulates fate through dice.
+> 주사위가 이렇게 나왔을 때 나는 이 운을 어떻게 활용할 것인가?
 
-At the beginning, the player has only a few ordinary dice. During a run, the player can obtain stronger or stranger dice, skills, and equipment.
+단순히 운이 좋아야 이기는 게임이 아니라, 좋지 않은 결과에서도 플레이어가 선택을 통해 상황을 바꿀 수 있어야 합니다.
 
-The long-term fantasy is to create a build where dice results, skills, and equipment interact to produce powerful combinations.
+## 3. 핵심 게임 루프
 
-## 3. Core Game Loop
+### 던전
 
-Dungeon exploration:
+전투
+→ 보상
+→ 선택
+→ 전투
+→ 이벤트/상점/엘리트
+→ 보스
 
-Battle → Reward → Choice → Battle → Event/Shop/Elite → Boss
+### 전투
 
-Battle:
+전투 시작
+→ 주사위 굴림
+→ 주사위 잠금
+→ 1회 리롤
+→ 결과 확정
+→ 스킬 사용
+→ 공격
+→ 적 행동
+→ 다음 턴
 
-Battle Start
-→ Roll Dice
-→ Lock Dice
-→ Reroll Once
-→ Confirm Results
-→ Use Skills
-→ Attack
-→ Enemy Action
-→ Next Turn
+## 4. 핵심 설계 원칙
 
-## 4. Core Design Pillars
+### 주사위가 게임의 중심
 
-### Dice First
+주사위는 단순한 공격력 계산용 숫자가 아니라 게임 전체 빌드의 중심이 되어야 합니다.
 
-Dice are the identity of the game. Combat systems should interact with dice rather than treating dice as a simple damage roll.
+### 운에는 개입할 수 있어야 한다
 
-### Luck With Agency
+랜덤 결과는 긴장감을 만들지만 플레이어에게 선택권이 있어야 합니다.
 
-Randomness should create uncertainty, but the player must have meaningful ways to influence results.
+잠금, 리롤, 스킬, 장비 등을 통해 운을 조작할 수 있어야 합니다.
 
-### Build Creation
+### 빌드를 만드는 재미
 
-Dice + Skills + Equipment should create different play styles.
+주사위 + 능력 + 장비가 서로 시너지를 일으켜 플레이어마다 다른 빌드가 만들어져야 합니다.
 
-### Short-Term Decisions
+### 매 턴 선택이 중요해야 한다
 
-Each turn should present meaningful choices.
+주사위 결과가 나온 뒤 무엇을 잠그고 무엇을 다시 굴릴지 판단하는 과정이 핵심입니다.
 
-### Long-Term Decisions
+### 런마다 다른 경험
 
-The player should decide which dice, skills, and equipment to keep or replace.
+로그라이크 구조를 통해 매번 다른 주사위와 능력, 장비를 조합하도록 합니다.
 
-## 5. Example Builds
+## 5. 예상 빌드 예시
 
-### Six Build
+### 6 빌드
 
-Focus on producing and exploiting the result 6.
+6이 나올 확률과 6의 효과를 강화합니다.
 
-### Poison Build
+### 독 빌드
 
-Use special poison faces and effects that stack poison.
+독 관련 주사위와 능력을 조합하여 독을 누적합니다.
 
-### Defense/Counter Build
+### 방어/반격 빌드
 
-Use defensive results to survive and convert defense into counterattacks.
+방어를 확보하면서 방어 수치를 공격력으로 전환합니다.
 
-### Gambling Build
+### 도박 빌드
 
-Use extreme dice distributions with high risk and high reward.
+높은 숫자와 낮은 숫자가 극단적으로 구성된 주사위를 이용하여 큰 보상을 노립니다.
 
-## 6. Roguelike Structure
+## 6. 로그라이크 구조
 
-A run should create a different build through randomized rewards and choices.
+하나의 런 동안 얻은 주사위, 능력, 장비를 이용하여 빌드를 구성합니다.
 
-Death ends the current run.
+런이 종료되면 해당 런의 빌드는 초기화됩니다.
 
-Permanent progression may unlock new content, but the first playable version should focus on the run itself.
+이후 영구 성장 시스템을 통해 새로운 콘텐츠를 해금할 수 있습니다.
 
-## 7. Initial Scope
+## 7. 첫 번째 프로토타입 범위
 
-The first playable prototype only needs:
+처음부터 완성형 게임을 만들지 않습니다.
 
-- One player
-- One enemy
-- Three dice
-- Dice locking
-- One reroll
-- Result confirmation
-- One basic attack
-- Enemy action
-- Win/lose state
+첫 번째 목표는 다음 하나입니다.
 
-Everything else comes later.
+> 주사위를 굴리고, 잠그고, 한 번 리롤하고, 결과를 이용하여 공격하는 과정이 재미있는가?
+
+필요한 최소 요소:
+
+- 플레이어 1명
+- 적 1마리
+- 주사위 3개
+- 잠금
+- 1회 리롤
+- 결과 확정
+- 기본 공격
+- 적 행동
+- 승리/패배

@@ -1,60 +1,64 @@
 # DiceGod
 
-DiceGod is a 2D turn-based roguelike dungeon RPG built with Godot 4 and GDScript.
+DiceGod은 **주사위의 운과 플레이어의 전략이 결합된 2D 턴제 로그라이크 던전 RPG**입니다.
 
-The core fantasy is:
+플레이어는 던전을 탐험하면서 주사위, 능력, 장비를 획득하고 강화하여 자신만의 빌드를 만들어갑니다.
 
-> Roll dice, manipulate fate, create your own build, and challenge the gods.
+핵심 재미는 다음과 같습니다.
 
-## Core Battle Loop
+> 운이 가능성을 만들고, 전략이 그 가능성을 승리로 바꾼다.
 
-1. Battle starts
-2. Roll dice
-   - Start with 3 dice
-   - Can increase to a maximum of 6 dice
-3. Lock any number of dice
-4. Perform 1 reroll
-5. Confirm/select the final results
-6. Use skills
-7. Attack
-8. Enemy acts
-9. Repeat until victory or defeat
+## 핵심 전투 흐름
 
-## Development Principles
+1. 전투 시작
+2. 주사위 굴림
+   - 기본 3개
+   - 최대 6개까지 증가 가능
+3. 원하는 만큼 주사위 잠금
+4. 1회 리롤
+5. 최종 결과 확정
+6. 스킬 사용
+7. 공격
+8. 적 행동
+9. 다음 턴
+
+## 개발 원칙
 
 - Godot 4.x
-- GDScript only
+- GDScript
 - 2D
-- Compatibility renderer
-- Web deployment is a primary target
-- Keep game rules data-driven where practical
-- Prefer small, testable systems
-- Do not expand scope without updating the design documents
+- Compatibility 렌더러
+- 웹 배포를 주요 목표로 한다.
+- 가능한 한 게임 데이터를 코드와 분리한다.
+- 작은 단위로 구현하고 테스트한다.
+- 핵심 게임성이 검증되기 전에 대량의 콘텐츠를 만들지 않는다.
+- 게임 규칙을 변경할 경우 관련 설계 문서를 함께 수정한다.
 
-## Documentation
+## 문서
 
-- `AGENTS.md` — instructions for Codex
-- `docs/game_design.md` — overall game concept
-- `docs/combat_design.md` — battle rules
-- `docs/dice_design.md` — dice rules
-- `docs/character_design.md` — character, skills, equipment
-- `docs/dungeon_design.md` — dungeon structure
-- `docs/progression_design.md` — roguelike progression
-- `docs/ui_design.md` — UI direction
-- `docs/technical_design.md` — technical architecture
-- `docs/roadmap.md` — implementation roadmap
+- `AGENTS.md` — Codex 개발 규칙
+- `docs/game_design.md` — 전체 게임 기획
+- `docs/combat_design.md` — 전투 설계
+- `docs/dice_design.md` — 주사위 설계
+- `docs/character_design.md` — 캐릭터/스킬/장비 설계
+- `docs/dungeon_design.md` — 던전 설계
+- `docs/progression_design.md` — 성장 시스템
+- `docs/ui_design.md` — UI 설계
+- `docs/technical_design.md` — 기술 설계
+- `docs/roadmap.md` — 개발 로드맵
 
-## Current Development Status
+## 현재 개발 상태
 
-Pre-production / core design phase.
+기획 및 핵심 시스템 프로토타입 단계입니다.
 
-The first playable milestone is a single battle containing:
-- One player
-- One enemy
-- Three dice
-- Locking
-- One reroll
-- Result confirmation
-- One basic attack
-- Enemy action
-- Win/lose state
+첫 번째 플레이 가능한 버전의 목표:
+
+- 플레이어 1명
+- 적 1마리
+- 주사위 3개
+- 주사위 잠금
+- 1회 리롤
+- 최종 결과 확정
+- 기본 공격
+- 적 행동
+- 승리/패배 처리

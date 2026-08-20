@@ -1,123 +1,129 @@
-# DiceGod — Combat Design
+# DiceGod — 전투 설계
 
-## 1. Combat Flow
+## 1. 전투 순서
 
-Each combat turn follows this exact order:
+모든 기본 전투 턴은 다음 순서로 진행합니다.
 
-1. Battle Start / Turn Start
-2. Roll Dice
-3. Lock Dice
-4. Reroll once
-5. Confirm Results
-6. Use Skills
-7. Attack
-8. Enemy Action
-9. Next Turn
+1. 전투 시작 / 턴 시작
+2. 주사위 굴림
+3. 원하는 만큼 주사위 잠금
+4. 1회 리롤
+5. 최종 결과 확정
+6. 스킬 사용
+7. 공격
+8. 적 행동
+9. 다음 턴
 
-## 2. Dice Count
+## 2. 주사위 수
 
-The player starts combat with 3 dice.
+플레이어는 기본적으로 3개의 주사위를 사용합니다.
 
-The maximum number of dice is 6.
+게임 진행에 따라 최대 6개까지 늘어날 수 있습니다.
 
-The number of dice may increase through progression, equipment, abilities, or other future systems.
+첫 번째 프로토타입에서는 정확히 3개만 사용합니다.
 
-For the initial prototype:
-- Start with exactly 3 dice.
-- Do not implement dice-count upgrades yet.
+## 3. 주사위 잠금
 
-## 3. Locking
+주사위를 굴린 뒤 플레이어는 원하는 개수만큼 주사위를 잠글 수 있습니다.
 
-After the initial roll, the player may lock any number of dice.
+가능한 선택:
 
-Locked dice are not rerolled.
+- 0개 잠금
+- 일부 잠금
+- 모든 주사위 잠금
 
-The player may lock zero, some, or all dice.
+잠긴 주사위는 리롤되지 않습니다.
 
-For the initial prototype:
-- A die can be toggled between locked and unlocked.
-- Locked state must be visually obvious.
-- There is no cost for locking.
+잠금 상태는 UI에서 명확하게 보여야 합니다.
 
-## 4. Reroll
+## 4. 리롤
 
-The player gets exactly one reroll per turn.
+기본 규칙은 턴당 정확히 1회 리롤입니다.
 
-When rerolling:
-- Locked dice keep their current result.
-- Unlocked dice are rolled again.
-- The reroll cannot be repeated.
+리롤 시:
 
-Future abilities may modify this rule, but the base rule remains one reroll.
+- 잠긴 주사위는 그대로 유지합니다.
+- 잠기지 않은 주사위만 다시 굴립니다.
+- 리롤을 완료하면 해당 턴의 리롤은 사용한 것으로 처리합니다.
 
-## 5. Result Confirmation
+향후 능력이나 장비를 통해 리롤 규칙을 변경할 수 있지만 기본 규칙은 1회입니다.
 
-After the reroll, the player confirms the final dice results.
+## 5. 결과 확정
 
-Once confirmed:
-- Dice results are fixed for the action phase.
-- The player can use available skills.
-- The player can attack.
+리롤이 끝난 후 플레이어가 최종 결과를 확정합니다.
 
-## 6. Skills
+결과가 확정되면:
 
-Skills are used after results are confirmed and before the attack.
+- 해당 턴의 주사위 결과가 고정됩니다.
+- 사용 가능한 스킬을 사용할 수 있습니다.
+- 공격을 수행할 수 있습니다.
 
-Skills may inspect:
-- Individual die values
-- Number of dice
-- Sum of dice
-- Matching values
-- Odd/even values
-- Special faces
-- Previous actions
+## 6. 스킬
 
-The first prototype should have one simple skill or can omit skills until basic combat is proven.
+스킬은 최종 주사위 결과를 확정한 후 공격 전에 사용할 수 있습니다.
 
-## 7. Attack
+스킬은 다음과 같은 정보를 활용할 수 있습니다.
 
-The initial prototype should use a simple deterministic rule.
+- 특정 주사위의 숫자
+- 주사위 총합
+- 같은 숫자의 개수
+- 홀수/짝수
+- 특정 숫자의 개수
+- 특수 주사위 면
+- 이전 행동
 
-Recommended prototype rule:
+첫 번째 프로토타입에서는 스킬을 1개만 넣거나 기본 전투가 검증될 때까지 생략할 수 있습니다.
 
-Attack damage = sum of the final dice results.
+## 7. 공격
 
-Example:
+첫 번째 프로토타입에서는 최대한 단순한 규칙을 사용합니다.
 
-2 + 4 + 6 = 12 damage.
+권장 규칙:
 
-This rule is intentionally simple and should later be replaced or expanded once the core loop is validated.
+> 공격력 = 최종 주사위 결과의 합
 
-## 8. Enemy Action
+예:
 
-After the player attacks, the enemy performs its action.
+2 + 4 + 6 = 12 피해
 
-The first prototype needs only one simple enemy behavior:
-- Deal a fixed amount of damage to the player.
+이 규칙은 핵심 게임 루프를 검증하기 위한 임시 규칙입니다.
 
-## 9. Victory
+향후 능력, 장비, 특수 주사위에 따라 확장합니다.
 
-If enemy HP reaches 0:
-- Combat ends.
-- Player wins.
-- Reward can be added in a later milestone.
+## 8. 적 행동
 
-## 10. Defeat
+플레이어가 공격한 후 적이 행동합니다.
 
-If player HP reaches 0:
-- Combat ends.
-- Run ends for the prototype.
+첫 번째 프로토타입의 적은 단순하게 고정된 피해를 줍니다.
 
-## 11. Future Combat Features
+예:
 
-Not part of the first prototype:
+적 행동 → 플레이어에게 5 피해
 
-- Critical hits
-- Status effects
-- Multiple enemies
-- Enemy intent
-- Complex skill chains
-- Dice manipulation abilities
-- Special dice faces
-- Equipment interactions
-- Boss mechanics
+## 9. 승리
+
+적의 HP가 0 이하가 되면 전투에서 승리합니다.
+
+첫 번째 프로토타입에서는 승리 화면을 보여주고 종료해도 됩니다.
+
+향후에는 보상을 지급하고 던전으로 돌아갑니다.
+
+## 10. 패배
+
+플레이어의 HP가 0 이하가 되면 전투에서 패배합니다.
+
+첫 번째 프로토타입에서는 패배 화면을 보여주고 종료합니다.
+
+## 11. 향후 전투 시스템
+
+초기 프로토타입 이후 추가할 수 있는 기능:
+
+- 치명타
+- 상태 이상
+- 여러 적
+- 적의 다음 행동 표시
+- 복잡한 스킬 연계
+- 주사위 조작 능력
+- 특수 주사위
+- 장비 효과
+- 보스 패턴

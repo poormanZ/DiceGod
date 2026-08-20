@@ -1,28 +1,32 @@
-# DiceGod — Progression Design
+# DiceGod — 성장 시스템 설계
 
-## 1. Run Progression
+## 1. 런 중 성장
 
-During a run, the player gradually becomes stronger through:
-- Dice
-- Skills
-- Equipment
-- Temporary upgrades
+한 번의 런을 진행하는 동안 다음 요소를 획득하며 강해집니다.
 
-The build should be reset when the run ends.
+- 주사위
+- 스킬
+- 장비
+- 일시적인 강화
 
-## 2. Permanent Progression
+런이 끝나면 해당 런의 빌드는 기본적으로 초기화됩니다.
 
-A later meta-progression system may unlock:
-- New dice
-- New skills
-- New equipment
-- New characters
-- New dungeon content
+## 2. 영구 성장
 
-Permanent progression should expand possibilities rather than simply making every future run numerically easier.
+향후 메타 성장 시스템을 추가할 수 있습니다.
 
-## 3. Prototype
+예:
 
-Do not implement permanent progression in the first prototype.
+- 새로운 주사위 해금
+- 새로운 스킬 해금
+- 새로운 장비 해금
+- 새로운 캐릭터 해금
+- 새로운 던전 콘텐츠 해금
 
-Focus on the immediate combat loop.
+영구 성장은 단순히 모든 수치를 계속 올리는 방식보다는 새로운 플레이 방법을 열어주는 방향을 우선합니다.
+
+## 3. 프로토타입
+
+첫 번째 프로토타입에서는 영구 성장 시스템을 구현하지 않습니다.
+
+현재 목표는 전투의 즉각적인 재미를 검증하는 것입니다.
