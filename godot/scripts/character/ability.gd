@@ -13,6 +13,8 @@ func can_use(dice_states: Array[DiceRuntimeState]) -> bool:
 
 
 func calculate_bonus(dice_states: Array[DiceRuntimeState]) -> int:
+	if ability_data == null:
+		return 0
 	var result_counts: Dictionary = {}
 	for dice_state in dice_states:
 		if not dice_state.has_result():

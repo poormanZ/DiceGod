@@ -12,6 +12,8 @@ func _init(initial_dice_data: HealingDiceData) -> void:
 
 
 func roll() -> bool:
+	if dice_data == null:
+		return false
 	dice_roller.reset_turn_state()
 	return dice_roller.roll(runtime_state)
 

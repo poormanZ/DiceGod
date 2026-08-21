@@ -7,6 +7,9 @@ extends Control
 @export var ability_data: AbilityData
 @export var equipment_data: EquipmentData
 @export var healing_dice_data: HealingDiceData
+@export var matching_build: BuildData
+@export var straight_build: BuildData
+@export var healing_build: BuildData
 
 @onready var dice_roll_panel: DiceRollPanel = $MarginContainer/Content/DiceRollPanel
 @onready var roll_button: Button = $MarginContainer/Content/ActionButtons/RollButton
@@ -16,6 +19,9 @@ extends Control
 @onready var healing_dice_button: Button = $MarginContainer/Content/ActionButtons/HealingDiceButton
 @onready var attack_button: Button = $MarginContainer/Content/ActionButtons/AttackButton
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
+@onready var selected_build_label: Label = $MarginContainer/Content/SelectedBuildLabel
+@onready var build_selection_panel: PanelContainer = $BuildSelectionPanel
+@onready var build_buttons: Array[Button] = [$BuildSelectionPanel/Margin/VBox/MatchingBuildButton, $BuildSelectionPanel/Margin/VBox/StraightBuildButton, $BuildSelectionPanel/Margin/VBox/HealingBuildButton]
 
 var dice_states: Array[DiceRuntimeState] = []
 var dice_roller := DiceRoller.new()
@@ -26,9 +32,29 @@ var equipment: Equipment
 var healing_dice: HealingDice
 var calculated_attack_damage: int = 0
 var is_battle_over: bool = false
+var selected_build: BuildData
 
 
 func _ready() -> void:
+	_setup_build_selection()
+
+
+func _setup_build_selection() -> void:
+	var builds: Array[BuildData] = [matching_build, straight_build, healing_build]
+	for index in build_buttons.size():
+		var build := builds[index]
+		build_buttons[index].text = "%s\n%s" % [build.display_name, build.description]
+		build_buttons[index].pressed.connect(_on_build_selected.bind(build))
+	build_selection_panel.show()
+	status_label.text = "빌드를 선택하면 전투가 시작됩니다."
+
+
+func _on_build_selected(build: BuildData) -> void:
+	selected_build = build
+	dice_data = build.dice_data
+	ability_data = build.ability_data
+	equipment_data = build.equipment_data
+	healing_dice_data = build.healing_dice_data
 	player = Player.new(player_data)
 	enemy = Enemy.new(enemy_data)
 	ability = Ability.new(ability_data)
@@ -38,9 +64,10 @@ func _ready() -> void:
 	$MarginContainer/Content/EnemyNameLabel.text = enemy.enemy_data.display_name
 	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
 	$MarginContainer/Content/EnemyHpLabel.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
+	selected_build_label.text = "선택한 빌드: %s — %s" % [build.display_name, build.description]
 	for dice_index in 3:
 		dice_states.append(DiceRuntimeState.new(dice_data))
-
+	build_selection_panel.hide()
 	_start_turn()
 
 
@@ -56,7 +83,7 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	reroll_button.disabled = true
 	confirm_button.disabled = true
 	ability_button.disabled = true
-	healing_dice_button.disabled = true
+	healing_dice_button.disabled = healing_dice_data == null
 	attack_button.disabled = true
 	status_label.text = status_message
 
@@ -111,6 +138,8 @@ func _on_ability_button_pressed() -> void:
 
 
 func _on_healing_dice_button_pressed() -> void:
+	if healing_dice == null or healing_dice_data == null:
+		return
 	if not healing_dice.roll():
 		healing_dice_button.disabled = true
 		return

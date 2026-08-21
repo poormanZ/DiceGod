@@ -9,6 +9,8 @@ func _init(initial_equipment_data: EquipmentData) -> void:
 
 
 func can_evade(dice_states: Array[DiceRuntimeState]) -> bool:
+	if equipment_data == null:
+		return false
 	if not equipment_data.evades_straight_attacks or dice_states.size() != 3:
 		return false
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/battle/battle.gd" id="1_battle"]
 [ext_resource type="PackedScene" path="res://scenes/dice/dice_roll_panel.tscn" id="2_dice_roll_panel"]
@@ -8,6 +8,9 @@
 [ext_resource type="Resource" path="res://resources/abilities/matching_numbers.tres" id="6_matching_numbers"]
 [ext_resource type="Resource" path="res://resources/equipment/straight_gloves.tres" id="7_straight_gloves"]
 [ext_resource type="Resource" path="res://resources/dice/healing_dice.tres" id="8_healing_dice"]
+[ext_resource type="Resource" path="res://resources/builds/matching_build.tres" id="9_matching_build"]
+[ext_resource type="Resource" path="res://resources/builds/straight_build.tres" id="10_straight_build"]
+[ext_resource type="Resource" path="res://resources/builds/healing_build.tres" id="11_healing_build"]
 
 [node name="Battle" type="Control"]
 layout_mode = 3
@@ -23,6 +26,9 @@ enemy_data = ExtResource("5_basic_slime")
 ability_data = ExtResource("6_matching_numbers")
 equipment_data = ExtResource("7_straight_gloves")
 healing_dice_data = ExtResource("8_healing_dice")
+matching_build = ExtResource("9_matching_build")
+straight_build = ExtResource("10_straight_build")
+healing_build = ExtResource("11_healing_build")
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -62,6 +68,13 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "주사위를 굴리고, 원하는 결과를 잠근 뒤 한 번 리롤하세요."
+horizontal_alignment = 1
+
+[node name="SelectedBuildLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.83, 0.42, 1)
+theme_override_font_sizes/font_size = 18
+text = "빌드를 선택하세요."
 horizontal_alignment = 1
 
 [node name="EnemyNameLabel" type="Label" parent="MarginContainer/Content"]
@@ -144,6 +157,57 @@ theme_override_colors/font_color = Color(0.72, 0.78, 0.88, 1)
 theme_override_font_sizes/font_size = 18
 text = "주사위 굴리기를 눌러 전투를 시작하세요."
 horizontal_alignment = 1
+
+[node name="BuildSelectionPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -230.0
+offset_right = 360.0
+offset_bottom = 230.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="BuildSelectionPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="BuildSelectionPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="BuildSelectionPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "빌드 선택"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="BuildSelectionPanel/Margin/VBox"]
+layout_mode = 2
+text = "이번 전투에서 시험할 플레이 방식을 선택하세요."
+horizontal_alignment = 1
+
+[node name="MatchingBuildButton" type="Button" parent="BuildSelectionPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 82)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+
+[node name="StraightBuildButton" type="Button" parent="BuildSelectionPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 82)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+
+[node name="HealingBuildButton" type="Button" parent="BuildSelectionPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 82)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
 
 [connection signal="pressed" from="MarginContainer/Content/ActionButtons/RollButton" to="." method="_on_roll_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/ActionButtons/RerollButton" to="." method="_on_reroll_button_pressed"]
