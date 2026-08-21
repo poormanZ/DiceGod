@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DungeonNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeon/dungeon_node_data.gd" id="1_dungeon_node"]
+
+[resource]
+script = ExtResource("1_dungeon_node")
+node_id = "start_battle"
+display_name = "첫 번째 전투"
+description = "첫 번째 적과 전투합니다."
+node_type = 0
+next_node_ids = ["reward_1"]
+is_start_node = true
