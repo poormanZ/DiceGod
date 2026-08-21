@@ -34,6 +34,7 @@ var healing_dice: HealingDice
 var calculated_attack_damage: int = 0
 var is_battle_over: bool = false
 var selected_build: BuildData
+var healing_dice_used: bool = false
 
 
 func _ready() -> void:
@@ -65,6 +66,7 @@ func _on_build_selected(build: BuildData) -> void:
 	dice_states.clear()
 	is_battle_over = false
 	calculated_attack_damage = 0
+	healing_dice_used = false
 	$MarginContainer/Content/PlayerNameLabel.text = player.player_data.display_name
 	$MarginContainer/Content/EnemyNameLabel.text = enemy.enemy_data.display_name
 	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
@@ -87,6 +89,7 @@ func _on_restart_build_button_pressed() -> void:
 func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투를 시작하세요.") -> void:
 	dice_roller.reset_turn_state()
 	calculated_attack_damage = 0
+	healing_dice_used = false
 	for dice_state in dice_states:
 		dice_state.result = 0
 		dice_state.is_locked = false
@@ -135,7 +138,7 @@ func _on_confirm_button_pressed() -> void:
 	confirm_button.disabled = true
 	calculated_attack_damage = _calculate_attack_damage()
 	ability_button.disabled = not ability.can_use(dice_states)
-	healing_dice_button.disabled = false
+	healing_dice_button.disabled = healing_dice_data == null or healing_dice_used
 	attack_button.disabled = false
 	status_label.text = "결과를 확정했습니다: 공격력 %d" % calculated_attack_damage
 
@@ -152,7 +155,7 @@ func _on_ability_button_pressed() -> void:
 
 
 func _on_healing_dice_button_pressed() -> void:
-	if healing_dice == null or healing_dice_data == null:
+	if is_battle_over or healing_dice_used or healing_dice == null or healing_dice_data == null:
 		return
 	if not healing_dice.roll():
 		healing_dice_button.disabled = true
@@ -161,8 +164,9 @@ func _on_healing_dice_button_pressed() -> void:
 	var healing_amount := healing_dice.get_healing_amount()
 	player.heal(healing_amount)
 	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
+	healing_dice_used = true
 	healing_dice_button.disabled = true
-	status_label.text = "힐 주사위 %d: HP를 %d 회복했습니다." % [healing_dice.runtime_state.result, healing_amount]
+	status_label.text = "힐 주사위 %d: HP를 %d 회복했습니다. (이번 턴 사용 완료)" % [healing_dice.runtime_state.result, healing_amount]
 
 
 func _on_attack_button_pressed() -> void:
