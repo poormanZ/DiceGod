@@ -76,3 +76,4 @@ text = "현재 위치에서 진행할 노드를 선택하세요."
 horizontal_alignment = 1
 
 [connection signal="pressed" from="MarginContainer/Content/StartBattleButton" to="." method="_on_start_battle_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Content/RewardButton" to="." method="_on_reward_button_pressed"]
