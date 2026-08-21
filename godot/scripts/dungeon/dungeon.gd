@@ -19,7 +19,7 @@ func _setup_node_buttons() -> void:
 	status_label.text = "현재 위치에서 진행할 노드를 선택하세요."
 
 func _update_progress() -> void:
-	var battle_cleared := get_tree().has_meta("dungeon_battle_cleared") and get_tree().get_meta("dungeon_battle_cleared") == true
+	var battle_cleared: bool = get_tree().has_meta("dungeon_battle_cleared") and get_tree().get_meta("dungeon_battle_cleared") == true
 	if battle_cleared:
 		start_button.disabled = true
 		reward_button.disabled = false
