@@ -41,13 +41,40 @@ func _ready() -> void:
 	_setup_build_selection()
 
 
+func _set_action_buttons_for_build(build: BuildData) -> void:
+	# 공통 전투 버튼은 모든 빌드에서 표시합니다.
+	roll_button.show()
+	reroll_button.show()
+	confirm_button.show()
+	attack_button.show()
+
+	# 빌드에 실제 기능이 있는 버튼만 표시합니다.
+	ability_button.visible = build != null and build.ability_data != null
+	healing_dice_button.visible = build != null and build.healing_dice_data != null
+
+	if ability_button.visible:
+		ability_button.text = build.ability_data.display_name
+	else:
+		ability_button.hide()
+
+	if not healing_dice_button.visible:
+		healing_dice_button.hide()
+
+
+func _hide_optional_action_buttons() -> void:
+	ability_button.hide()
+	healing_dice_button.hide()
+
+
 func _setup_build_selection() -> void:
 	var builds: Array[BuildData] = [matching_build, straight_build, healing_build]
 	for index in build_buttons.size():
 		var build := builds[index]
 		build_buttons[index].text = "%s\n%s" % [build.display_name, build.description]
-		build_buttons[index].pressed.connect(_on_build_selected.bind(build))
+		if not build_buttons[index].pressed.is_connected(_on_build_selected.bind(build)):
+			build_buttons[index].pressed.connect(_on_build_selected.bind(build))
 	build_selection_panel.show()
+	_hide_optional_action_buttons()
 	restart_build_button.hide()
 	status_label.text = "빌드를 선택하면 전투가 시작됩니다."
 
@@ -72,9 +99,7 @@ func _on_build_selected(build: BuildData) -> void:
 	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
 	$MarginContainer/Content/EnemyHpLabel.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	selected_build_label.text = "선택한 빌드: %s — %s" % [build.display_name, build.description]
-	ability_button.text = build.ability_data.display_name if build.ability_data != null else "스킬 없음"
-	ability_button.visible = build.ability_data != null
-	healing_dice_button.visible = build.healing_dice_data != null
+	_set_action_buttons_for_build(build)
 	for dice_index in 3:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
