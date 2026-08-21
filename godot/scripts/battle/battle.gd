@@ -18,6 +18,7 @@ extends Control
 @onready var ability_button: Button = $MarginContainer/Content/ActionButtons/AbilityButton
 @onready var healing_dice_button: Button = $MarginContainer/Content/ActionButtons/HealingDiceButton
 @onready var attack_button: Button = $MarginContainer/Content/ActionButtons/AttackButton
+@onready var restart_build_button: Button = $MarginContainer/Content/RestartBuildButton
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
 @onready var selected_build_label: Label = $MarginContainer/Content/SelectedBuildLabel
 @onready var build_selection_panel: PanelContainer = $BuildSelectionPanel
@@ -46,6 +47,7 @@ func _setup_build_selection() -> void:
 		build_buttons[index].text = "%s\n%s" % [build.display_name, build.description]
 		build_buttons[index].pressed.connect(_on_build_selected.bind(build))
 	build_selection_panel.show()
+	restart_build_button.hide()
 	status_label.text = "빌드를 선택하면 전투가 시작됩니다."
 
 
@@ -60,15 +62,26 @@ func _on_build_selected(build: BuildData) -> void:
 	ability = Ability.new(ability_data)
 	equipment = Equipment.new(equipment_data)
 	healing_dice = HealingDice.new(healing_dice_data)
+	dice_states.clear()
+	is_battle_over = false
+	calculated_attack_damage = 0
 	$MarginContainer/Content/PlayerNameLabel.text = player.player_data.display_name
 	$MarginContainer/Content/EnemyNameLabel.text = enemy.enemy_data.display_name
 	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
 	$MarginContainer/Content/EnemyHpLabel.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	selected_build_label.text = "선택한 빌드: %s — %s" % [build.display_name, build.description]
+	ability_button.text = build.ability_data.display_name if build.ability_data != null else "스킬 없음"
+	ability_button.visible = build.ability_data != null
+	healing_dice_button.visible = build.healing_dice_data != null
 	for dice_index in 3:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
-	_start_turn()
+	restart_build_button.hide()
+	_start_turn("%s을(를) 선택했습니다. 주사위를 굴려 빌드의 핵심 조합을 시험해보세요." % build.display_name)
+
+
+func _on_restart_build_button_pressed() -> void:
+	_setup_build_selection()
 
 
 func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투를 시작하세요.") -> void:
@@ -85,6 +98,7 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	ability_button.disabled = true
 	healing_dice_button.disabled = healing_dice_data == null
 	attack_button.disabled = true
+	restart_build_button.hide()
 	status_label.text = status_message
 
 
@@ -186,7 +200,8 @@ func _handle_victory() -> void:
 	ability_button.disabled = true
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
-	status_label.text = "승리했습니다! %s을(를) 쓰러뜨렸습니다." % enemy.enemy_data.display_name
+	restart_build_button.show()
+	status_label.text = "%s 승리! 다른 빌드를 시험하려면 아래 버튼을 누르세요." % selected_build.display_name
 
 
 func _handle_defeat() -> void:
@@ -198,7 +213,8 @@ func _handle_defeat() -> void:
 	ability_button.disabled = true
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
-	status_label.text = "패배했습니다. %s에게 쓰러졌습니다." % enemy.enemy_data.display_name
+	restart_build_button.show()
+	status_label.text = "%s 빌드로 패배했습니다. 다른 빌드를 시험해보세요." % selected_build.display_name
 
 
 func _calculate_attack_damage() -> int:
