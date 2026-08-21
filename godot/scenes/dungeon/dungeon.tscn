@@ -1,0 +1,78 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource path="res://scripts/dungeon/dungeon.gd" type="Script" id="1"]
+[ext_resource path="res://resources/dungeon_nodes/start_battle.tres" type="Resource" id="2"]
+[ext_resource path="res://resources/dungeon_nodes/reward_1.tres" type="Resource" id="3"]
+
+[node name="Dungeon" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+start_node_data = ExtResource("2")
+reward_node_data = ExtResource("3")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.055, 0.065, 0.09, 1)
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 50
+
+[node name="Content" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "DUNGEON"
+horizontal_alignment = 1
+
+[node name="Map" type="HBoxContainer" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_constants/separation = 32
+alignment = 1
+
+[node name="StartBattleButton" type="Button" parent="MarginContainer/Content"]
+custom_minimum_size = Vector2(260, 130)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "일반 전투"
+
+[node name="ConnectionLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+text = "↓"
+horizontal_alignment = 1
+
+[node name="RewardButton" type="Button" parent="MarginContainer/Content"]
+custom_minimum_size = Vector2(260, 130)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "보상"
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "현재 위치에서 진행할 노드를 선택하세요."
+horizontal_alignment = 1
+
+[connection signal="pressed" from="MarginContainer/Content/StartBattleButton" to="." method="_on_start_battle_button_pressed"]
