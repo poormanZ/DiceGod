@@ -42,21 +42,16 @@ func _ready() -> void:
 
 
 func _set_action_buttons_for_build(build: BuildData) -> void:
-	# 공통 전투 버튼은 모든 빌드에서 표시합니다.
 	roll_button.show()
 	reroll_button.show()
 	confirm_button.show()
 	attack_button.show()
-
-	# 빌드에 실제 기능이 있는 버튼만 표시합니다.
 	ability_button.visible = build != null and build.ability_data != null
 	healing_dice_button.visible = build != null and build.healing_dice_data != null
-
 	if ability_button.visible:
 		ability_button.text = build.ability_data.display_name
 	else:
 		ability_button.hide()
-
 	if not healing_dice_button.visible:
 		healing_dice_button.hide()
 
@@ -133,7 +128,6 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 func _on_roll_button_pressed() -> void:
 	if is_battle_over:
 		return
-
 	for dice_state in dice_states:
 		dice_roller.roll(dice_state)
 	dice_roll_panel.display_results(dice_states)
@@ -173,7 +167,6 @@ func _on_ability_button_pressed() -> void:
 	if bonus <= 0:
 		ability_button.disabled = true
 		return
-
 	calculated_attack_damage += bonus
 	ability_button.disabled = true
 	status_label.text = "%s 사용: 공격력 +%d (총 %d)" % [ability.ability_data.display_name, bonus, calculated_attack_damage]
@@ -185,7 +178,6 @@ func _on_healing_dice_button_pressed() -> void:
 	if not healing_dice.roll():
 		healing_dice_button.disabled = true
 		return
-
 	var healing_amount := healing_dice.get_healing_amount()
 	player.heal(healing_amount)
 	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
@@ -201,7 +193,6 @@ func _on_attack_button_pressed() -> void:
 	if enemy.current_hp <= 0:
 		_handle_victory()
 		return
-
 	_perform_enemy_action()
 
 
@@ -209,19 +200,18 @@ func _perform_enemy_action() -> void:
 	if equipment.can_evade(dice_states):
 		_start_turn("%s이(가) 스트레이트를 만들어 적의 공격을 회피했습니다." % equipment.equipment_data.display_name)
 		return
-
 	var enemy_damage := enemy.roll_attack_damage()
 	player.take_damage(enemy_damage)
 	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
 	if player.current_hp <= 0:
 		_handle_defeat()
 		return
-
 	_start_turn("%s이(가) %d을 굴려 %d 피해를 입혔습니다. 다음 턴을 시작하세요." % [enemy.enemy_data.display_name, enemy_damage, enemy_damage])
 
 
 func _handle_victory() -> void:
 	is_battle_over = true
+	get_tree().set_meta("dungeon_battle_cleared", true)
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	roll_button.disabled = true
 	reroll_button.disabled = true
@@ -229,8 +219,9 @@ func _handle_victory() -> void:
 	ability_button.disabled = true
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
-	restart_build_button.show()
-	status_label.text = "%s 승리! 다른 빌드를 시험하려면 아래 버튼을 누르세요." % selected_build.display_name
+	status_label.text = "%s 승리! 던전으로 돌아갑니다." % selected_build.display_name
+	await get_tree().create_timer(0.8).timeout
+	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
 
 func _handle_defeat() -> void:
