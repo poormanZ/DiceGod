@@ -76,6 +76,9 @@ func _on_build_selected(build: BuildData) -> void:
 	equipment_data = build.equipment_data
 	healing_dice_data = build.healing_dice_data
 	player = Player.new(player_data)
+	var shop_heal: int = int(get_tree().get_meta("dungeon_shop_heal", 0))
+	if shop_heal > 0:
+		player.heal(shop_heal)
 	enemy = Enemy.new(enemy_data)
 	ability = Ability.new(ability_data)
 	equipment = Equipment.new(equipment_data)
@@ -89,8 +92,9 @@ func _on_build_selected(build: BuildData) -> void:
 	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
 	$MarginContainer/Content/EnemyHpLabel.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	var event_bonus: int = get_tree().get_meta("dungeon_event_attack_bonus", 0)
-	if event_bonus > 0:
-		selected_build_label.text = "선택한 빌드: %s — %s | 이벤트 보너스 공격력 +%d" % [build.display_name, build.description, event_bonus]
+	var shop_bonus: int = get_tree().get_meta("dungeon_shop_attack_bonus", 0)
+	if event_bonus > 0 or shop_bonus > 0:
+		selected_build_label.text = "선택한 빌드: %s — %s | 보너스 공격력 +%d" % [build.display_name, build.description, event_bonus + shop_bonus]
 	else:
 		selected_build_label.text = "선택한 빌드: %s — %s" % [build.display_name, build.description]
 	_set_action_buttons_for_build(build)
@@ -229,7 +233,9 @@ func _calculate_attack_damage() -> int:
 	for dice_state in dice_states:
 		attack_damage += dice_state.result
 	var event_bonus: int = get_tree().get_meta("dungeon_event_attack_bonus", 0)
-	if event_bonus > 0:
-		attack_damage += event_bonus
-		get_tree().set_meta("dungeon_event_attack_bonus", 0)
+	var shop_bonus: int = get_tree().get_meta("dungeon_shop_attack_bonus", 0)
+	attack_damage += event_bonus + shop_bonus
+	get_tree().set_meta("dungeon_event_attack_bonus", 0)
+	get_tree().set_meta("dungeon_shop_attack_bonus", 0)
+	get_tree().set_meta("dungeon_shop_heal", 0)
 	return attack_damage
