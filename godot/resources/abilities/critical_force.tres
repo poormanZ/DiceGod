@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/character/ability_data.gd" id="1_ability_data"]
+
+[resource]
+script = ExtResource("1_ability_data")
+display_name = "치명적인 힘"
+description = "같은 숫자가 2개 이상이면 공격력 +3, 3개 이상이면 공격력 +5"
+matching_pair_bonus = 3
+matching_triple_bonus = 5
