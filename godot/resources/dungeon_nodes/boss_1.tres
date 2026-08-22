@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DungeonNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeon/dungeon_node_data.gd" id="1_dungeon_node"]
+
+[resource]
+script = ExtResource("1_dungeon_node")
+node_id = "boss_1"
+display_name = "던전 보스"
+description = "강력한 보스를 쓰러뜨리고 던전을 클리어합니다."
+node_type = 5
+next_node_ids = []
+is_start_node = false
+is_end_node = true
