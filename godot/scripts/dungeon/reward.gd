@@ -18,12 +18,15 @@ const REWARDS := {
 }
 
 func _ready() -> void:
-	reward_options = REWARDS.keys()
-	reward_options.shuffle()
-	reward_options.resize(reward_buttons.size())
+	var available_rewards: Array[String] = []
+	for reward_key in REWARDS.keys():
+		available_rewards.append(str(reward_key))
+	available_rewards.shuffle()
+	reward_options = available_rewards.slice(0, reward_buttons.size())
 	for index in reward_buttons.size():
 		var reward_id: String = reward_options[index]
-		reward_buttons[index].text = "%s\n%s" % [REWARDS[reward_id].label, REWARDS[reward_id].description]
+		var reward_data: Dictionary = REWARDS[reward_id]
+		reward_buttons[index].text = "%s\n%s" % [reward_data["label"], reward_data["description"]]
 		reward_buttons[index].disabled = false
 	status_label.text = "무작위 보상 3개 중 하나를 선택하세요."
 
@@ -33,19 +36,19 @@ func _claim_reward(reward_id: String) -> void:
 	reward_claimed = true
 	RunState.reward_claimed = true
 	RunState.reward_id = reward_id
-	var reward = REWARDS[reward_id]
+	var reward: Dictionary = REWARDS[reward_id]
 	match reward_id:
 		"gold":
-			RunState.add_gold(int(reward.value))
+			RunState.add_gold(int(reward["value"]))
 		"heal":
-			RunState.heal(int(reward.value))
+			RunState.heal(int(reward["value"]))
 		"dice":
-			RunState.unlocked_dice_bonus += int(reward.value)
+			RunState.unlocked_dice_bonus += int(reward["value"])
 		"attack":
-			RunState.attack_bonus += int(reward.value)
+			RunState.attack_bonus += int(reward["value"])
 	for button in reward_buttons:
 		button.disabled = true
-	status_label.text = "%s 보상을 획득했습니다!\n%s" % [reward.label, RunState.get_run_summary()]
+	status_label.text = "%s 보상을 획득했습니다!\n%s" % [reward["label"], RunState.get_run_summary()]
 	await get_tree().create_timer(0.8).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
