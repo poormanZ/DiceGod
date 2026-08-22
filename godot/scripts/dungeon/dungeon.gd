@@ -8,12 +8,12 @@ extends Control
 @export var elite_node_data: DungeonNodeData
 @export var boss_node_data: DungeonNodeData
 
-@onready var start_button: Button = $MarginContainer/Content/Map/StartBattleButton
-@onready var reward_button: Button = $MarginContainer/Content/Map/RewardButton
-@onready var event_button: Button = $MarginContainer/Content/Map/EventButton
-@onready var shop_button: Button = $MarginContainer/Content/Map/ShopButton
-@onready var elite_button: Button = $MarginContainer/Content/Map/EliteButton
-@onready var boss_button: Button = $MarginContainer/Content/Map/BossButton
+@onready var start_button: Button = $MarginContainer/Content/Map/Row1/StartBattleButton
+@onready var reward_button: Button = $MarginContainer/Content/Map/Row1/RewardButton
+@onready var event_button: Button = $MarginContainer/Content/Map/Row1/EventButton
+@onready var shop_button: Button = $MarginContainer/Content/Map/Row2/ShopButton
+@onready var elite_button: Button = $MarginContainer/Content/Map/Row2/EliteButton
+@onready var boss_button: Button = $MarginContainer/Content/Map/Row2/BossButton
 @onready var new_run_button: Button = $MarginContainer/Content/NewRunButton
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
 
