@@ -1,0 +1,75 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://scripts/dungeon/event.gd" type="Script" id="1"]
+
+[node name="Event" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.055, 0.065, 0.09, 1)
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 70
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 70
+
+[node name="Content" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = "EVENT · 수상한 제단"
+horizontal_alignment = 1
+
+[node name="DescriptionLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "고대의 제단이 당신의 힘을 시험합니다.\n위험을 감수하면 다음 전투에 도움이 될 힘을 얻을 수 있습니다."
+horizontal_alignment = 1
+
+[node name="Choices" type="VBoxContainer" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RiskyButton" type="Button" parent="MarginContainer/Content/Choices"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "힘을 받는다\n다음 전투 공격력 +2"
+
+[node name="SafeButton" type="Button" parent="MarginContainer/Content/Choices"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "안전하게 지나간다\n효과 없음"
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "제단 앞에서 선택하세요."
+horizontal_alignment = 1
+
+[connection signal="pressed" from="MarginContainer/Content/Choices/RiskyButton" to="." method="_on_risky_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Content/Choices/SafeButton" to="." method="_on_safe_button_pressed"]
