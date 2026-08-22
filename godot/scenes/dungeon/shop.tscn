@@ -71,11 +71,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "주사위 강화 — 75G\n다음 전투 공격력 +5"
 
-[node name="HealButton" type="Button" parent="MarginContainer/Content/ShopChoices"]
+[node name="CharmButton" type="Button" parent="MarginContainer/Content/ShopChoices"]
 custom_minimum_size = Vector2(0, 90)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "회복 물약 — 40G\n다음 전투 시작 HP +20"
+text = "행운의 부적 — 40G\n다음 전투 공격력 +2"
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
@@ -85,4 +85,4 @@ horizontal_alignment = 1
 
 [connection signal="pressed" from="MarginContainer/Content/ShopChoices/AttackButton" to="." method="_on_attack_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/ShopChoices/DiceButton" to="." method="_on_dice_button_pressed"]
-[connection signal="pressed" from="MarginContainer/Content/ShopChoices/HealButton" to="." method="_on_heal_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Content/ShopChoices/CharmButton" to="." method="_on_charm_button_pressed"]
