@@ -11,6 +11,7 @@ extends Control
 @export var straight_build: BuildData
 @export var healing_build: BuildData
 @export var is_elite_battle: bool = false
+@export var is_boss_battle: bool = false
 
 @onready var dice_roll_panel: DiceRollPanel = $MarginContainer/Content/DiceRollPanel
 @onready var roll_button: Button = $MarginContainer/Content/ActionButtons/RollButton
@@ -205,7 +206,9 @@ func _perform_enemy_action() -> void:
 
 func _handle_victory() -> void:
 	is_battle_over = true
-	if is_elite_battle:
+	if is_boss_battle:
+		get_tree().set_meta("dungeon_boss_cleared", true)
+	elif is_elite_battle:
 		get_tree().set_meta("dungeon_elite_cleared", true)
 	else:
 		get_tree().set_meta("dungeon_battle_cleared", true)
