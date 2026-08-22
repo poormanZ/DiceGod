@@ -48,7 +48,6 @@ func end_run() -> void:
 	ProgressionState.record_run_loss()
 
 func complete_run() -> void:
-	active_run = false
 	ProgressionState.record_run_win()
 
 func heal(amount: int) -> void:
