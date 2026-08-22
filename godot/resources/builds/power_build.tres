@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BuildData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/character/build_data.gd" id="1_build"]
+[ext_resource type="Resource" path="res://resources/dice/power_dice.tres" id="2_dice"]
+[ext_resource type="Resource" path="res://resources/abilities/matching_numbers.tres" id="3_ability"]
+
+[resource]
+script = ExtResource("1_build")
+display_name = "힘의 주사위"
+description = "높은 평균값을 노리는 영구 해금 공격 빌드"
+dice_data = ExtResource("2_dice")
+ability_data = ExtResource("3_ability")
