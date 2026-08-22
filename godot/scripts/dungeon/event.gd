@@ -16,6 +16,7 @@ func _resolve_event(result_id: String, result_text: String) -> void:
 	resolved = true
 	get_tree().set_meta("dungeon_event_resolved", true)
 	get_tree().set_meta("dungeon_event_id", result_id)
+	get_tree().set_meta("dungeon_event_attack_bonus", 2 if result_id == "power" else 0)
 	risky_button.disabled = true
 	safe_button.disabled = true
 	status_label.text = result_text
