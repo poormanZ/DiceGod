@@ -5,3 +5,4 @@ extends Resource
 @export var display_name: String = ""
 @export_multiline var description: String = ""
 @export var evades_straight_attacks: bool = false
+@export var attack_bonus: int = 0
