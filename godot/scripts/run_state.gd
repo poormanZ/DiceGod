@@ -41,9 +41,15 @@ func start_new_run() -> void:
 	reward_id = ""
 	event_id = ""
 	shop_item_id = ""
+	ProgressionState.record_run_start()
 
 func end_run() -> void:
 	active_run = false
+	ProgressionState.record_run_loss()
+
+func complete_run() -> void:
+	active_run = false
+	ProgressionState.record_run_win()
 
 func heal(amount: int) -> void:
 	current_hp = mini(max_hp, current_hp + maxi(0, amount))
@@ -55,4 +61,4 @@ func add_gold(amount: int) -> void:
 	gold = maxi(0, gold + amount)
 
 func get_run_summary() -> String:
-	return "런 #%d | 골드 %d | HP %d/%d | 주사위 +%d | 공격력 +%d" % [run_number, gold, current_hp, max_hp, unlocked_dice_bonus, attack_bonus]
+	return "런 #%d | 골드 %d | HP %d/%d | 주사위 +%d | 공격력 +%d" % [run_number, gold, current_hp, max_hp, attack_bonus, unlocked_dice_bonus]
