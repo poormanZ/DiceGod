@@ -233,8 +233,10 @@ func _handle_defeat() -> void:
 	ability_button.disabled = true
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
-	restart_build_button.show()
-	status_label.text = "런이 종료되었습니다. HP가 0이 되었습니다.\n새 런을 시작하려면 던전으로 돌아가세요."
+	restart_build_button.hide()
+	status_label.text = "런이 종료되었습니다. HP가 0이 되었습니다."
+	await get_tree().create_timer(1.2).timeout
+	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
 func _calculate_attack_damage() -> int:
 	var attack_damage := 0
