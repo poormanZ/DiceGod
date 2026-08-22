@@ -10,6 +10,7 @@ extends Control
 @export var matching_build: BuildData
 @export var straight_build: BuildData
 @export var healing_build: BuildData
+@export var power_build: BuildData
 @export var is_elite_battle: bool = false
 @export var is_boss_battle: bool = false
 
@@ -24,7 +25,7 @@ extends Control
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
 @onready var selected_build_label: Label = $MarginContainer/Content/SelectedBuildLabel
 @onready var build_selection_panel: PanelContainer = $BuildSelectionPanel
-@onready var build_buttons: Array[Button] = [$BuildSelectionPanel/Margin/VBox/MatchingBuildButton, $BuildSelectionPanel/Margin/VBox/StraightBuildButton, $BuildSelectionPanel/Margin/VBox/HealingBuildButton]
+@onready var build_buttons: Array[Button] = [$BuildSelectionPanel/Margin/VBox/MatchingBuildButton, $BuildSelectionPanel/Margin/VBox/StraightBuildButton, $BuildSelectionPanel/Margin/VBox/HealingBuildButton, $BuildSelectionPanel/Margin/VBox/PowerBuildButton]
 
 var dice_states: Array[DiceRuntimeState] = []
 var dice_roller := DiceRoller.new()
@@ -60,10 +61,13 @@ func _hide_optional_action_buttons() -> void:
 	healing_dice_button.hide()
 
 func _setup_build_selection() -> void:
-	var builds: Array[BuildData] = [matching_build, straight_build, healing_build]
+	var builds: Array[BuildData] = [matching_build, straight_build, healing_build, power_build]
 	for index in build_buttons.size():
 		var build := builds[index]
 		build_buttons[index].text = "%s\n%s" % [build.display_name, build.description]
+		build_buttons[index].disabled = index == 3 and not ProgressionState.is_dice_unlocked("power_dice")
+		if index == 3 and build_buttons[index].disabled:
+			build_buttons[index].text += "\n🔒 보스 클리어 후 해금"
 		if not build_buttons[index].pressed.is_connected(_on_build_selected.bind(build)):
 			build_buttons[index].pressed.connect(_on_build_selected.bind(build))
 	build_selection_panel.show()
@@ -208,6 +212,8 @@ func _handle_victory() -> void:
 	RunState.current_hp = player.current_hp
 	if is_boss_battle:
 		RunState.boss_cleared = true
+		RunState.complete_run()
+		ProgressionState.unlock_dice("power_dice")
 	elif is_elite_battle:
 		RunState.elite_cleared = true
 	else:
@@ -219,7 +225,7 @@ func _handle_victory() -> void:
 	ability_button.disabled = true
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
-	status_label.text = "%s 승리!\n%s" % [selected_build.display_name, RunState.get_run_summary()]
+	status_label.text = "%s 승리!\n%s\n%s" % [selected_build.display_name, RunState.get_run_summary(), ProgressionState.get_unlock_summary()]
 	await get_tree().create_timer(0.8).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
