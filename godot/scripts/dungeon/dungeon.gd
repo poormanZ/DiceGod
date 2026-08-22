@@ -6,6 +6,7 @@ extends Control
 
 @onready var start_button: Button = $MarginContainer/Content/StartBattleButton
 @onready var reward_button: Button = $MarginContainer/Content/RewardButton
+@onready var new_run_button: Button = $MarginContainer/Content/NewRunButton
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
 
 func _ready() -> void:
@@ -15,6 +16,7 @@ func _ready() -> void:
 func _setup_node_buttons() -> void:
 	start_button.text = "⚔ 일반 전투\n%s" % start_node_data.description
 	reward_button.text = "★ 보상\n%s" % reward_node_data.description
+	new_run_button.hide()
 	status_label.text = "현재 위치에서 진행할 노드를 선택하세요."
 
 func _update_progress() -> void:
@@ -24,14 +26,17 @@ func _update_progress() -> void:
 	if reward_claimed:
 		start_button.disabled = true
 		reward_button.disabled = true
+		new_run_button.show()
 		status_label.text = "던전 완료! 보상을 획득했습니다."
 	elif battle_cleared:
 		start_button.disabled = true
 		reward_button.disabled = false
+		new_run_button.hide()
 		status_label.text = "전투를 완료했습니다. 보상 노드를 선택하세요."
 	else:
 		start_button.disabled = false
 		reward_button.disabled = true
+		new_run_button.hide()
 
 func _on_start_battle_button_pressed() -> void:
 	status_label.text = "전투로 이동합니다."
@@ -40,3 +45,10 @@ func _on_start_battle_button_pressed() -> void:
 func _on_reward_button_pressed() -> void:
 	status_label.text = "보상으로 이동합니다."
 	get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
+
+func _on_new_run_button_pressed() -> void:
+	get_tree().set_meta("dungeon_battle_cleared", false)
+	get_tree().set_meta("dungeon_reward_claimed", false)
+	get_tree().set_meta("dungeon_reward_id", "")
+	status_label.text = "새 던전을 시작합니다."
+	_update_progress()
