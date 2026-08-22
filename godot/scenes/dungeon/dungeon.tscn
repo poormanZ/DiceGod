@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource path="res://scripts/dungeon/dungeon.gd" type="Script" id="1"]
 [ext_resource path="res://resources/dungeon_nodes/start_battle.tres" type="Resource" id="2"]
 [ext_resource path="res://resources/dungeon_nodes/reward_1.tres" type="Resource" id="3"]
 [ext_resource path="res://resources/dungeon_nodes/event_1.tres" type="Resource" id="4"]
+[ext_resource path="res://resources/dungeon_nodes/shop_1.tres" type="Resource" id="5"]
 
 [node name="Dungeon" type="Control"]
 layout_mode = 3
@@ -16,6 +17,7 @@ script = ExtResource("1")
 start_node_data = ExtResource("2")
 reward_node_data = ExtResource("3")
 event_node_data = ExtResource("4")
+shop_node_data = ExtResource("5")
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -34,9 +36,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 80
+theme_override_constants/margin_left = 50
 theme_override_constants/margin_top = 50
-theme_override_constants/margin_right = 80
+theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 50
 
 [node name="Content" type="VBoxContainer" parent="MarginContainer"]
@@ -51,13 +53,13 @@ horizontal_alignment = 1
 
 [node name="Map" type="HBoxContainer" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="StartBattleButton" type="Button" parent="MarginContainer/Content/Map"]
-custom_minimum_size = Vector2(210, 120)
+custom_minimum_size = Vector2(190, 120)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "일반 전투"
 
 [node name="Connection1" type="Label" parent="MarginContainer/Content/Map"]
@@ -66,9 +68,9 @@ text = "→"
 vertical_alignment = 1
 
 [node name="RewardButton" type="Button" parent="MarginContainer/Content/Map"]
-custom_minimum_size = Vector2(210, 120)
+custom_minimum_size = Vector2(190, 120)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "보상"
 
 [node name="Connection2" type="Label" parent="MarginContainer/Content/Map"]
@@ -77,10 +79,21 @@ text = "→"
 vertical_alignment = 1
 
 [node name="EventButton" type="Button" parent="MarginContainer/Content/Map"]
-custom_minimum_size = Vector2(210, 120)
+custom_minimum_size = Vector2(190, 120)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "이벤트"
+
+[node name="Connection3" type="Label" parent="MarginContainer/Content/Map"]
+layout_mode = 2
+text = "→"
+vertical_alignment = 1
+
+[node name="ShopButton" type="Button" parent="MarginContainer/Content/Map"]
+custom_minimum_size = Vector2(190, 120)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "상점"
 
 [node name="NewRunButton" type="Button" parent="MarginContainer/Content"]
 custom_minimum_size = Vector2(260, 70)
@@ -97,4 +110,5 @@ horizontal_alignment = 1
 [connection signal="pressed" from="MarginContainer/Content/Map/StartBattleButton" to="." method="_on_start_battle_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/Map/RewardButton" to="." method="_on_reward_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/Map/EventButton" to="." method="_on_event_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Content/Map/ShopButton" to="." method="_on_shop_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/NewRunButton" to="." method="_on_new_run_button_pressed"]
