@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DungeonNodeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dungeon/dungeon_node_data.gd" id="1_dungeon_node"]
+
+[resource]
+script = ExtResource("1_dungeon_node")
+node_id = "shop_1"
+display_name = "떠돌이 상인"
+description = "골드를 사용해 다음 전투에 도움이 되는 아이템 하나를 구매합니다."
+node_type = 2
+next_node_ids = []
+is_start_node = false
+is_end_node = false
