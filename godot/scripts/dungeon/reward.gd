@@ -11,6 +11,8 @@ extends Control
 var reward_claimed: bool = false
 
 func _ready() -> void:
+	if not get_tree().has_meta("dungeon_gold"):
+		get_tree().set_meta("dungeon_gold", 100)
 	for button in reward_buttons:
 		button.disabled = false
 	status_label.text = "보상 하나를 선택하세요."
@@ -21,9 +23,12 @@ func _claim_reward(reward_id: String, reward_text: String) -> void:
 	reward_claimed = true
 	get_tree().set_meta("dungeon_reward_claimed", true)
 	get_tree().set_meta("dungeon_reward_id", reward_id)
+	if reward_id == "gold":
+		var gold: int = int(get_tree().get_meta("dungeon_gold", 100))
+		get_tree().set_meta("dungeon_gold", gold + 50)
 	for button in reward_buttons:
 		button.disabled = true
-	status_label.text = "%s 보상을 획득했습니다!\n던전 완료" % reward_text
+	status_label.text = "%s 보상을 획득했습니다!\n다음은 이벤트 노드입니다." % reward_text
 	await get_tree().create_timer(0.8).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
