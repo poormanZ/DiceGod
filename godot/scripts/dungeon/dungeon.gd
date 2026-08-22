@@ -70,6 +70,5 @@ func _on_new_run_button_pressed() -> void:
 	get_tree().set_meta("dungeon_reward_id", "")
 	get_tree().set_meta("dungeon_event_resolved", false)
 	get_tree().set_meta("dungeon_event_id", "")
-	get_tree().set_meta("dungeon_event_attack_bonus", 0)
-	status_label.text = "새 던전을 시작합니다."
+	status_label.text = "새 던전을 시작합니다. 이벤트 보너스가 있다면 다음 전투에 적용됩니다."
 	_update_progress()
