@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/enemy_data.gd" id="1_enemy_data"]
+[ext_resource type="Resource" path="res://resources/dice/basic_dice.tres" id="2_basic_dice"]
+
+[resource]
+script = ExtResource("1_enemy_data")
+display_name = "던전 보스"
+max_hp = 60
+attack_dice = ExtResource("2_basic_dice")
