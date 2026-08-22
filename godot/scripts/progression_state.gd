@@ -57,6 +57,9 @@ func is_ability_unlocked(ability_id: String) -> bool:
 func is_equipment_unlocked(equipment_id: String) -> bool:
 	return unlocked_equipment.has(equipment_id)
 
+func get_unlock_summary() -> String:
+	return "영구 해금: 주사위 %d | 스킬 %d | 장비 %d" % [unlocked_dice.size(), unlocked_abilities.size(), unlocked_equipment.size()]
+
 func save_progression() -> void:
 	var data := {
 		"version": save_version,
