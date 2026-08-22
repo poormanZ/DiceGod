@@ -5,3 +5,4 @@
 
 [node name="Battle" instance=ExtResource("1_battle")]
 enemy_data = ExtResource("2_elite_slime")
+is_elite_battle = true
