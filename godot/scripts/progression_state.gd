@@ -31,6 +31,9 @@ func unlock_dice(dice_id: String) -> bool:
 	if unlocked_dice.has(dice_id):
 		return false
 	unlocked_dice.append(dice_id)
+	if dice_id == "power_dice":
+		unlock_ability("critical_force")
+		unlock_equipment("war_amulet")
 	save_progression()
 	return true
 
