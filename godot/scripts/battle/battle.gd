@@ -73,14 +73,13 @@ func _setup_build_selection() -> void:
 
 func _on_build_selected(build: BuildData) -> void:
 	selected_build = build
+	RunState.selected_build_id = build.display_name
 	dice_data = build.dice_data
 	ability_data = build.ability_data
 	equipment_data = build.equipment_data
 	healing_dice_data = build.healing_dice_data
 	player = Player.new(player_data)
-	var shop_heal: int = int(get_tree().get_meta("dungeon_shop_heal", 0))
-	if shop_heal > 0:
-		player.heal(shop_heal)
+	player.current_hp = clampi(RunState.current_hp, 1, player.player_data.max_hp)
 	enemy = Enemy.new(enemy_data)
 	ability = Ability.new(ability_data)
 	equipment = Equipment.new(equipment_data)
@@ -91,20 +90,18 @@ func _on_build_selected(build: BuildData) -> void:
 	healing_dice_used = false
 	$MarginContainer/Content/PlayerNameLabel.text = player.player_data.display_name
 	$MarginContainer/Content/EnemyNameLabel.text = enemy.enemy_data.display_name
-	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
+	_update_player_hp_label()
 	$MarginContainer/Content/EnemyHpLabel.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
-	var event_bonus: int = get_tree().get_meta("dungeon_event_attack_bonus", 0)
-	var shop_bonus: int = get_tree().get_meta("dungeon_shop_attack_bonus", 0)
-	if event_bonus > 0 or shop_bonus > 0:
-		selected_build_label.text = "선택한 빌드: %s — %s | 보너스 공격력 +%d" % [build.display_name, build.description, event_bonus + shop_bonus]
-	else:
-		selected_build_label.text = "선택한 빌드: %s — %s" % [build.display_name, build.description]
+	selected_build_label.text = "선택한 빌드: %s — %s\n런 보너스: 공격력 +%d / 주사위 강화 +%d" % [build.display_name, build.description, RunState.attack_bonus, RunState.unlocked_dice_bonus]
 	_set_action_buttons_for_build(build)
 	for dice_index in 3:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
 	restart_build_button.hide()
-	_start_turn("%s을(를) 선택했습니다. 주사위를 굴려 빌드의 핵심 조합을 시험해보세요." % build.display_name)
+	_start_turn("%s을(를) 선택했습니다. 현재 런 빌드 상태를 적용했습니다." % build.display_name)
+
+func _update_player_hp_label() -> void:
+	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
 
 func _on_restart_build_button_pressed() -> void:
 	_setup_build_selection()
@@ -178,10 +175,11 @@ func _on_healing_dice_button_pressed() -> void:
 		return
 	var healing_amount := healing_dice.get_healing_amount()
 	player.heal(healing_amount)
-	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
+	RunState.current_hp = player.current_hp
+	_update_player_hp_label()
 	healing_dice_used = true
 	healing_dice_button.disabled = true
-	status_label.text = "힐 주사위 %d: HP를 %d 회복했습니다. (이번 턴 사용 완료)" % [healing_dice.runtime_state.result, healing_amount]
+	status_label.text = "힐 주사위 %d: HP를 %d 회복했습니다." % [healing_dice.runtime_state.result, healing_amount]
 
 func _on_attack_button_pressed() -> void:
 	enemy.take_damage(calculated_attack_damage)
@@ -198,20 +196,22 @@ func _perform_enemy_action() -> void:
 		return
 	var enemy_damage := enemy.roll_attack_damage()
 	player.take_damage(enemy_damage)
-	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
+	RunState.current_hp = player.current_hp
+	_update_player_hp_label()
 	if player.current_hp <= 0:
 		_handle_defeat()
 		return
-	_start_turn("%s이(가) %d을 굴려 %d 피해를 입혔습니다. 다음 턴을 시작하세요." % [enemy.enemy_data.display_name, enemy_damage, enemy_damage])
+	_start_turn("%s이(가) %d 피해를 입혔습니다. 다음 턴을 시작하세요." % [enemy.enemy_data.display_name, enemy_damage])
 
 func _handle_victory() -> void:
 	is_battle_over = true
+	RunState.current_hp = player.current_hp
 	if is_boss_battle:
-		get_tree().set_meta("dungeon_boss_cleared", true)
+		RunState.boss_cleared = true
 	elif is_elite_battle:
-		get_tree().set_meta("dungeon_elite_cleared", true)
+		RunState.elite_cleared = true
 	else:
-		get_tree().set_meta("dungeon_battle_cleared", true)
+		RunState.battle_cleared = true
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	roll_button.disabled = true
 	reroll_button.disabled = true
@@ -219,12 +219,13 @@ func _handle_victory() -> void:
 	ability_button.disabled = true
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
-	status_label.text = "%s 승리! 던전으로 돌아갑니다." % selected_build.display_name
+	status_label.text = "%s 승리!\n%s" % [selected_build.display_name, RunState.get_run_summary()]
 	await get_tree().create_timer(0.8).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
 func _handle_defeat() -> void:
 	is_battle_over = true
+	RunState.end_run()
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	roll_button.disabled = true
 	reroll_button.disabled = true
@@ -233,16 +234,11 @@ func _handle_defeat() -> void:
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
 	restart_build_button.show()
-	status_label.text = "%s 빌드로 패배했습니다. 다른 빌드를 시험해보세요." % selected_build.display_name
+	status_label.text = "런이 종료되었습니다. HP가 0이 되었습니다.\n새 런을 시작하려면 던전으로 돌아가세요."
 
 func _calculate_attack_damage() -> int:
 	var attack_damage := 0
 	for dice_state in dice_states:
 		attack_damage += dice_state.result
-	var event_bonus: int = get_tree().get_meta("dungeon_event_attack_bonus", 0)
-	var shop_bonus: int = get_tree().get_meta("dungeon_shop_attack_bonus", 0)
-	attack_damage += event_bonus + shop_bonus
-	get_tree().set_meta("dungeon_event_attack_bonus", 0)
-	get_tree().set_meta("dungeon_shop_attack_bonus", 0)
-	get_tree().set_meta("dungeon_shop_heal", 0)
+	attack_damage += RunState.attack_bonus
 	return attack_damage
