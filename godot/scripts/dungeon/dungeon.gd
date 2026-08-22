@@ -18,6 +18,8 @@ extends Control
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
 
 func _ready() -> void:
+	if not RunState.active_run:
+		RunState.start_new_run()
 	_setup_node_buttons()
 	_update_progress()
 
@@ -29,45 +31,36 @@ func _setup_node_buttons() -> void:
 	elite_button.text = "♛ 엘리트\n%s" % elite_node_data.description
 	boss_button.text = "☠ 보스\n%s" % boss_node_data.description
 	new_run_button.hide()
-	status_label.text = "현재 위치에서 진행할 노드를 선택하세요."
 
 func _update_progress() -> void:
-	var battle_cleared: bool = get_tree().has_meta("dungeon_battle_cleared") and get_tree().get_meta("dungeon_battle_cleared") == true
-	var reward_claimed: bool = get_tree().has_meta("dungeon_reward_claimed") and get_tree().get_meta("dungeon_reward_claimed") == true
-	var event_resolved: bool = get_tree().has_meta("dungeon_event_resolved") and get_tree().get_meta("dungeon_event_resolved") == true
-	var shop_resolved: bool = get_tree().has_meta("dungeon_shop_resolved") and get_tree().get_meta("dungeon_shop_resolved") == true
-	var elite_cleared: bool = get_tree().has_meta("dungeon_elite_cleared") and get_tree().get_meta("dungeon_elite_cleared") == true
-	var boss_cleared: bool = get_tree().has_meta("dungeon_boss_cleared") and get_tree().get_meta("dungeon_boss_cleared") == true
-
-	if boss_cleared:
+	if RunState.boss_cleared:
 		_disable_all_nodes()
 		new_run_button.show()
-		status_label.text = "보스를 쓰러뜨렸습니다! 던전 클리어!"
-	elif elite_cleared:
+		status_label.text = "보스를 쓰러뜨렸습니다! 런 클리어!\n%s" % RunState.get_run_summary()
+	elif RunState.elite_cleared:
 		_disable_all_nodes()
 		boss_button.disabled = false
-		new_run_button.hide()
-		status_label.text = "엘리트를 돌파했습니다. 마지막 보스에 도전하세요."
-	elif shop_resolved:
+		status_label.text = "엘리트를 돌파했습니다. 마지막 보스에 도전하세요.\n%s" % RunState.get_run_summary()
+	elif RunState.shop_resolved:
 		_disable_all_nodes()
 		elite_button.disabled = false
-		status_label.text = "상점을 통과했습니다. 다음은 엘리트 노드입니다."
-	elif event_resolved:
+		status_label.text = "상점을 통과했습니다. 다음은 엘리트 노드입니다.\n%s" % RunState.get_run_summary()
+	elif RunState.event_resolved:
 		_disable_all_nodes()
 		shop_button.disabled = false
-		status_label.text = "이벤트를 해결했습니다. 다음은 상점 노드입니다."
-	elif reward_claimed:
+		status_label.text = "이벤트를 해결했습니다. 다음은 상점 노드입니다.\n%s" % RunState.get_run_summary()
+	elif RunState.reward_claimed:
 		_disable_all_nodes()
 		event_button.disabled = false
-		status_label.text = "보상을 획득했습니다. 다음은 이벤트 노드입니다."
-	elif battle_cleared:
+		status_label.text = "보상을 획득했습니다. 다음은 이벤트 노드입니다.\n%s" % RunState.get_run_summary()
+	elif RunState.battle_cleared:
 		_disable_all_nodes()
 		reward_button.disabled = false
-		status_label.text = "전투를 완료했습니다. 보상 노드를 선택하세요."
+		status_label.text = "전투를 완료했습니다. 보상 노드를 선택하세요.\n%s" % RunState.get_run_summary()
 	else:
 		_disable_all_nodes()
 		start_button.disabled = false
-		status_label.text = "일반 전투부터 시작하세요."
+		status_label.text = "일반 전투부터 시작하세요.\n%s" % RunState.get_run_summary()
 
 func _disable_all_nodes() -> void:
 	start_button.disabled = true
@@ -96,18 +89,6 @@ func _on_boss_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/battle/boss_battle.tscn")
 
 func _on_new_run_button_pressed() -> void:
-	get_tree().set_meta("dungeon_battle_cleared", false)
-	get_tree().set_meta("dungeon_reward_claimed", false)
-	get_tree().set_meta("dungeon_reward_id", "")
-	get_tree().set_meta("dungeon_event_resolved", false)
-	get_tree().set_meta("dungeon_event_id", "")
-	get_tree().set_meta("dungeon_event_attack_bonus", 0)
-	get_tree().set_meta("dungeon_shop_resolved", false)
-	get_tree().set_meta("dungeon_shop_item_id", "")
-	get_tree().set_meta("dungeon_shop_attack_bonus", 0)
-	get_tree().set_meta("dungeon_shop_heal", 0)
-	get_tree().set_meta("dungeon_elite_cleared", false)
-	get_tree().set_meta("dungeon_boss_cleared", false)
-	get_tree().set_meta("dungeon_gold", 100)
-	status_label.text = "새 던전을 시작합니다."
+	RunState.start_new_run()
+	status_label.text = "새 런을 시작합니다."
 	_update_progress()
