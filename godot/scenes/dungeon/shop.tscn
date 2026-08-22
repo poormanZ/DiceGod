@@ -1,0 +1,88 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://scripts/dungeon/shop.gd" type="Script" id="1"]
+
+[node name="Shop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.055, 0.065, 0.09, 1)
+mouse_filter = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 70
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 70
+
+[node name="Content" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = "상점"
+horizontal_alignment = 1
+
+[node name="GoldLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "보유 골드: 100"
+horizontal_alignment = 1
+
+[node name="DescriptionLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "이번 런에서 사용할 아이템 하나를 구매하세요."
+horizontal_alignment = 1
+
+[node name="ShopChoices" type="VBoxContainer" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="AttackButton" type="Button" parent="MarginContainer/Content/ShopChoices"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "공격력 강화 — 50G\n다음 전투 공격력 +3"
+
+[node name="DiceButton" type="Button" parent="MarginContainer/Content/ShopChoices"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "주사위 강화 — 75G\n다음 전투 공격력 +5"
+
+[node name="HealButton" type="Button" parent="MarginContainer/Content/ShopChoices"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "회복 물약 — 40G\n다음 전투 시작 HP +20"
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "아이템 하나를 선택하세요."
+horizontal_alignment = 1
+
+[connection signal="pressed" from="MarginContainer/Content/ShopChoices/AttackButton" to="." method="_on_attack_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Content/ShopChoices/DiceButton" to="." method="_on_dice_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Content/ShopChoices/HealButton" to="." method="_on_heal_button_pressed"]
