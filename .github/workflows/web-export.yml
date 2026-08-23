@@ -1,0 +1,30 @@
+name: DiceGod Web Export
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  export-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Export Godot project to Web
+        uses: firebelley/godot-export@v7
+        with:
+          godot_executable_download_url: https://downloads.godotengine.org/?version=4.5.1&flavor=stable&slug=linux.x86_64.zip&platform=linux.x86_64
+          relative_project_path: ./godot
+          archive_output: false
+          presets_to_export: Web
+
+      - name: Upload Web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: dicegod-web
+          path: ./godot/build/web
