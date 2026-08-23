@@ -28,6 +28,7 @@ func set_dice_interaction_enabled(is_enabled: bool) -> void:
 		dice_buttons[index].disabled = not can_interact
 
 func play_roll_feedback() -> void:
+	AudioManager.play_roll()
 	for index in dice_buttons.size():
 		var button := dice_buttons[index]
 		button.scale = DICE_POP_SCALE
@@ -36,6 +37,7 @@ func play_roll_feedback() -> void:
 		tween.tween_property(button, "scale", DICE_IDLE_SCALE, 0.18 + index * 0.03)
 
 func play_attack_feedback() -> void:
+	AudioManager.play_attack()
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	for button in dice_buttons:
@@ -51,6 +53,7 @@ func _on_dice_button_pressed(index: int) -> void:
 		return
 
 	dice_states[index].toggle_lock()
+	AudioManager.play_lock()
 	_refresh_dice_button(index)
 	var button := dice_buttons[index]
 	button.scale = DICE_LOCK_SCALE if dice_states[index].is_locked else DICE_IDLE_SCALE
