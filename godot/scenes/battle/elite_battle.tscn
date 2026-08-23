@@ -1,8 +1,8 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/battle/battle.tscn" id="1_battle"]
-[ext_resource type="Resource" path="res://resources/enemies/elite_slime.tres" id="2_elite_slime"]
+[ext_resource type="Resource" path="res://resources/enemies/elite_goblin.tres" id="2_elite_goblin"]
 
 [node name="Battle" instance=ExtResource("1_battle")]
-enemy_data = ExtResource("2_elite_slime")
+enemy_data = ExtResource("2_elite_goblin")
 is_elite_battle = true
