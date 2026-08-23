@@ -11,17 +11,18 @@
 - [ ] 웹 성능 최적화
 
 ## Phase 10 — 웹 출시
-- [ ] 웹 Export 로컬 테스트
-- [ ] [x] GitHub Actions 웹 Export 워크플로 추가
+- [x] 웹 Export 로컬 테스트 — 4.7.2 Web preset에서 index.html 생성 확인
+- [x] GitHub Actions 웹 Export 워크플로 추가
+- [x] GitHub Pages 자동 배포 워크플로 추가
+- [ ] GitHub Pages 설정에서 Actions를 배포 소스로 활성화
 - [ ] 데스크톱 브라우저 테스트
-- [ ] GitHub Pages 배포
 - [ ] 공개 URL 테스트
 - [ ] 웹 전용 문제 수정
 - [ ] 첫 번째 플레이 가능 버전 공개
 
 ## 현재 우선순위
 
-Phase 9 완성도 개선의 UI/피드백 작업을 완료하고 웹 출시 준비로 이동합니다.
+Phase 9 핵심 UI/피드백 작업은 완료했습니다.
 
 → 1280×720 UI 완료
 → 애니메이션 완료
@@ -29,12 +30,13 @@ Phase 9 완성도 개선의 UI/피드백 작업을 완료하고 웹 출시 준�
 → 음악 시스템 완료
 → 전투 피드백 완료
 → 가독성 개선 완료
-→ 다음: 웹 성능 최적화 및 실제 Web Export 검증
+→ 웹 Export 로컬 생성 확인
+→ GitHub Actions Web Export + Pages 자동 배포 구성 완료
+→ 다음: GitHub Pages 활성화 후 실제 배포/브라우저 검증
 
 Phase 10 웹 출시 준비:
-→ GitHub Actions Web Export 자동화 추가 완료
-→ 실제 Export 성공 여부 확인
-→ 브라우저 테스트
-→ GitHub Pages 배포
+→ GitHub Pages Actions 소스 활성화
+→ Actions 배포 성공 확인
 → 공개 URL 테스트
+→ 웹 전용 문제 수정
 → 첫 번째 플레이 가능 버전 공개
