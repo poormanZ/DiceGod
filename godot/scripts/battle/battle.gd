@@ -24,11 +24,6 @@ extends Control
 @onready var restart_build_button: Button = $MarginContainer/Content/RestartBuildButton
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
 @onready var selected_build_label: Label = $MarginContainer/Content/SelectedBuildLabel
-@onready var enemy_name_label: Label = $MarginContainer/Content/EnemyArea/EnemyNameLabel
-@onready var enemy_hp_label: Label = $MarginContainer/Content/EnemyArea/EnemyHpLabel
-@onready var player_name_label: Label = $MarginContainer/Content/PlayerArea/PlayerNameLabel
-@onready var player_hp_label: Label = $MarginContainer/Content/PlayerArea/PlayerHpLabel
-@onready var battle_box_label: Label = $MarginContainer/Content/BattleBox/BattleBoxLabel
 @onready var build_selection_panel: PanelContainer = $BuildSelectionPanel
 @onready var build_buttons: Array[Button] = [$BuildSelectionPanel/Margin/VBox/MatchingBuildButton, $BuildSelectionPanel/Margin/VBox/StraightBuildButton, $BuildSelectionPanel/Margin/VBox/HealingBuildButton, $BuildSelectionPanel/Margin/VBox/PowerBuildButton]
 
@@ -79,7 +74,6 @@ func _setup_build_selection() -> void:
 	_hide_optional_action_buttons()
 	restart_build_button.hide()
 	status_label.text = "빌드를 선택하면 전투가 시작됩니다."
-	battle_box_label.text = "BUILD를 선택하세요."
 
 func _on_build_selected(build: BuildData) -> void:
 	selected_build = build
@@ -98,20 +92,20 @@ func _on_build_selected(build: BuildData) -> void:
 	is_battle_over = false
 	calculated_attack_damage = 0
 	healing_dice_used = false
-	player_name_label.text = player.player_data.display_name
-	enemy_name_label.text = enemy.enemy_data.display_name
+	$MarginContainer/Content/PlayerNameLabel.text = player.player_data.display_name
+	$MarginContainer/Content/EnemyNameLabel.text = enemy.enemy_data.display_name
 	_update_player_hp_label()
-	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
-	selected_build_label.text = "빌드: %s | 공격력 +%d | 주사위 강화 +%d" % [build.display_name, RunState.attack_bonus, RunState.unlocked_dice_bonus]
+	$MarginContainer/Content/EnemyHpLabel.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
+	selected_build_label.text = "선택한 빌드: %s — %s\n런 보너스: 공격력 +%d / 주사위 강화 +%d" % [build.display_name, build.description, RunState.attack_bonus, RunState.unlocked_dice_bonus]
 	_set_action_buttons_for_build(build)
 	for dice_index in 3:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
 	restart_build_button.hide()
-	_start_turn("%s을(를) 선택했습니다." % build.display_name)
+	_start_turn("%s을(를) 선택했습니다. 현재 런 빌드 상태를 적용했습니다." % build.display_name)
 
 func _update_player_hp_label() -> void:
-	player_hp_label.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
+	$MarginContainer/Content/PlayerHpLabel.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
 
 func _on_restart_build_button_pressed() -> void:
 	_setup_build_selection()
@@ -133,7 +127,6 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	attack_button.disabled = true
 	restart_build_button.hide()
 	status_label.text = status_message
-	battle_box_label.text = "적의 움직임을 살피세요."
 
 func _on_roll_button_pressed() -> void:
 	if is_battle_over:
@@ -141,6 +134,7 @@ func _on_roll_button_pressed() -> void:
 	for dice_state in dice_states:
 		dice_roller.roll(dice_state)
 	dice_roll_panel.display_results(dice_states)
+	dice_roll_panel.play_roll_feedback()
 	dice_roll_panel.set_dice_interaction_enabled(true)
 	roll_button.disabled = true
 	reroll_button.disabled = false
@@ -149,15 +143,14 @@ func _on_roll_button_pressed() -> void:
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
 	status_label.text = "주사위를 잠그거나 리롤할 수 있습니다."
-	battle_box_label.text = "주사위를 선택해 잠그세요."
 
 func _on_reroll_button_pressed() -> void:
 	if not dice_roller.reroll(dice_states):
 		return
 	dice_roll_panel.display_results(dice_states)
+	dice_roll_panel.play_roll_feedback()
 	reroll_button.disabled = true
 	status_label.text = "리롤을 사용했습니다. 결과를 확정할 수 있습니다."
-	battle_box_label.text = "마지막 결과를 확인하세요."
 
 func _on_confirm_button_pressed() -> void:
 	if not dice_roller.confirm_results(dice_states):
@@ -170,7 +163,6 @@ func _on_confirm_button_pressed() -> void:
 	healing_dice_button.disabled = healing_dice_data == null or healing_dice_used
 	attack_button.disabled = false
 	status_label.text = "결과를 확정했습니다: 공격력 %d" % calculated_attack_damage
-	battle_box_label.text = "공격할 준비가 되었습니다!"
 
 func _on_ability_button_pressed() -> void:
 	var bonus := ability.calculate_bonus(dice_states)
@@ -180,7 +172,6 @@ func _on_ability_button_pressed() -> void:
 	calculated_attack_damage += bonus
 	ability_button.disabled = true
 	status_label.text = "%s 사용: 공격력 +%d (총 %d)" % [ability.ability_data.display_name, bonus, calculated_attack_damage]
-	battle_box_label.text = "스킬 효과가 적용되었습니다."
 
 func _on_healing_dice_button_pressed() -> void:
 	if is_battle_over or healing_dice_used or healing_dice == null or healing_dice_data == null:
@@ -195,16 +186,15 @@ func _on_healing_dice_button_pressed() -> void:
 	healing_dice_used = true
 	healing_dice_button.disabled = true
 	status_label.text = "힐 주사위 %d: HP를 %d 회복했습니다." % [healing_dice.runtime_state.result, healing_amount]
-	battle_box_label.text = "회복했습니다. 다음 턴을 준비하세요."
 
 func _on_attack_button_pressed() -> void:
+	dice_roll_panel.play_attack_feedback()
 	enemy.take_damage(calculated_attack_damage)
-	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
+	$MarginContainer/Content/EnemyHpLabel.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	attack_button.disabled = true
 	if enemy.current_hp <= 0:
 		_handle_victory()
 		return
-	battle_box_label.text = "적의 반격!"
 	_perform_enemy_action()
 
 func _perform_enemy_action() -> void:
@@ -238,7 +228,6 @@ func _handle_victory() -> void:
 	ability_button.disabled = true
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
-	battle_box_label.text = "VICTORY!"
 	status_label.text = "%s 승리!\n%s\n%s" % [selected_build.display_name, RunState.get_run_summary(), ProgressionState.get_unlock_summary()]
 	await get_tree().create_timer(0.8).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
@@ -254,7 +243,6 @@ func _handle_defeat() -> void:
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
 	restart_build_button.hide()
-	battle_box_label.text = "GAME OVER"
 	status_label.text = "런이 종료되었습니다. HP가 0이 되었습니다."
 	await get_tree().create_timer(1.2).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
