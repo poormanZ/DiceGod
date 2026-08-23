@@ -22,16 +22,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Install Korean font
+      - name: Install and prepare Korean font
         run: |
           set -e
           sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk fontconfig
+          sudo apt-get install -y fonts-noto-cjk python3-fonttools
           mkdir -p ./godot/fonts
-          FONT_PATH="$(fc-match -f '%{file}' 'Noto Sans CJK KR')"
-          test -n "$FONT_PATH"
-          test -f "$FONT_PATH"
-          cp "$FONT_PATH" ./godot/fonts/NotoSansKR-Regular.ttf
+          FONT_SOURCE="$(fc-match -f '%{file}\n' 'Noto Sans CJK KR' | head -1)"
+          test -n "$FONT_SOURCE"
+          test -f "$FONT_SOURCE"
+          echo "Font source: $FONT_SOURCE"
+          python3 - "$FONT_SOURCE" ./godot/fonts/NotoSansKR-Regular.ttf <<'PY'
+          import sys
+          from fontTools.ttLib import TTFont, TTCollection
+
+          source = sys.argv[1]
+          target = sys.argv[2]
+
+          def family_names(font):
+              names = []
+              for record in font['name'].names:
+                  if record.nameID in (1, 4, 6):
+                      try:
+                          names.append(record.toUnicode())
+                      except Exception:
+                          pass
+              return names
+
+          selected = None
+          try:
+              font = TTFont(source)
+              names = family_names(font)
+              if any('KR' in n or 'Korean' in n for n in names):
+                  selected = font
+          except Exception:
+              pass
+
+          if selected is None:
+              collection = TTCollection(source)
+              for font in collection.fonts:
+                  names = family_names(font)
+                  if any('KR' in n or 'Korean' in n for n in names):
+                      selected = font
+                      break
+
+          if selected is None:
+              raise SystemExit('Could not find Korean face in Noto CJK font collection')
+
+          selected.flavor = None
+          selected.save(target)
+          print('Created:', target)
+          print('Names:', family_names(selected)[:10])
+          PY
           test -s ./godot/fonts/NotoSansKR-Regular.ttf
           file ./godot/fonts/NotoSansKR-Regular.ttf
           fc-scan ./godot/fonts/NotoSansKR-Regular.ttf | head -20
@@ -39,8 +81,8 @@ jobs:
       - name: Verify project font resource
         run: |
           set -e
-          test -f ./godot/theme_korean.tres
           test -f ./godot/fonts/NotoSansKR-Regular.ttf
+          test -f ./godot/theme_korean.tres
           grep -q 'res://fonts/NotoSansKR-Regular.ttf' ./godot/theme_korean.tres
 
       - name: Export Godot project to Web
@@ -59,7 +101,7 @@ jobs:
           set -e
           test -f ./godot/build/web/index.html
           test -f ./godot/build/web/index.pck
-          test -s ./godot/build/web/index.pck
+          test -s ./godot/fonts/NotoSansKR-Regular.ttf
           ls -lah ./godot/build/web
 
       - name: Setup GitHub Pages
