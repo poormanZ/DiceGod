@@ -2,34 +2,28 @@ class_name ProceduralSfx
 extends RefCounted
 
 # 외부 음원 파일 없이 짧은 효과음을 생성합니다.
-# 실제 샘플 데이터는 AudioStreamGeneratorPlayback에 직접 기록합니다.
 
 static func play_tone(parent: Node, frequency: float, duration: float, volume: float = 0.08) -> void:
 	var stream := AudioStreamGenerator.new()
 	stream.mix_rate = 22050
 	stream.buffer_length = maxf(duration + 0.05, 0.1)
-
 	var player := AudioStreamPlayer.new()
 	player.stream = stream
 	parent.add_child(player)
 	player.play()
-
 	var playback := player.get_stream_playback() as AudioStreamGeneratorPlayback
 	if playback == null:
 		player.queue_free()
 		return
-
 	var frames := maxi(1, int(stream.mix_rate * duration))
-	var available := playback.get_frames_available()
-	var count := mini(frames, available)
+	var count := mini(frames, playback.get_frames_available())
 	var phase := 0.0
 	var phase_step := TAU * frequency / stream.mix_rate
-	for _index in count:
-		var envelope := 1.0 - (float(_index) / float(frames))
+	for index in count:
+		var envelope := 1.0 - (float(index) / float(frames))
 		var sample := sin(phase) * volume * envelope
 		playback.push_frame(Vector2(sample, sample))
 		phase += phase_step
-
 	player.finished.connect(player.queue_free)
 
 static func play_roll(parent: Node) -> void:
