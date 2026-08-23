@@ -18,6 +18,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Download Korean font
+        run: |
+          mkdir -p ./godot/fonts
+          wget -q -O ./godot/fonts/NotoSansKR-Regular.ttf https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf
+          test -s ./godot/fonts/NotoSansKR-Regular.ttf
+          file ./godot/fonts/NotoSansKR-Regular.ttf
+
       - name: Export Godot project to Web
         id: export
         uses: firebelley/godot-export@v8.0.0
@@ -54,8 +61,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy DiceGod to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-# Trigger a fresh validation run after fixing the Godot download source.
