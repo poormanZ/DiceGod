@@ -11,6 +11,7 @@ var dice_states: Array[DiceRuntimeState] = []
 const DICE_IDLE_SCALE := Vector2.ONE
 const DICE_POP_SCALE := Vector2(1.08, 1.08)
 const DICE_LOCK_SCALE := Vector2(1.04, 1.04)
+const FEEDBACK_SCALE := Vector2(1.12, 1.12)
 
 func _ready() -> void:
 	for index in dice_buttons.size():
@@ -44,14 +45,23 @@ func play_attack_feedback() -> void:
 		button.scale = DICE_IDLE_SCALE
 		tween.parallel().tween_property(button, "scale", DICE_POP_SCALE, 0.08)
 	tween.tween_interval(0.05)
-	tween.parallel().tween_property(dice_buttons[0], "scale", DICE_IDLE_SCALE, 0.14)
-	tween.parallel().tween_property(dice_buttons[1], "scale", DICE_IDLE_SCALE, 0.14)
-	tween.parallel().tween_property(dice_buttons[2], "scale", DICE_IDLE_SCALE, 0.14)
+	for button in dice_buttons:
+		tween.parallel().tween_property(button, "scale", DICE_IDLE_SCALE, 0.14)
+
+func play_damage_feedback(damage: int) -> void:
+	var flash_color := Color(1.0, 0.35, 0.25, 1.0)
+	for button in dice_buttons:
+		button.modulate = flash_color
+		button.scale = FEEDBACK_SCALE
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	for button in dice_buttons:
+		tween.parallel().tween_property(button, "scale", DICE_IDLE_SCALE, 0.16)
+		tween.parallel().tween_property(button, "modulate", Color.WHITE, 0.22)
 
 func _on_dice_button_pressed(index: int) -> void:
 	if index >= dice_states.size():
 		return
-
 	dice_states[index].toggle_lock()
 	AudioManager.play_lock()
 	_refresh_dice_button(index)
@@ -69,7 +79,6 @@ func _refresh_dice_button(index: int) -> void:
 		dice_button.tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
 		dice_button.modulate = Color.WHITE
 		return
-
 	var dice_state := dice_states[index]
 	dice_button.disabled = false
 	dice_button.text = str(dice_state.result)
