@@ -1,17 +1,57 @@
 class_name ProceduralSfx
 extends RefCounted
 
-# 외부 음원 파일 없이 기본적인 UI/전투 효과음을 생성합니다.
-# AudioStreamGenerator를 사용하므로 저작권 음원 없이 프로토타입에서 사용할 수 있습니다.
+# 외부 음원 파일 없이 짧은 효과음을 생성합니다.
+# 실제 샘플 데이터는 AudioStreamGeneratorPlayback에 직접 기록합니다.
 
-static func create_tone(frequency: float, duration: float, volume: float = 0.12) -> AudioStreamGenerator:
+static func play_tone(parent: Node, frequency: float, duration: float, volume: float = 0.08) -> void:
 	var stream := AudioStreamGenerator.new()
 	stream.mix_rate = 22050
 	stream.buffer_length = maxf(duration + 0.05, 0.1)
-	return stream
 
-static func tone_player(parent: Node, frequency: float, duration: float, volume: float = 0.12) -> AudioStreamPlayer:
 	var player := AudioStreamPlayer.new()
-	player.stream = create_tone(frequency, duration, volume)
+	player.stream = stream
 	parent.add_child(player)
-	return player
+	player.play()
+
+	var playback := player.get_stream_playback() as AudioStreamGeneratorPlayback
+	if playback == null:
+		player.queue_free()
+		return
+
+	var frames := maxi(1, int(stream.mix_rate * duration))
+	var available := playback.get_frames_available()
+	var count := mini(frames, available)
+	var phase := 0.0
+	var phase_step := TAU * frequency / stream.mix_rate
+	for _index in count:
+		var envelope := 1.0 - (float(_index) / float(frames))
+		var sample := sin(phase) * volume * envelope
+		playback.push_frame(Vector2(sample, sample))
+		phase += phase_step
+
+	player.finished.connect(player.queue_free)
+
+static func play_roll(parent: Node) -> void:
+	play_tone(parent, 220.0, 0.08, 0.06)
+
+static func play_lock(parent: Node) -> void:
+	play_tone(parent, 620.0, 0.06, 0.06)
+
+static func play_confirm(parent: Node) -> void:
+	play_tone(parent, 440.0, 0.08, 0.06)
+
+static func play_attack(parent: Node) -> void:
+	play_tone(parent, 120.0, 0.12, 0.09)
+
+static func play_hit(parent: Node) -> void:
+	play_tone(parent, 80.0, 0.1, 0.08)
+
+static func play_heal(parent: Node) -> void:
+	play_tone(parent, 660.0, 0.12, 0.06)
+
+static func play_victory(parent: Node) -> void:
+	play_tone(parent, 880.0, 0.18, 0.07)
+
+static func play_defeat(parent: Node) -> void:
+	play_tone(parent, 110.0, 0.18, 0.07)
