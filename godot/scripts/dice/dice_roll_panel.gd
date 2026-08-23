@@ -8,23 +8,43 @@ extends PanelContainer
 ]
 var dice_states: Array[DiceRuntimeState] = []
 
+const DICE_IDLE_SCALE := Vector2.ONE
+const DICE_POP_SCALE := Vector2(1.08, 1.08)
+const DICE_LOCK_SCALE := Vector2(1.04, 1.04)
 
 func _ready() -> void:
 	for index in dice_buttons.size():
 		dice_buttons[index].pressed.connect(_on_dice_button_pressed.bind(index))
-
+		dice_buttons[index].pivot_offset = dice_buttons[index].size * 0.5
 
 func display_results(new_dice_states: Array[DiceRuntimeState]) -> void:
 	dice_states = new_dice_states
 	for index in dice_buttons.size():
 		_refresh_dice_button(index)
 
-
 func set_dice_interaction_enabled(is_enabled: bool) -> void:
 	for index in dice_buttons.size():
 		var can_interact := is_enabled and index < dice_states.size() and dice_states[index].has_result()
 		dice_buttons[index].disabled = not can_interact
 
+func play_roll_feedback() -> void:
+	for index in dice_buttons.size():
+		var button := dice_buttons[index]
+		button.scale = DICE_POP_SCALE
+		var tween := create_tween()
+		tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tween.tween_property(button, "scale", DICE_IDLE_SCALE, 0.18 + index * 0.03)
+
+func play_attack_feedback() -> void:
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	for button in dice_buttons:
+		button.scale = DICE_IDLE_SCALE
+		tween.parallel().tween_property(button, "scale", DICE_POP_SCALE, 0.08)
+	tween.tween_interval(0.05)
+	tween.parallel().tween_property(dice_buttons[0], "scale", DICE_IDLE_SCALE, 0.14)
+	tween.parallel().tween_property(dice_buttons[1], "scale", DICE_IDLE_SCALE, 0.14)
+	tween.parallel().tween_property(dice_buttons[2], "scale", DICE_IDLE_SCALE, 0.14)
 
 func _on_dice_button_pressed(index: int) -> void:
 	if index >= dice_states.size():
@@ -32,7 +52,11 @@ func _on_dice_button_pressed(index: int) -> void:
 
 	dice_states[index].toggle_lock()
 	_refresh_dice_button(index)
-
+	var button := dice_buttons[index]
+	button.scale = DICE_LOCK_SCALE if dice_states[index].is_locked else DICE_IDLE_SCALE
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(button, "scale", DICE_IDLE_SCALE, 0.14)
 
 func _refresh_dice_button(index: int) -> void:
 	var dice_button := dice_buttons[index]
@@ -40,6 +64,7 @@ func _refresh_dice_button(index: int) -> void:
 		dice_button.disabled = true
 		dice_button.text = "-"
 		dice_button.tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
+		dice_button.modulate = Color.WHITE
 		return
 
 	var dice_state := dice_states[index]
@@ -47,3 +72,4 @@ func _refresh_dice_button(index: int) -> void:
 	dice_button.text = str(dice_state.result)
 	dice_button.tooltip_text = "잠금 해제" if dice_state.is_locked else "잠금"
 	dice_button.modulate = Color(1.0, 0.84, 0.35, 1.0) if dice_state.is_locked else Color.WHITE
+	dice_button.scale = DICE_IDLE_SCALE
