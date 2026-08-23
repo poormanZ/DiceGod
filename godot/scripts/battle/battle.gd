@@ -159,6 +159,7 @@ func _on_reroll_button_pressed() -> void:
 func _on_confirm_button_pressed() -> void:
 	if not dice_roller.confirm_results(dice_states):
 		return
+	AudioManager.play_confirm()
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	reroll_button.disabled = true
 	confirm_button.disabled = true
@@ -173,6 +174,7 @@ func _on_ability_button_pressed() -> void:
 	if bonus <= 0:
 		ability_button.disabled = true
 		return
+	AudioManager.play_confirm()
 	calculated_attack_damage += bonus
 	ability_button.disabled = true
 	status_label.text = "%s 사용: 공격력 +%d (총 %d)" % [ability.ability_data.display_name, bonus, calculated_attack_damage]
@@ -183,6 +185,7 @@ func _on_healing_dice_button_pressed() -> void:
 	if not healing_dice.roll():
 		healing_dice_button.disabled = true
 		return
+	AudioManager.play_heal()
 	var healing_amount := healing_dice.get_healing_amount()
 	player.heal(healing_amount)
 	RunState.current_hp = player.current_hp
@@ -194,6 +197,7 @@ func _on_healing_dice_button_pressed() -> void:
 func _on_attack_button_pressed() -> void:
 	dice_roll_panel.play_attack_feedback()
 	enemy.take_damage(calculated_attack_damage)
+	AudioManager.play_hit()
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	attack_button.disabled = true
 	if enemy.current_hp <= 0:
@@ -207,6 +211,7 @@ func _perform_enemy_action() -> void:
 		return
 	var enemy_damage := enemy.roll_attack_damage()
 	player.take_damage(enemy_damage)
+	AudioManager.play_hit()
 	RunState.current_hp = player.current_hp
 	_update_player_hp_label()
 	if player.current_hp <= 0:
@@ -216,6 +221,7 @@ func _perform_enemy_action() -> void:
 
 func _handle_victory() -> void:
 	is_battle_over = true
+	AudioManager.play_victory()
 	RunState.current_hp = player.current_hp
 	if is_boss_battle:
 		RunState.boss_cleared = true
@@ -239,6 +245,7 @@ func _handle_victory() -> void:
 
 func _handle_defeat() -> void:
 	is_battle_over = true
+	AudioManager.play_defeat()
 	RunState.end_run()
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	roll_button.disabled = true
