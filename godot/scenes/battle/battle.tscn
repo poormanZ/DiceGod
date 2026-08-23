@@ -99,96 +99,99 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 40.0
-offset_top = 24.0
-offset_right = -40.0
-offset_bottom = -24.0
+offset_left = 56.0
+offset_top = 32.0
+offset_right = -56.0
+offset_bottom = -32.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Content" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "DICEGOD"
 horizontal_alignment = 1
 
 [node name="DescriptionLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.65, 0.68, 1)
-theme_override_font_sizes/font_size = 13
-text = "적의 공격을 버티고, 주사위 조합으로 반격하세요."
+theme_override_colors/font_color = Color(0.72, 0.72, 0.76, 1)
+theme_override_font_sizes/font_size = 14
+text = "주사위를 굴리고 잠근 뒤, 최고의 조합으로 공격하세요."
 horizontal_alignment = 1
 
 [node name="SelectedBuildLabel" type="Label" parent="MarginContainer/Content"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1, 0.78, 0.25, 1)
+theme_override_font_sizes/font_size = 15
 text = "빌드를 선택하세요."
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="EnemyArea" type="VBoxContainer" parent="MarginContainer/Content"]
-custom_minimum_size = Vector2(0, 170)
+custom_minimum_size = Vector2(0, 138)
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="EnemyNameLabel" type="Label" parent="MarginContainer/Content/EnemyArea"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.55, 0.55, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 text = "적"
 horizontal_alignment = 1
 
 [node name="EnemyHpLabel" type="Label" parent="MarginContainer/Content/EnemyArea"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 17
+text = "HP"
 horizontal_alignment = 1
 
 [node name="EnemyHint" type="Label" parent="MarginContainer/Content/EnemyArea"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.45, 0.45, 0.48, 1)
+theme_override_colors/font_color = Color(0.52, 0.52, 0.56, 1)
 theme_override_font_sizes/font_size = 12
-text = ""
+text = "적의 HP와 행동을 확인하세요."
 horizontal_alignment = 1
 
 [node name="BattleBox" type="PanelContainer" parent="MarginContainer/Content"]
-custom_minimum_size = Vector2(0, 190)
+custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 theme_override_styles/panel = SubResource("battle_box")
 
 [node name="BattleBoxLabel" type="Label" parent="MarginContainer/Content/BattleBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
-theme_override_font_sizes/font_size = 14
-text = "적의 턴을 기다리세요..."
+theme_override_colors/font_color = Color(0.92, 0.92, 0.94, 1)
+theme_override_font_sizes/font_size = 16
+text = "전투 상태"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PlayerArea" type="HBoxContainer" parent="MarginContainer/Content"]
-custom_minimum_size = Vector2(0, 54)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
 [node name="PlayerNameLabel" type="Label" parent="MarginContainer/Content/PlayerArea"]
-custom_minimum_size = Vector2(180, 0)
+custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 19
 vertical_alignment = 1
 
 [node name="PlayerHpLabel" type="Label" parent="MarginContainer/Content/PlayerArea"]
-custom_minimum_size = Vector2(180, 0)
+custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 vertical_alignment = 1
 
 [node name="DiceRollPanel" parent="MarginContainer/Content" instance=ExtResource("2_dice_roll_panel")]
@@ -197,11 +200,11 @@ size_flags_horizontal = 4
 
 [node name="ActionButtons" type="HBoxContainer" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="RollButton" type="Button" parent="MarginContainer/Content/ActionButtons"]
-custom_minimum_size = Vector2(118, 44)
+custom_minimum_size = Vector2(112, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("button_normal")
@@ -211,7 +214,7 @@ theme_override_styles/disabled = SubResource("button_disabled")
 text = "ROLL"
 
 [node name="RerollButton" type="Button" parent="MarginContainer/Content/ActionButtons"]
-custom_minimum_size = Vector2(118, 44)
+custom_minimum_size = Vector2(112, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("button_normal")
@@ -222,7 +225,7 @@ disabled = true
 text = "REROLL"
 
 [node name="ConfirmButton" type="Button" parent="MarginContainer/Content/ActionButtons"]
-custom_minimum_size = Vector2(118, 44)
+custom_minimum_size = Vector2(112, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("button_normal")
@@ -233,7 +236,7 @@ disabled = true
 text = "CONFIRM"
 
 [node name="AttackButton" type="Button" parent="MarginContainer/Content/ActionButtons"]
-custom_minimum_size = Vector2(118, 44)
+custom_minimum_size = Vector2(112, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("button_normal")
@@ -244,7 +247,7 @@ disabled = true
 text = "ATTACK"
 
 [node name="AbilityButton" type="Button" parent="MarginContainer/Content/ActionButtons"]
-custom_minimum_size = Vector2(130, 44)
+custom_minimum_size = Vector2(124, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("button_normal")
@@ -255,18 +258,17 @@ disabled = true
 text = "SKILL"
 
 [node name="HealingDiceButton" type="Button" parent="MarginContainer/Content/ActionButtons"]
-custom_minimum_size = Vector2(118, 44)
+custom_minimum_size = Vector2(112, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("button_normal")
 theme_override_styles/hover = SubResource("button_hover")
 theme_override_styles/pressed = SubResource("button_pressed")
 theme_override_styles/disabled = SubResource("button_disabled")
-disabled = true
 text = "HEAL"
 
 [node name="RestartBuildButton" type="Button" parent="MarginContainer/Content"]
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("button_normal")
@@ -275,11 +277,13 @@ theme_override_styles/pressed = SubResource("button_pressed")
 text = "BUILD SELECT"
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.72, 0.76, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.82, 0.82, 0.86, 1)
+theme_override_font_sizes/font_size = 15
 text = "주사위 굴리기를 눌러 전투를 시작하세요."
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="BuildSelectionPanel" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -351,7 +355,7 @@ theme_override_styles/hover = SubResource("button_hover")
 [connection signal="pressed" from="MarginContainer/Content/ActionButtons/RollButton" to="." method="_on_roll_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/ActionButtons/RerollButton" to="." method="_on_reroll_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/ActionButtons/ConfirmButton" to="." method="_on_confirm_button_pressed"]
-[connection signal="pressed" from="MarginContainer/Content/ActionButtons/AttackButton" to="." method="_on_attack_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/ActionButtons/AbilityButton" to="." method="_on_ability_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/ActionButtons/HealingDiceButton" to="." method="_on_healing_dice_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Content/ActionButtons/AttackButton" to="." method="_on_attack_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/RestartBuildButton" to="." method="_on_restart_build_button_pressed"]
