@@ -1,4 +1,3 @@
-class_name AudioManager
 extends Node
 
 var _player: AudioStreamPlayer
@@ -19,8 +18,7 @@ func play_sfx(sound_name: String) -> void:
 		return
 	_last_sfx_time[sound_name] = now
 
-	# Placeholder-safe audio layer. Real audio assets can be assigned later.
-	# Keeping the manager independent prevents missing-file errors during prototyping.
+	# 실제 음원 리소스가 추가되기 전까지 안전하게 아무 동작도 하지 않습니다.
 	if sound_name == "":
 		return
 
