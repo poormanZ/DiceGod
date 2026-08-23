@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 RunState="*res://scripts/run_state.gd"
 ProgressionState="*res://scripts/progression_state.gd"
+AudioManager="*res://scripts/audio/audio_manager.gd"
 
 [display]
 
