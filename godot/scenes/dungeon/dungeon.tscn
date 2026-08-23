@@ -55,6 +55,12 @@ theme_override_font_sizes/font_size = 32
 text = "DUNGEON"
 horizontal_alignment = 1
 
+[node name="RunStatusLabel" type="Label" parent="MarginContainer/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = ""
+horizontal_alignment = 1
+
 [node name="Map" type="VBoxContainer" parent="MarginContainer/Content"]
 layout_mode = 2
 theme_override_constants/separation = 10
