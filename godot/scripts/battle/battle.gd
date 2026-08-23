@@ -28,6 +28,7 @@ extends Control
 @onready var player_hp_label: Label = $MarginContainer/Content/PlayerArea/PlayerHpLabel
 @onready var enemy_name_label: Label = $MarginContainer/Content/EnemyArea/EnemyNameLabel
 @onready var enemy_hp_label: Label = $MarginContainer/Content/EnemyArea/EnemyHpLabel
+@onready var battle_box_label: Label = $MarginContainer/Content/BattleBox/BattleBoxLabel
 @onready var build_selection_panel: PanelContainer = $BuildSelectionPanel
 @onready var build_buttons: Array[Button] = [$BuildSelectionPanel/Margin/VBox/MatchingBuildButton, $BuildSelectionPanel/Margin/VBox/StraightBuildButton, $BuildSelectionPanel/Margin/VBox/HealingBuildButton, $BuildSelectionPanel/Margin/VBox/PowerBuildButton]
 
@@ -111,6 +112,26 @@ func _on_build_selected(build: BuildData) -> void:
 func _update_player_hp_label() -> void:
 	player_hp_label.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
 
+func _pulse_control(control: Control, flash_color: Color = Color.WHITE, duration: float = 0.22) -> void:
+	if control == null:
+		return
+	control.pivot_offset = control.size * 0.5
+	control.scale = Vector2(1.08, 1.08)
+	control.modulate = flash_color
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(control, "scale", Vector2.ONE, duration)
+	tween.parallel().tween_property(control, "modulate", Color.WHITE, duration)
+
+func _show_combat_feedback(message: String, flash_color: Color = Color.WHITE) -> void:
+	battle_box_label.text = message
+	battle_box_label.modulate = flash_color
+	battle_box_label.scale = Vector2(1.06, 1.06)
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(battle_box_label, "scale", Vector2.ONE, 0.18)
+	tween.parallel().tween_property(battle_box_label, "modulate", Color(0.85, 0.85, 0.85, 1.0), 0.3)
+
 func _on_restart_build_button_pressed() -> void:
 	_setup_build_selection()
 
@@ -131,6 +152,7 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	attack_button.disabled = true
 	restart_build_button.hide()
 	status_label.text = status_message
+	_show_combat_feedback(status_message)
 
 func _on_roll_button_pressed() -> void:
 	if is_battle_over:
@@ -147,6 +169,7 @@ func _on_roll_button_pressed() -> void:
 	healing_dice_button.disabled = true
 	attack_button.disabled = true
 	status_label.text = "주사위를 잠그거나 리롤할 수 있습니다."
+	_show_combat_feedback("🎲 주사위를 굴렸습니다.")
 
 func _on_reroll_button_pressed() -> void:
 	if not dice_roller.reroll(dice_states):
@@ -155,6 +178,7 @@ func _on_reroll_button_pressed() -> void:
 	dice_roll_panel.play_roll_feedback()
 	reroll_button.disabled = true
 	status_label.text = "리롤을 사용했습니다. 결과를 확정할 수 있습니다."
+	_show_combat_feedback("↻ 리롤 완료")
 
 func _on_confirm_button_pressed() -> void:
 	if not dice_roller.confirm_results(dice_states):
@@ -168,6 +192,7 @@ func _on_confirm_button_pressed() -> void:
 	healing_dice_button.disabled = healing_dice_data == null or healing_dice_used
 	attack_button.disabled = false
 	status_label.text = "결과를 확정했습니다: 공격력 %d" % calculated_attack_damage
+	_show_combat_feedback("⚡ 공격력 %d 확정" % calculated_attack_damage, Color(1.0, 0.84, 0.35, 1.0))
 
 func _on_ability_button_pressed() -> void:
 	var bonus := ability.calculate_bonus(dice_states)
@@ -178,6 +203,7 @@ func _on_ability_button_pressed() -> void:
 	calculated_attack_damage += bonus
 	ability_button.disabled = true
 	status_label.text = "%s 사용: 공격력 +%d (총 %d)" % [ability.ability_data.display_name, bonus, calculated_attack_damage]
+	_show_combat_feedback("✨ %s +%d" % [ability.ability_data.display_name, bonus], Color(0.7, 0.9, 1.0, 1.0))
 
 func _on_healing_dice_button_pressed() -> void:
 	if is_battle_over or healing_dice_used or healing_dice == null or healing_dice_data == null:
@@ -190,15 +216,21 @@ func _on_healing_dice_button_pressed() -> void:
 	player.heal(healing_amount)
 	RunState.current_hp = player.current_hp
 	_update_player_hp_label()
+	_pulse_control(player_hp_label, Color(0.35, 1.0, 0.5, 1.0))
 	healing_dice_used = true
 	healing_dice_button.disabled = true
 	status_label.text = "힐 주사위 %d: HP를 %d 회복했습니다." % [healing_dice.runtime_state.result, healing_amount]
+	_show_combat_feedback("💚 HP +%d" % healing_amount, Color(0.35, 1.0, 0.5, 1.0))
 
 func _on_attack_button_pressed() -> void:
 	dice_roll_panel.play_attack_feedback()
+	_pulse_control(enemy_name_label, Color(1.0, 0.35, 0.25, 1.0))
 	enemy.take_damage(calculated_attack_damage)
 	AudioManager.play_hit()
+	dice_roll_panel.play_damage_feedback(calculated_attack_damage)
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
+	_pulse_control(enemy_hp_label, Color(1.0, 0.35, 0.25, 1.0))
+	_show_combat_feedback("⚔️ %d 피해!" % calculated_attack_damage, Color(1.0, 0.45, 0.35, 1.0))
 	attack_button.disabled = true
 	if enemy.current_hp <= 0:
 		_handle_victory()
@@ -207,6 +239,7 @@ func _on_attack_button_pressed() -> void:
 
 func _perform_enemy_action() -> void:
 	if equipment.can_evade(dice_states):
+		_show_combat_feedback("🛡️ 공격을 회피했습니다!", Color(0.55, 0.8, 1.0, 1.0))
 		_start_turn("%s이(가) 스트레이트를 만들어 적의 공격을 회피했습니다." % equipment.equipment_data.display_name)
 		return
 	var enemy_damage := enemy.roll_attack_damage()
@@ -214,6 +247,8 @@ func _perform_enemy_action() -> void:
 	AudioManager.play_hit()
 	RunState.current_hp = player.current_hp
 	_update_player_hp_label()
+	_pulse_control(player_hp_label, Color(1.0, 0.35, 0.25, 1.0))
+	_show_combat_feedback("💥 %d 피해를 받았습니다!" % enemy_damage, Color(1.0, 0.4, 0.35, 1.0))
 	if player.current_hp <= 0:
 		_handle_defeat()
 		return
@@ -222,6 +257,8 @@ func _perform_enemy_action() -> void:
 func _handle_victory() -> void:
 	is_battle_over = true
 	AudioManager.play_victory()
+	_pulse_control(enemy_hp_label, Color(1.0, 0.84, 0.35, 1.0), 0.35)
+	_show_combat_feedback("🏆 VICTORY!", Color(1.0, 0.84, 0.35, 1.0))
 	RunState.current_hp = player.current_hp
 	if is_boss_battle:
 		RunState.boss_cleared = true
@@ -246,6 +283,8 @@ func _handle_victory() -> void:
 func _handle_defeat() -> void:
 	is_battle_over = true
 	AudioManager.play_defeat()
+	_pulse_control(player_hp_label, Color(1.0, 0.2, 0.2, 1.0), 0.4)
+	_show_combat_feedback("💀 DEFEAT", Color(1.0, 0.25, 0.25, 1.0))
 	RunState.end_run()
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	roll_button.disabled = true
