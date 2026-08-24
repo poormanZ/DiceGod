@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DiceData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/dice/dice_data.gd" id="1_dice_data"]
+
+[resource]
+script = ExtResource("1_dice_data")
+display_name = "화염 주사위"
+face_values = PackedInt32Array(2, 2, 3, 4, 5, 6)
