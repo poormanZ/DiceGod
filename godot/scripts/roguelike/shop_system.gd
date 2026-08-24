@@ -41,10 +41,20 @@ static func _apply_item(run_state: RunStateManager, item_id: String) -> bool:
 			run_state.reward_id = "lucky_coin"
 			return true
 		"dice_reroll":
-			var new_faces: Array[int] = _roll_shop_die()
+			var new_faces: Array[int] = _get_shop_die(run_state)
 			var replace_index: int = _find_weakest_die(run_state)
-			return run_state.replace_die(replace_index, new_faces)
+			return replace_index >= 0 and run_state.replace_die(replace_index, new_faces)
 	return false
+
+static func _get_shop_die(run_state: RunStateManager) -> Array[int]:
+	if not run_state.special_dice_collection.is_empty():
+		var special: Dictionary = run_state.special_dice_collection[0]
+		var faces: Array[int] = []
+		for face in special.get("faces", []):
+			faces.append(int(face))
+		if faces.size() == RunStateManager.DICE_FACE_COUNT:
+			return faces
+	return _roll_shop_die()
 
 static func _roll_shop_die() -> Array[int]:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
