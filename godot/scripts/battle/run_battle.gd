@@ -85,6 +85,13 @@ func _on_reroll_button_pressed() -> void:
 
 func _calculate_actions() -> void:
 	super._calculate_actions()
+	var skills: Dictionary = SymbolSkillSystem.evaluate(dice_states)
+	calculated_attack_damage += int(skills.get("attack", 0))
+	calculated_block += int(skills.get("block", 0))
+	calculated_heal += int(skills.get("heal", 0))
+	calculated_penetration += int(skills.get("penetration", 0))
+	calculated_extra_hits += int(skills.get("hits", 0))
+	calculated_status_damage += int(skills.get("status", 0))
 	var critical_count: int = _count_result(DiceData.DIVINE_CRITICAL)
 	var berserk_count: int = _count_result(DiceData.DIVINE_BERSERK)
 	var sanctuary_count: int = _count_result(DiceData.DIVINE_SANCTUARY)
@@ -111,6 +118,9 @@ func _calculate_actions() -> void:
 	if block_bonus > 0:
 		calculated_block += block_bonus
 	_update_damage_preview()
+	var skill_names: Array = skills.get("skills", [])
+	if not skill_names.is_empty():
+		status_label.text = "✨ 스킬 발동: %s" % ", ".join(skill_names)
 
 func _count_result(symbol_id: int) -> int:
 	var count: int = 0
