@@ -14,11 +14,11 @@
 - [x] 웹 Export 로컬 테스트 — 4.7.2 Web preset에서 index.html 생성 확인
 - [x] GitHub Actions 웹 Export 워크플로 추가
 - [x] GitHub Pages 자동 배포 워크플로 추가
-- [ ] GitHub Pages 설정에서 Actions를 배포 소스로 활성화
-- [ ] 데스크톱 브라우저 테스트
-- [ ] 공개 URL 테스트
-- [ ] 웹 전용 문제 수정
-- [ ] 첫 번째 플레이 가능 버전 공개
+- [x] GitHub Pages 설정에서 Actions를 배포 소스로 활성화 — 실제 웹 배포 정상 동작 확인
+- [x] 데스크톱 브라우저 테스트 — 공개 Web 빌드 실행 정상 확인
+- [x] 공개 URL 테스트 — GitHub Pages 공개 배포 정상 확인
+- [x] 웹 전용 문제 수정 — Web export 경로/한국어 폰트/Pages artifact 배포 문제 수정 완료
+- [x] 첫 번째 플레이 가능 버전 공개 — GitHub Pages Web 빌드 정상 배포 확인
 
 ## 현재 우선순위
 
@@ -31,12 +31,23 @@ Phase 9 핵심 UI/피드백 작업은 완료했습니다.
 → 전투 피드백 완료
 → 가독성 개선 완료
 → 웹 Export 로컬 생성 확인
-→ GitHub Actions Web Export + Pages 자동 배포 구성 완료
-→ 다음: GitHub Pages 활성화 후 실제 배포/브라우저 검증
+→ GitHub Actions Web Export + Pages 자동 배포 완료
+→ 공개 Web 빌드 정상 동작 확인
+→ 다음: 웹 성능 최적화
 
-Phase 10 웹 출시 준비:
-→ GitHub Pages Actions 소스 활성화
-→ Actions 배포 성공 확인
-→ 공개 URL 테스트
-→ 웹 전용 문제 수정
-→ 첫 번째 플레이 가능 버전 공개
+Phase 10 웹 출시:
+→ GitHub Pages 배포 소스 활성화 완료
+→ Actions 배포 성공 확인 완료
+→ 공개 URL 테스트 완료
+→ 웹 전용 문제 수정 완료
+→ 첫 번째 플레이 가능 Web 버전 공개 완료
+
+## 다음 개발 목표
+
+웹 출시를 완료했으므로 다음 단계는 게임 콘텐츠와 로그라이크 런 완성도입니다.
+
+1. 웹 성능 최적화
+2. Phase 5 던전 프로토타입 완성도 점검
+3. Phase 6 로그라이크 런 시스템 확장
+4. Phase 7 영구 성장 시스템
+5. Phase 8 콘텐츠 확장
