@@ -132,6 +132,31 @@ func _calculate_actions() -> void:
 	if not skill_names.is_empty():
 		status_label.text = "✨ 스킬 발동: %s" % ", ".join(skill_names)
 
+func _on_attack_button_pressed() -> void:
+	if is_battle_over:
+		return
+
+	var damage: int = calculated_attack_damage
+	if damage > 0:
+		damage = enemy.take_piercing_damage(damage, 0)
+
+	if enemy.current_hp <= 0:
+		await _handle_victory()
+		return
+
+	var incoming: int = enemy.consume_planned_attack()
+	var boss_extra_damage: int = _apply_boss_symbol_effect(incoming)
+	incoming += boss_extra_damage
+	player.take_damage(incoming)
+	RunState.current_hp = player.current_hp
+	_update_hp_labels()
+	_update_enemy_intent()
+	if player.current_hp <= 0:
+		await _handle_defeat()
+		return
+
+	_start_turn("⚔️ %d 피해를 주고 적의 공격을 견뎠습니다. 다시 굴리세요." % damage)
+
 func _apply_boss_symbol_effect(base_damage: int) -> int:
 	if not is_boss_battle or enemy == null or enemy.enemy_data.boss_symbol_id <= 0:
 		return 0
