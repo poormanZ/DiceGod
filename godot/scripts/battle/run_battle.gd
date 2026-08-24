@@ -112,7 +112,6 @@ func _calculate_actions() -> void:
 	calculated_block += int(skills.get("block", 0))
 	calculated_heal += int(skills.get("heal", 0))
 
-	_update_damage_preview()
 	var skill_names: Array = skills.get("skills", [])
 	if not skill_names.is_empty():
 		status_label.text = "✨ 스킬 발동: %s" % ", ".join(skill_names)
