@@ -25,6 +25,7 @@ func _ready() -> void:
 	BossRewardSystem.sync_owned_special_dice(RunState)
 	_add_codex_button()
 	_add_run_status_overlay()
+	_add_dungeon_guide()
 	_setup_node_buttons()
 	_update_progress()
 
@@ -43,6 +44,18 @@ func _add_codex_button() -> void:
 	codex_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/dungeon/god_codex.tscn"))
 	content.add_child(codex_button)
 
+func _add_dungeon_guide() -> void:
+	var content: VBoxContainer = $MarginContainer/Content
+	var guide: Label = content.get_node_or_null("DungeonGuide") as Label
+	if guide == null:
+		guide = Label.new()
+		guide.name = "DungeonGuide"
+		guide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		guide.custom_minimum_size = Vector2(0, 44)
+		content.add_child(guide)
+	guide.text = "🗺️ 던전 진행\n⚔️ 일반 전투  →  🎲 랜덤 이벤트  →  ♛ 엘리트  →  🎲 랜덤 이벤트  →  ☠️ 보스"
+
 func _initialize_run_dice() -> void:
 	if not RunState.run_dice_faces.is_empty():
 		return
@@ -53,20 +66,20 @@ func _initialize_run_dice() -> void:
 		RunState.initialize_run_dice(PackedInt32Array([1, 2, 3, 4, 5, 6]))
 
 func _setup_node_buttons() -> void:
-	# 버튼에는 짧은 제목만 표시하고 상세 설명은 툴팁으로 분리해
-	# 1280x720에서도 텍스트가 버튼 폭을 강제로 늘리지 않도록 한다.
 	start_button.text = "⚔ 일반 전투"
 	start_button.tooltip_text = start_node_data.description
-	reward_button.text = "💰 골드 보상"
-	reward_button.tooltip_text = reward_node_data.description
+	reward_button.text = "💰 전투 골드 보상"
+	reward_button.tooltip_text = "전투 또는 엘리트 처치 후 무작위 골드를 자동으로 획득합니다."
 	event_button.text = "🎲 랜덤 이벤트 ①"
 	event_button.tooltip_text = event_node_data.description
 	shop_button.text = "🎲 랜덤 이벤트 ②"
-	shop_button.tooltip_text = "엘리트 처치 후 두 번째 랜덤 이벤트를 선택합니다."
+	shop_button.tooltip_text = "엘리트 처치 후 두 번째 랜덤 이벤트를 진행합니다."
 	elite_button.text = "♛ 엘리트"
 	elite_button.tooltip_text = elite_node_data.description
 	boss_button.text = "☠ 보스"
 	boss_button.tooltip_text = boss_node_data.description
+	# 골드 보상은 전투 승리 직후 자동 지급되므로 던전 맵에서 직접 선택하지 않습니다.
+	reward_button.hide()
 	new_run_button.hide()
 
 func _format_run_status() -> String:
@@ -87,7 +100,7 @@ func _update_progress() -> void:
 	elif RunState.event_stage == 2 and RunState.event_resolved:
 		_disable_all_nodes()
 		boss_button.disabled = false
-		status_label.text = "두 번째 이벤트가 끝났습니다. 마지막 보스에 도전하세요."
+		status_label.text = "두 번째 랜덤 이벤트가 끝났습니다. 마지막 보스에 도전하세요."
 	elif RunState.elite_cleared:
 		_disable_all_nodes()
 		shop_button.disabled = false
@@ -95,11 +108,11 @@ func _update_progress() -> void:
 	elif RunState.event_stage == 1 and RunState.event_resolved:
 		_disable_all_nodes()
 		elite_button.disabled = false
-		status_label.text = "첫 번째 이벤트가 끝났습니다. 다음은 엘리트 몬스터입니다."
+		status_label.text = "첫 번째 랜덤 이벤트가 끝났습니다. 다음은 엘리트 몬스터입니다."
 	elif RunState.reward_claimed:
 		_disable_all_nodes()
 		event_button.disabled = false
-		status_label.text = "💰 골드를 획득했습니다. 랜덤 이벤트를 선택하세요."
+		status_label.text = "💰 전투 골드를 획득했습니다. 첫 번째 랜덤 이벤트를 선택하세요."
 	else:
 		_disable_all_nodes()
 		start_button.disabled = false
