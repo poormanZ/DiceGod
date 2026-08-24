@@ -30,6 +30,7 @@ var inherited_die: Dictionary = {}
 var pending_inheritance_die: Dictionary = {}
 var forge_used_this_run: bool = false
 var forge_history: Array[Dictionary] = []
+var face_upgrade_levels: Dictionary = {}
 var divine_symbol_history: Array[Dictionary] = []
 var unlocked_divine_symbols: Array[String] = []
 var current_boss_id: String = ""
@@ -38,6 +39,9 @@ var death_pending: bool = false
 var inheritance_confirmed: bool = false
 var purchased_items: Array[String] = []
 var equipped_items: Array[String] = []
+var shop_resolved: bool = false
+var shop_item_id: String = ""
+var unlocked_dice_bonus: int = 0
 var gamble_result: String = ""
 var gamble_streak: int = 0
 var permanent_runs: int = 0
@@ -66,6 +70,7 @@ func start_new_run() -> void:
 	run_dice_faces.clear()
 	forge_used_this_run = false
 	forge_history.clear()
+	face_upgrade_levels.clear()
 	divine_symbol_history.clear()
 	pending_inheritance_die = inherited_die.duplicate(true)
 	current_boss_id = ""
@@ -74,6 +79,9 @@ func start_new_run() -> void:
 	inheritance_confirmed = false
 	purchased_items.clear()
 	equipped_items.clear()
+	shop_resolved = false
+	shop_item_id = ""
+	unlocked_dice_bonus = 0
 	gamble_result = ""
 	gamble_streak = 0
 	permanent_runs += 1
@@ -102,6 +110,12 @@ func add_die(faces: Array) -> bool:
 	run_dice_faces.append(faces.duplicate(true))
 	return true
 
+func replace_die(die_index: int, faces: Array) -> bool:
+	if die_index < 0 or die_index >= run_dice_faces.size() or faces.size() != DICE_FACE_COUNT:
+		return false
+	run_dice_faces[die_index] = faces.duplicate(true)
+	return true
+
 func get_die_faces(die_index: int) -> Array:
 	if die_index < 0 or die_index >= run_dice_faces.size():
 		return []
@@ -127,8 +141,13 @@ func upgrade_die_face(die_index: int, face_index: int, cost: int) -> bool:
 		return false
 	if not spend_gold(cost):
 		return false
-	forge_history.append({"die_index": die_index, "face_index": face_index, "upgrade": true, "cost": cost})
+	var key: String = "%d:%d" % [die_index, face_index]
+	face_upgrade_levels[key] = int(face_upgrade_levels.get(key, 0)) + 1
+	forge_history.append({"die_index": die_index, "face_index": face_index, "upgrade": true, "level": face_upgrade_levels[key], "cost": cost})
 	return true
+
+func get_face_upgrade_level(die_index: int, face_index: int) -> int:
+	return int(face_upgrade_levels.get("%d:%d" % [die_index, face_index], 0))
 
 func unlock_divine_symbol(symbol_id: String) -> void:
 	if symbol_id.is_empty():
@@ -159,7 +178,7 @@ func record_divine_imprint(die_index: int, face_index: int, symbol_id: String) -
 func prepare_inheritance(die_faces: Array, die_name: String = "환생 주사위") -> void:
 	if die_faces.size() != DICE_FACE_COUNT:
 		return
-	pending_inheritance_die = {"name": die_name, "faces": die_faces.duplicate(true), "forge_history": forge_history.duplicate(true), "divine_symbols": divine_symbol_history.duplicate(true), "source_run": run_number}
+	pending_inheritance_die = {"name": die_name, "faces": die_faces.duplicate(true), "forge_history": forge_history.duplicate(true), "divine_symbols": divine_symbol_history.duplicate(true), "face_upgrade_levels": face_upgrade_levels.duplicate(true), "source_run": run_number}
 
 func confirm_inheritance() -> void:
 	if pending_inheritance_die.is_empty():
