@@ -15,6 +15,8 @@ const REWARDS := {
 	"heal": {"label": "HP +20", "description": "현재 HP를 20 회복합니다.", "value": 20},
 	"dice": {"label": "주사위 강화", "description": "런 동안 주사위 슬롯 보너스 +1.", "value": 1},
 	"attack": {"label": "공격력 +3", "description": "런 동안 기본 공격력 +3.", "value": 3},
+	"flame": {"label": "화염의 축복", "description": "공격력 +5. 다음 전투가 불타오릅니다.", "value": 5},
+	"fortune": {"label": "행운의 축복", "description": "주사위 강화 +2.", "value": 2},
 }
 
 func _ready() -> void:
@@ -42,9 +44,9 @@ func _claim_reward(reward_id: String) -> void:
 			RunState.add_gold(int(reward["value"]))
 		"heal":
 			RunState.heal(int(reward["value"]))
-		"dice":
+		"dice", "fortune":
 			RunState.unlocked_dice_bonus += int(reward["value"])
-		"attack":
+		"attack", "flame":
 			RunState.attack_bonus += int(reward["value"])
 	for button in reward_buttons:
 		button.disabled = true
