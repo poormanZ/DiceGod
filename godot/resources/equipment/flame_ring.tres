@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EquipmentData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/character/equipment_data.gd" id="1_equipment"]
+
+[resource]
+script = ExtResource("1_equipment")
+display_name = "화염의 반지"
+description = "공격력을 +2 높입니다."
+attack_bonus = 2
