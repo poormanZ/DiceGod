@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="EquipmentData" load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://scripts/character/equipment_data.gd" id="1_equipment_data"]
-
-[resource]
-script = ExtResource("1_equipment_data")
-display_name = "전투의 부적"
-description = "착용만으로 모든 공격에 공격력 +2를 더합니다."
-attack_bonus = 2
