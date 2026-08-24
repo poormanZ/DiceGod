@@ -61,12 +61,32 @@ func _roll_attack_preview() -> int:
 
 func _refresh_attack_intent() -> void:
 	planned_attack_damage = _roll_attack_preview()
+	_update_intent_display()
 
 func get_attack_intent() -> int:
 	return planned_attack_damage
 
+func _update_intent_display() -> void:
+	# 별도의 씬 수정 없이 기존 EnemyHint 라벨을 적 공격 의도 표시로 사용합니다.
+	var main_loop := Engine.get_main_loop()
+	if main_loop == null or not (main_loop is SceneTree):
+		return
+	var tree := main_loop as SceneTree
+	var current_scene := tree.current_scene
+	if current_scene == null:
+		return
+	var intent_label := current_scene.get_node_or_null("MarginContainer/Content/EnemyArea/EnemyHint") as Label
+	if intent_label == null:
+		return
+	if planned_attack_damage > 0:
+		intent_label.text = "⚠️ 다음 공격: ⚔️ %d 피해" % planned_attack_damage
+		intent_label.modulate = Color(1.0, 0.55, 0.45, 1.0)
+	else:
+		intent_label.text = "⚠️ 다음 공격: 0 피해"
+		intent_label.modulate = Color(0.65, 0.65, 0.7, 1.0)
+
 func roll_attack_damage() -> int:
-	# 표시된 공격 의도를 실제 공격으로 확정하여 플레이어가 예측 가능한 전투를 만듭니다.
+	# 표시된 공격 의도를 실제 공격으로 확정합니다.
 	var damage := planned_attack_damage
 	_refresh_attack_intent()
 	return damage
