@@ -28,12 +28,7 @@ static func grant(run_state: RunStateManager, boss_id: String) -> Dictionary:
 		return {"success": false, "message": "보스 보상 데이터가 없습니다."}
 	var gear_id: String = str(reward.get("gear", ""))
 	var gear_result: Dictionary = RoguelikeEquipmentSystem.equip(run_state, gear_id)
-	var die_entry: Dictionary = {
-		"id": str(reward.get("die", "")),
-		"name": str(reward.get("die_name", "특수 주사위")),
-		"faces": reward.get("faces", []).duplicate(true),
-		"boss_id": boss_id
-	}
+	var die_entry: Dictionary = {"id": str(reward.get("die", "")), "name": str(reward.get("die_name", "특수 주사위")), "faces": reward.get("faces", []).duplicate(true), "boss_id": boss_id}
 	var found: bool = false
 	for existing in run_state.special_dice_collection:
 		if str(existing.get("id", "")) == die_entry["id"]:
@@ -41,4 +36,6 @@ static func grant(run_state: RunStateManager, boss_id: String) -> Dictionary:
 			break
 	if not found:
 		run_state.special_dice_collection.append(die_entry)
-	return {"success": true, "gear": gear_result.get("gear", {}), "die": die_entry}
+	ProgressionState.unlock_special_dice(str(die_entry["id"]))
+	ProgressionState.unlock_equipment(gear_id)
+	return {"success": gear_result.get("success", false) or found, "gear": gear_result.get("gear", {}), "die": die_entry}
