@@ -76,15 +76,32 @@ jobs:
           test -x "$GODOT_BIN"
           echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
 
-      - name: Validate all GDScript
+      - name: Import Godot project
         run: |
           set -euo pipefail
-          "$GODOT_BIN" --headless --path ./godot --script res://scripts/validate_project.gd
+          "$GODOT_BIN" --headless --editor --path ./godot --quit 2>&1 | tee ./godot_import.log
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer' ./godot_import.log; then
+            echo "Godot project import reported script errors."
+            exit 1
+          fi
+
+      - name: Validate actual Godot startup
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path ./godot --script res://scripts/validate_project.gd 2>&1 | tee ./godot_validation.log
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer' ./godot_validation.log; then
+            echo "Godot startup validation reported errors."
+            exit 1
+          fi
 
       - name: Run automated roadmap validation
         run: |
           set -euo pipefail
-          "$GODOT_BIN" --headless --path ./godot --script res://scripts/validation/roadmap_validation.gd
+          "$GODOT_BIN" --headless --path ./godot --script res://scripts/validation/roadmap_validation.gd 2>&1 | tee ./roadmap_validation.log
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer|Roadmap validation failed' ./roadmap_validation.log; then
+            echo "Roadmap validation reported errors."
+            exit 1
+          fi
 
       - name: Export Godot project to Web
         uses: firebelley/godot-export@v8.0.0
