@@ -13,7 +13,7 @@ static func select_die_for_reincarnation(run_state: RunStateManager, die_index: 
 	var faces: Array = run_state.get_die_faces(die_index)
 	if faces.size() != RunStateManager.DICE_FACE_COUNT:
 		return false
-	run_state.prepare_inheritance(faces, "환생 주사위 %d" % (die_index + 1))
+	run_state.prepare_inheritance(faces, "환생 주사위 %d" % (die_index + 1), die_index)
 	return true
 
 static func confirm(run_state: RunStateManager) -> bool:
