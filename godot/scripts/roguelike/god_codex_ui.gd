@@ -34,5 +34,9 @@ func _build_ui() -> void:
 		grid.add_child(button)
 	var close_button: Button = Button.new()
 	close_button.text = "닫기"
-	close_button.pressed.connect(func() -> void: closed.emit())
+	close_button.pressed.connect(_on_close)
 	root.add_child(close_button)
+
+func _on_close() -> void:
+	closed.emit()
+	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
