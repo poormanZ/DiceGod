@@ -65,7 +65,7 @@ jobs:
           grep -q 'theme/custom="res://theme_korean.tres"' ./godot/project.godot
           grep -q 'KoreanFontManager="\*res://scripts/ui/korean_font_manager.gd"' ./godot/project.godot
 
-      - name: Run automated roadmap validation
+      - name: Download Godot for validation
         run: |
           set -euo pipefail
           mkdir -p /tmp/dicegod
@@ -74,6 +74,16 @@ jobs:
           unzip -q /tmp/dicegod/godot.zip -d /tmp/dicegod
           GODOT_BIN="$(find /tmp/dicegod -maxdepth 2 -type f -name 'Godot_v4.7.2-stable_linux.x86_64' -print -quit)"
           test -x "$GODOT_BIN"
+          echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
+
+      - name: Validate all GDScript
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path ./godot --script res://scripts/validate_project.gd
+
+      - name: Run automated roadmap validation
+        run: |
+          set -euo pipefail
           "$GODOT_BIN" --headless --path ./godot --script res://scripts/validation/roadmap_validation.gd
 
       - name: Export Godot project to Web
@@ -85,7 +95,7 @@ jobs:
           relative_export_path: ./godot/build
           archive_output: false
           presets_to_export: Web
-          cache: true
+          cache: false
 
       - name: Normalize and validate Web export
         run: |
@@ -106,12 +116,9 @@ jobs:
           test -s ./godot/build/web/index.html
           test -f ./godot/build/web/index.pck
           test -f ./godot/build/web/index.wasm
-          echo "Normalized Web export:"
-          find ./godot/build/web -maxdepth 2 -type f -printf '%p %s bytes\n' | sort
           TOTAL_BYTES="$(find ./godot/build/web -type f -printf '%s\n' | awk '{s+=$1} END {print s+0}')"
-          echo "Web artifact total bytes: ${TOTAL_BYTES}"
           test "$TOTAL_BYTES" -gt 0
-          echo "Web export verified"
+          echo "Web export verified: ${TOTAL_BYTES} bytes"
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
