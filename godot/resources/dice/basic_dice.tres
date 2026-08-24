@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dice_data")
-display_name = "기본 주사위"
+display_name = "기본 심볼 주사위"
+description = "검·활·지팡이·표창은 공격, 방패는 방어, 힐은 치료에 사용됩니다."
 face_values = PackedInt32Array(1, 2, 3, 4, 5, 6)
