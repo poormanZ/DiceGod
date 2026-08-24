@@ -1,5 +1,5 @@
 class_name BossRunBattle
-extends Battle
+extends RunBattle
 
 func _handle_victory() -> void:
 	is_battle_over = true
