@@ -1,0 +1,87 @@
+name: Fix battle UI layout
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message, '[battle-ui-fix]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compact battle layout for 1280x720
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          battle = Path('godot/scenes/battle/battle.tscn')
+          text = battle.read_text(encoding='utf-8')
+
+          replacements = {
+              'offset_left = 56.0\noffset_top = 32.0\noffset_right = -56.0\noffset_bottom = -32.0':
+                  'offset_left = 40.0\noffset_top = 12.0\noffset_right = -40.0\noffset_bottom = -12.0',
+              'theme_override_constants/separation = 6\nalignment = 1':
+                  'theme_override_constants/separation = 3\nalignment = 1',
+              'theme_override_font_sizes/font_size = 28\ntext = "DICEGOD"':
+                  'theme_override_font_sizes/font_size = 24\ntext = "DICEGOD"',
+              'custom_minimum_size = Vector2(0, 40)\nlayout_mode = 2\ntheme_override_colors/font_color = Color(1, 0.78, 0.25, 1)':
+                  'custom_minimum_size = Vector2(0, 28)\nlayout_mode = 2\ntheme_override_colors/font_color = Color(1, 0.78, 0.25, 1)',
+              'custom_minimum_size = Vector2(0, 138)\nlayout_mode = 2\ntheme_override_constants/separation = 3':
+                  'custom_minimum_size = Vector2(0, 92)\nlayout_mode = 2\ntheme_override_constants/separation = 2',
+              'custom_minimum_size = Vector2(0, 160)\nlayout_mode = 2\ntheme_override_styles/panel = SubResource("battle_box")':
+                  'custom_minimum_size = Vector2(0, 82)\nlayout_mode = 2\ntheme_override_styles/panel = SubResource("battle_box")',
+              'custom_minimum_size = Vector2(0, 52)\nlayout_mode = 2\ntheme_override_constants/separation = 12':
+                  'custom_minimum_size = Vector2(0, 38)\nlayout_mode = 2\ntheme_override_constants/separation = 8',
+              'custom_minimum_size = Vector2(0, 34)\nlayout_mode = 2\ntheme_override_font_sizes/font_size = 13':
+                  'custom_minimum_size = Vector2(0, 30)\nlayout_mode = 2\ntheme_override_font_sizes/font_size = 12',
+              'custom_minimum_size = Vector2(0, 42)\nlayout_mode = 2\ntheme_override_colors/font_color = Color(0.82, 0.82, 0.86, 1)':
+                  'custom_minimum_size = Vector2(0, 30)\nlayout_mode = 2\ntheme_override_colors/font_color = Color(0.82, 0.82, 0.86, 1)',
+          }
+          for old, new in replacements.items():
+              text = text.replace(old, new, 1)
+
+          # Compact the action row without touching the build-selection buttons.
+          action_start = text.index('[node name="ActionButtons"')
+          restart_start = text.index('[node name="RestartBuildButton"', action_start)
+          action_block = text[action_start:restart_start]
+          action_block = action_block.replace('custom_minimum_size = Vector2(112, 44)', 'custom_minimum_size = Vector2(104, 38)')
+          action_block = action_block.replace('custom_minimum_size = Vector2(124, 44)', 'custom_minimum_size = Vector2(112, 38)')
+          text = text[:action_start] + action_block + text[restart_start:]
+
+          battle.write_text(text, encoding='utf-8')
+
+          dice = Path('godot/scenes/dice/dice_roll_panel.tscn')
+          dtext = dice.read_text(encoding='utf-8')
+          dtext = dtext.replace('custom_minimum_size = Vector2(440, 170)', 'custom_minimum_size = Vector2(420, 120)', 1)
+          dtext = dtext.replace('content_margin_top = 10.0', 'content_margin_top = 7.0', 1)
+          dtext = dtext.replace('content_margin_bottom = 10.0', 'content_margin_bottom = 7.0', 1)
+          dtext = dtext.replace('theme_override_font_sizes/font_size = 16', 'theme_override_font_sizes/font_size = 14', 1)
+          dtext = dtext.replace('theme_override_constants/separation = 6', 'theme_override_constants/separation = 3', 1)
+          dtext = dtext.replace('theme_override_constants/separation = 10', 'theme_override_constants/separation = 6', 1)
+          dtext = dtext.replace('custom_minimum_size = Vector2(120, 120)', 'custom_minimum_size = Vector2(86, 86)')
+          dtext = dtext.replace('theme_override_font_sizes/font_size = 46', 'theme_override_font_sizes/font_size = 34')
+          dice.write_text(dtext, encoding='utf-8')
+
+      - name: Verify layout changes
+        run: |
+          grep -q 'offset_top = 12.0' godot/scenes/battle/battle.tscn
+          grep -q 'custom_minimum_size = Vector2(0, 82)' godot/scenes/battle/battle.tscn
+          grep -q 'custom_minimum_size = Vector2(420, 120)' godot/scenes/dice/dice_roll_panel.tscn
+
+      - name: Commit changes and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f .github/workflows/_fix_battle_ui.yml
+          git add godot/scenes/battle/battle.tscn godot/scenes/dice/dice_roll_panel.tscn .github/workflows/_fix_battle_ui.yml
+          git diff --cached --check
+          git diff --cached --quiet && exit 0
+          git commit -m 'Fix battle UI clipping [battle-ui-fix]'
+          git push origin main
