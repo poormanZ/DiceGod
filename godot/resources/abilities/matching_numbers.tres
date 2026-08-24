@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_ability_data")
-display_name = "같은 숫자의 힘"
-description = "같은 숫자가 2개 이상이면 공격력 +2, 3개 이상이면 공격력 +3"
+display_name = "같은 공격의 힘"
+description = "같은 공격 심볼이 2개 이상이면 공격 +2, 3개 이상이면 공격 +3"
 matching_pair_bonus = 2
 matching_triple_bonus = 3
