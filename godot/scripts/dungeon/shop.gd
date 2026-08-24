@@ -14,9 +14,13 @@ const CHARM_COST: int = 40
 
 func _ready() -> void:
 	_update_ui()
+	status_label.text = "상점에서 런을 강화할 아이템 하나를 선택하세요."
 
 func _update_ui() -> void:
 	gold_label.text = "보유 골드: %d" % RunState.gold
+	attack_button.text = "⚔ 공격력 강화\n+3 공격력 / %dG" % ATTACK_COST
+	dice_button.text = "🎲 주사위 강화\n+1 주사위 보너스 / %dG" % DICE_COST
+	charm_button.text = "🍀 행운의 부적\n+2 공격력 / %dG" % CHARM_COST
 	attack_button.disabled = resolved or RunState.gold < ATTACK_COST
 	dice_button.disabled = resolved or RunState.gold < DICE_COST
 	charm_button.disabled = resolved or RunState.gold < CHARM_COST
@@ -31,11 +35,8 @@ func _buy(item_id: String, cost: int, item_text: String, attack_bonus: int, dice
 	RunState.shop_resolved = true
 	RunState.shop_item_id = item_id
 	resolved = true
-	attack_button.disabled = true
-	dice_button.disabled = true
-	charm_button.disabled = true
-	status_label.text = "%s 구매 완료!\n%s" % [item_text, RunState.get_run_summary()]
 	_update_ui()
+	status_label.text = "%s 구매 완료!\n%s" % [item_text, RunState.get_run_summary()]
 	await get_tree().create_timer(0.8).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
