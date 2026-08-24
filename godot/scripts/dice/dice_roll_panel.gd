@@ -48,7 +48,7 @@ func play_attack_feedback() -> void:
 	for button in dice_buttons:
 		tween.parallel().tween_property(button, "scale", DICE_IDLE_SCALE, 0.14)
 
-func play_damage_feedback(damage: int) -> void:
+func play_damage_feedback(_damage: int) -> void:
 	var flash_color := Color(1.0, 0.35, 0.25, 1.0)
 	for button in dice_buttons:
 		button.modulate = flash_color
@@ -75,13 +75,13 @@ func _refresh_dice_button(index: int) -> void:
 	var dice_button := dice_buttons[index]
 	if index >= dice_states.size() or not dice_states[index].has_result():
 		dice_button.disabled = true
-		dice_button.text = "-"
+		dice_button.text = "—"
 		dice_button.tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
 		dice_button.modulate = Color.WHITE
 		return
 	var dice_state := dice_states[index]
 	dice_button.disabled = false
-	dice_button.text = str(dice_state.result)
-	dice_button.tooltip_text = "잠금 해제" if dice_state.is_locked else "잠금"
+	dice_button.text = dice_state.get_symbol()
+	dice_button.tooltip_text = "%s · %s" % [dice_state.get_name(), "잠금 해제" if dice_state.is_locked else "잠금"]
 	dice_button.modulate = Color(1.0, 0.84, 0.35, 1.0) if dice_state.is_locked else Color.WHITE
 	dice_button.scale = DICE_IDLE_SCALE
