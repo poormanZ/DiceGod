@@ -34,6 +34,8 @@ extends Control
 @onready var build_selection_panel: PanelContainer = $BuildSelectionPanel
 @onready var build_box: VBoxContainer = $BuildSelectionPanel/Margin/VBox
 
+const STARTING_DICE_COUNT := 6
+
 var build_buttons: Array[Button] = []
 var available_builds: Array[BuildData] = []
 var dice_states: Array[DiceRuntimeState] = []
@@ -114,8 +116,9 @@ func _on_build_selected(build: BuildData) -> void:
 	ability_data = build.ability_data
 	equipment_data = build.equipment_data
 	player = Player.new(player_data)
-	player.current_hp = clampi(RunState.current_hp, 1, player.player_data.max_hp)
+	player.current_hp = player.player_data.max_hp
 	enemy = Enemy.new(enemy_data)
+	enemy.current_hp = enemy.enemy_data.max_hp
 	ability = Ability.new(ability_data)
 	equipment = Equipment.new(equipment_data)
 	dice_states.clear()
@@ -131,12 +134,11 @@ func _on_build_selected(build: BuildData) -> void:
 	selected_build_label.text = "선택한 빌드: %s — %s\n⚔️ 공격  🛡️ 방어  ✚ 치료" % [build.display_name, build.description]
 	_set_action_buttons_for_build(build)
 
-	# 현재 UI는 3개 주사위 슬롯을 사용합니다. 6개 확장은 별도 UI 단계에서 진행합니다.
-	for _dice_index in 3:
+	for _dice_index in STARTING_DICE_COUNT:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
 	restart_build_button.hide()
-	_start_turn("%s을(를) 선택했습니다. 주사위를 굴려 행동 심볼을 만드세요." % build.display_name)
+	_start_turn("%s을(를) 선택했습니다. 6개의 주사위를 굴려 행동 심볼을 만드세요." % build.display_name)
 
 func _update_player_hp_label() -> void:
 	player_hp_label.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
@@ -198,7 +200,7 @@ func _on_roll_button_pressed() -> void:
 	ability_button.disabled = true
 	attack_button.disabled = true
 	status_label.text = "심볼을 잠그거나 리롤할 수 있습니다."
-	_show_combat_feedback("🎲 심볼 주사위를 굴렸습니다.")
+	_show_combat_feedback("🎲 6개의 심볼 주사위를 굴렸습니다.")
 
 func _on_reroll_button_pressed() -> void:
 	if not dice_roller.reroll(dice_states):
@@ -311,35 +313,9 @@ func _handle_victory() -> void:
 	if is_boss_battle:
 		RunState.boss_cleared = true
 		RunState.complete_run()
-		ProgressionState.unlock_dice("power_dice")
-	elif is_elite_battle:
-		RunState.elite_cleared = true
-	else:
-		RunState.battle_cleared = true
-	dice_roll_panel.set_dice_interaction_enabled(false)
-	roll_button.disabled = true
-	reroll_button.disabled = true
-	confirm_button.disabled = true
-	ability_button.disabled = true
-	attack_button.disabled = true
-	restart_build_button.hide()
-	status_label.text = "%s 승리!\n%s\n%s" % [selected_build.display_name, RunState.get_run_summary(), ProgressionState.get_unlock_summary()]
-	await get_tree().create_timer(0.8).timeout
-	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
 func _handle_defeat() -> void:
 	is_battle_over = true
 	AudioManager.play_defeat()
-	_pulse_control(player_hp_label, Color(1.0, 0.2, 0.2, 1.0), 0.4)
-	_show_combat_feedback("💀 DEFEAT", Color(1.0, 0.25, 0.25, 1.0))
-	RunState.end_run()
-	dice_roll_panel.set_dice_interaction_enabled(false)
-	roll_button.disabled = true
-	reroll_button.disabled = true
-	confirm_button.disabled = true
-	ability_button.disabled = true
-	attack_button.disabled = true
-	restart_build_button.hide()
-	status_label.text = "런이 종료되었습니다. HP가 0이 되었습니다."
-	await get_tree().create_timer(1.2).timeout
-	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
+	_show_combat_feedback("💀 DEFEAT", Color(1.0, 0.35, 0.35, 1.0))
+	restart_build_button.show()
