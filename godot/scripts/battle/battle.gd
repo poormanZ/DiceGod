@@ -155,7 +155,7 @@ func _update_enemy_intent_display() -> void:
 	var intent_text := enemy.get_attack_intent()
 	var enemy_hint := get_node_or_null("MarginContainer/Content/EnemyArea/EnemyHint") as Label
 	if enemy_hint != null:
-		enemy_hint.text = "⚠️ " + intent_text
+		enemy_hint.text = "⚠️ " + str(intent_text)
 
 func _update_player_hp_label() -> void:
 	player_hp_label.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
@@ -164,8 +164,8 @@ func _update_damage_preview() -> void:
 	if enemy == null or player == null or not enemy.has_planned_attack():
 		return
 	var incoming := enemy.planned_attack_damage
-	var mitigation := calculated_block + calculated_shield
-	var expected_damage := maxi(0, incoming - mitigation)
+	var mitigation: int = calculated_block + calculated_shield
+	var expected_damage: int = maxi(0, incoming - mitigation)
 	var preview := "⚠️ 적 공격 %d  |  🛡️ 방어 %d  + 보호 %d  |  예상 피해 %d" % [incoming, calculated_block, calculated_shield, expected_damage]
 	status_label.text = preview
 	_show_combat_feedback(preview, Color(0.75, 0.85, 1.0, 1.0))
@@ -205,6 +205,9 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	calculated_status_damage = 0
 	calculated_shield = 0
 	effects_applied = false
+	if enemy != null:
+		enemy.plan_next_attack()
+		_update_enemy_intent_display()
 	for dice_state in dice_states:
 		dice_state.result = 0
 		dice_state.is_locked = false
@@ -217,7 +220,6 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	attack_button.disabled = true
 	restart_build_button.hide()
 	status_label.text = status_message
-	_update_enemy_intent_display()
 	_show_combat_feedback(status_message)
 
 func _on_roll_button_pressed() -> void:
@@ -233,6 +235,8 @@ func _on_roll_button_pressed() -> void:
 	confirm_button.disabled = false
 	ability_button.disabled = true
 	attack_button.disabled = true
+	_calculate_actions()
+	_update_damage_preview()
 	status_label.text = "심볼을 잠그거나 리롤할 수 있습니다."
 	_show_combat_feedback("🎲 6개의 심볼 주사위를 굴렸습니다.")
 
@@ -242,6 +246,8 @@ func _on_reroll_button_pressed() -> void:
 	dice_roll_panel.display_results(dice_states)
 	dice_roll_panel.play_roll_feedback()
 	reroll_button.disabled = true
+	_calculate_actions()
+	_update_damage_preview()
 	status_label.text = "리롤을 사용했습니다. 최종 심볼을 확정하세요."
 	_show_combat_feedback("↻ 리롤 완료")
 
@@ -256,9 +262,7 @@ func _on_confirm_button_pressed() -> void:
 	_apply_non_attack_effects()
 	ability_button.disabled = not ability.can_use(dice_states)
 	attack_button.disabled = calculated_attack_damage <= 0 and calculated_block <= 0 and calculated_heal <= 0
-	_update_damage_preview()
-	if calculated_attack_damage > 0 or calculated_block > 0 or calculated_heal > 0:
-		status_label.text = "확정: ⚔️ %d  🛡️ %d  ✚ %d" % [calculated_attack_damage, calculated_block, calculated_heal]
+	status_label.text = "확정: ⚔️ %d  🛡️ %d  ✚ %d" % [calculated_attack_damage, calculated_block, calculated_heal]
 	_show_combat_feedback("⚡ ⚔️ %d  🛡️ %d  ✚ %d" % [calculated_attack_damage, calculated_block, calculated_heal], Color(1.0, 0.84, 0.35, 1.0))
 
 func _calculate_actions() -> void:
@@ -302,13 +306,20 @@ func _calculate_actions() -> void:
 		calculated_shield = shield_count - 1
 	if heal_count >= 2:
 		calculated_heal += heal_count - 1
+	_update_damage_preview()
 
 func _apply_non_attack_effects() -> void:
 	if effects_applied:
 		return
 	effects_applied = true
 	if calculated_heal > 0:
+		var previous_hp := player.current_hp
 		player.heal(calculated_heal)
+		var actual_heal := player.current_hp - previous_hp
+		var overheal := calculated_heal - actual_heal
+		if overheal > 0:
+			player.add_shield(overheal)
+			calculated_shield += overheal
 		RunState.current_hp = player.current_hp
 		_update_player_hp_label()
 		_pulse_control(player_hp_label, Color(0.35, 1.0, 0.5, 1.0))
@@ -330,27 +341,30 @@ func _on_attack_button_pressed() -> void:
 		return
 	dice_roll_panel.play_attack_feedback()
 	var final_damage := 0
-	var special_text := ""
 	if calculated_attack_damage > 0:
 		_pulse_control(enemy_name_label, Color(1.0, 0.35, 0.25, 1.0))
 		final_damage = enemy.take_piercing_damage(calculated_attack_damage, calculated_penetration)
 		if calculated_extra_hits > 0:
 			for _hit_index in calculated_extra_hits:
-				final_damage += enemy.take_piercing_damage(1, calculated_penetration)
+				var extra_hit_damage := enemy.take_piercing_damage(1, calculated_penetration)
+				final_damage += extra_hit_damage
+			AudioManager.play_hit()
+			dice_roll_panel.play_damage_feedback(final_damage)
 		if calculated_status_damage > 0:
 			enemy.apply_status("burn", 2, calculated_status_damage)
-		AudioManager.play_hit()
-		dice_roll_panel.play_damage_feedback(final_damage)
+	else:
+		final_damage = 0
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	_pulse_control(enemy_hp_label, Color(1.0, 0.35, 0.25, 1.0))
+	var special_text := ""
 	if calculated_penetration > 0:
 		special_text += " 🏹 관통-%d" % calculated_penetration
 	if calculated_magic_bonus > 0:
-		special_text += " 杖 마법+%d/화상" % calculated_magic_bonus
+		special_text += " 🪄 마법+%d/화상" % calculated_magic_bonus
 	if calculated_extra_hits > 0:
 		special_text += " ✦ 연타+%d" % calculated_extra_hits
 	if ability.get_attack_symbol_count(dice_states, DiceData.SWORD) >= 2:
-		special_text += " ⚔ 강타+%d" % ability.ability_data.sword_heavy_bonus
+		special_text += " ⚔️ 강타+%d" % ability.ability_data.sword_heavy_bonus
 	if calculated_shield > 0:
 		special_text += " 🛡️ 보호+%d" % calculated_shield
 	_show_combat_feedback("행동 실행 — 피해 %d  🛡️ %d  ✚ %d%s" % [final_damage, calculated_block, calculated_heal, special_text], Color(1.0, 0.45, 0.35, 1.0))
@@ -363,11 +377,9 @@ func _on_attack_button_pressed() -> void:
 func _perform_enemy_action() -> void:
 	if equipment.can_evade(dice_states):
 		_show_combat_feedback("🛡️ 방패 3개 완성! 적의 공격을 완전히 막았습니다.", Color(0.55, 0.8, 1.0, 1.0))
-		enemy.plan_next_attack()
-		_update_enemy_intent_display()
 		_start_turn("방어 성공. 다음 턴의 심볼을 굴리세요.")
 		return
-	var enemy_damage := enemy.get_planned_attack_damage()
+	var enemy_damage := enemy.consume_planned_attack()
 	var blocked_damage := mini(enemy_damage, calculated_block + calculated_shield)
 	var final_damage := maxi(enemy_damage - calculated_block - calculated_shield, 0)
 	if blocked_damage > 0:
@@ -390,8 +402,6 @@ func _perform_enemy_action() -> void:
 	if player.current_hp <= 0:
 		_handle_defeat()
 		return
-	enemy.plan_next_attack()
-	_update_enemy_intent_display()
 	_start_turn("%s의 공격을 견뎠습니다. 다음 턴을 시작하세요." % enemy.enemy_data.display_name)
 
 func _handle_victory() -> void:
