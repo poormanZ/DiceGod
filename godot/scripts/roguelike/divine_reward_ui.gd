@@ -27,13 +27,14 @@ func _build_ui() -> void:
 	root.add_theme_constant_override("separation", 10)
 	add_child(root)
 	var reward: Dictionary = DivineRewardSystem.get_boss_reward(boss_id)
+	var boss_reward: Dictionary = BossRewardSystem.get_reward(boss_id)
 	var title: Label = Label.new()
 	title.text = "👑 보스 처치 보상 — %s" % str(reward.get("name", "신"))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 28)
 	root.add_child(title)
 	var reward_label: Label = Label.new()
-	reward_label.text = "%s\n%s\n\n주사위의 면 하나를 이 신성 심볼로 각인할 수 있습니다." % [str(reward.get("display", "")), str(reward.get("description", ""))]
+	reward_label.text = "%s\n%s\n\n🔨 보스 전용 장비: %s\n🎲 보스 전용 주사위: %s\n\n주사위의 면 하나를 이 신성 심볼로 각인할 수 있습니다." % [str(reward.get("display", "")), str(reward.get("description", "")), str(boss_reward.get("gear", "")), str(boss_reward.get("die_name", "특수 주사위"))]
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(reward_label)
 	info_label = Label.new()
