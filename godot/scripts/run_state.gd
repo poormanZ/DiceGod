@@ -97,6 +97,12 @@ func start_new_run() -> void:
 func initialize_run_dice(default_faces: PackedInt32Array) -> void:
 	if run_dice_faces.size() == STARTING_DICE_COUNT:
 		return
+	var progression_state: Node = get_node_or_null("/root/ProgressionState")
+	if progression_state != null and progression_state.has_method("get_persistent_dice_faces"):
+		var saved_faces: Array[Array] = progression_state.get_persistent_dice_faces()
+		if saved_faces.size() == STARTING_DICE_COUNT:
+			run_dice_faces = saved_faces
+			return
 	var base_faces: Array[int] = []
 	for face: int in default_faces:
 		base_faces.append(face)
@@ -310,7 +316,13 @@ func complete_run() -> bool:
 	run_completed = true
 	active_run = false
 	record_victory()
+	_persist_completed_run_dice()
 	return true
+
+func _persist_completed_run_dice() -> void:
+	var progression_state: Node = get_node_or_null("/root/ProgressionState")
+	if progression_state != null and progression_state.has_method("save_persistent_dice_faces"):
+		progression_state.save_persistent_dice_faces(run_dice_faces)
 
 func get_run_summary() -> Dictionary:
 	var dice_count: int = run_dice_faces.size()
