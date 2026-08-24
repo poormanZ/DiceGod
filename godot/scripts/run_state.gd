@@ -52,6 +52,14 @@ var permanent_deaths: int = 0
 var unlocked_gods: Array[String] = []
 var run_completed: bool = false
 
+# 매 런마다 새로 생성되는 분기 루트.
+# 1단계: 일반 전투 → 이벤트 A/B → 엘리트
+# 2단계: 엘리트 → 이벤트 C/D → 보스
+var route_event_stage_one: Array[String] = []
+var route_event_stage_two: Array[String] = []
+var route_event_branch_one: int = 0
+var route_event_branch_two: int = 0
+
 func start_new_run() -> void:
 	active_run = true
 	run_number += 1
@@ -89,10 +97,42 @@ func start_new_run() -> void:
 	unlocked_dice_bonus = 0
 	gamble_result = ""
 	gamble_streak = 0
+	_generate_dungeon_route()
 	permanent_runs += 1
 	var progression_state: Node = get_node_or_null("/root/ProgressionState")
 	if progression_state != null:
 		progression_state.record_run_start()
+
+func _generate_dungeon_route() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.randomize()
+	route_event_stage_one = ["event_a", "event_b"]
+	route_event_stage_two = ["event_c", "event_d"]
+	if rng.randi_range(0, 1) == 1:
+		route_event_stage_one.reverse()
+	if rng.randi_range(0, 1) == 1:
+		route_event_stage_two.reverse()
+	route_event_branch_one = rng.randi_range(0, 1)
+	route_event_branch_two = rng.randi_range(0, 1)
+
+func get_dungeon_route() -> Dictionary:
+	return {
+		"stage_one": route_event_stage_one.duplicate(),
+		"stage_two": route_event_stage_two.duplicate(),
+		"branch_one": route_event_branch_one,
+		"branch_two": route_event_branch_two
+	}
+
+func select_route_event(stage: int, branch_index: int) -> bool:
+	if branch_index < 0 or branch_index > 1:
+		return false
+	if stage == 1 and not route_event_stage_one.is_empty():
+		route_event_branch_one = branch_index
+		return true
+	if stage == 2 and not route_event_stage_two.is_empty():
+		route_event_branch_two = branch_index
+		return true
+	return false
 
 func initialize_run_dice(default_faces: PackedInt32Array) -> void:
 	if run_dice_faces.size() == STARTING_DICE_COUNT:
@@ -342,5 +382,6 @@ func get_run_summary() -> Dictionary:
 		"permanent_runs": permanent_runs,
 		"permanent_wins": permanent_wins,
 		"permanent_deaths": permanent_deaths,
-		"inherited_die": inherited_die.duplicate(true)
+		"inherited_die": inherited_die.duplicate(true),
+		"dungeon_route": get_dungeon_route()
 	}
