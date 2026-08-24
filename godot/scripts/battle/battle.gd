@@ -306,25 +306,19 @@ func _on_attack_button_pressed() -> void:
 		return
 	dice_roll_panel.play_attack_feedback()
 	var final_damage := 0
+	var special_text := ""
 	if calculated_attack_damage > 0:
 		_pulse_control(enemy_name_label, Color(1.0, 0.35, 0.25, 1.0))
 		final_damage = enemy.take_piercing_damage(calculated_attack_damage, calculated_penetration)
 		if calculated_extra_hits > 0:
 			for _hit_index in calculated_extra_hits:
-				var extra_hit_damage := enemy.take_piercing_damage(1, calculated_penetration)
-				final_damage += extra_hit_damage
-			AudioManager.play_hit()
-			dice_roll_panel.play_damage_feedback(final_damage)
+				final_damage += enemy.take_piercing_damage(1, calculated_penetration)
 		if calculated_status_damage > 0:
 			enemy.apply_status("burn", 2, calculated_status_damage)
-			special_text = ""
-		else:
-			special_text = ""
-	else:
-		final_damage = 0
+		AudioManager.play_hit()
+		dice_roll_panel.play_damage_feedback(final_damage)
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	_pulse_control(enemy_hp_label, Color(1.0, 0.35, 0.25, 1.0))
-	var special_text := ""
 	if calculated_penetration > 0:
 		special_text += " 🏹 관통-%d" % calculated_penetration
 	if calculated_magic_bonus > 0:
