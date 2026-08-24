@@ -74,9 +74,9 @@ jobs:
           relative_export_path: ./godot/build
           archive_output: false
           presets_to_export: Web
-          cache: false
+          cache: true
 
-      - name: Normalize Web export directory
+      - name: Normalize and validate Web export
         run: |
           set -euo pipefail
           echo "Raw Godot export:"
@@ -89,6 +89,9 @@ jobs:
           test -s ./godot/build/web/index.html
           echo "Normalized Web export:"
           find ./godot/build/web -maxdepth 2 -type f -printf '%p %s bytes\n' | sort
+          TOTAL_BYTES="$(find ./godot/build/web -type f -printf '%s\n' | awk '{s+=$1} END {print s+0}')"
+          echo "Web artifact total bytes: ${TOTAL_BYTES}"
+          test "$TOTAL_BYTES" -gt 0
           echo "Web export verified"
 
       - name: Setup GitHub Pages
