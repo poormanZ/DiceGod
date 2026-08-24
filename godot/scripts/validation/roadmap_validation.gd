@@ -33,6 +33,7 @@ func _initialize() -> void:
 
 	# Phase 9: full run state machine.
 	flow.start(run_state)
+	run_state.initialize_run_dice(PackedInt32Array([1, 2, 3, 4, 5, 6]))
 	_assert(flow.state == RunFlow.NORMAL_BATTLE, "run starts in normal battle")
 	flow.on_normal_battle_won(run_state, rng)
 	_assert(flow.state == RunFlow.GOLD_REWARD, "normal battle leads to gold reward")
