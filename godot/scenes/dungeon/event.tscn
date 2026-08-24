@@ -40,13 +40,13 @@ theme_override_constants/separation = 28
 [node name="TitleLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 34
-text = "EVENT · 수상한 제단"
+text = "🎲 랜덤 이벤트"
 horizontal_alignment = 1
 
 [node name="DescriptionLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "고대의 제단이 당신의 힘을 시험합니다.\n위험을 감수하면 다음 전투에 도움이 될 힘을 얻을 수 있습니다."
+text = "이번 이벤트에서 하나를 선택하세요."
 horizontal_alignment = 1
 
 [node name="Choices" type="VBoxContainer" parent="MarginContainer/Content"]
@@ -57,19 +57,25 @@ theme_override_constants/separation = 16
 custom_minimum_size = Vector2(0, 90)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "힘을 받는다\n다음 전투 공격력 +2"
+text = "이벤트 1"
 
 [node name="SafeButton" type="Button" parent="MarginContainer/Content/Choices"]
 custom_minimum_size = Vector2(0, 90)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "안전하게 지나간다\n효과 없음"
+text = "이벤트 2"
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "제단 앞에서 선택하세요."
+text = "두 개 중 하나를 선택하세요."
 horizontal_alignment = 1
+
+[node name="SkipButton" type="Button" parent="MarginContainer/Content"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+text = "⏭ 이벤트 스킵"
 
 [connection signal="pressed" from="MarginContainer/Content/Choices/RiskyButton" to="." method="_on_risky_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/Choices/SafeButton" to="." method="_on_safe_button_pressed"]
+[connection signal="pressed" from="MarginContainer/Content/SkipButton" to="." method="_on_skip_button_pressed"]
