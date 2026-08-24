@@ -20,8 +20,13 @@ func _initialize() -> void:
 	_assert(run_state.gold < starting_gold, "forge consumes gold")
 	_assert(not RoguelikeEventSystem.forge(run_state, 0, 1, 3), "forge is limited to one use per run")
 
-	# Phase 6/7: symbol skills and equipment data are loadable.
-	var skill_result: Dictionary = SymbolSkillSystem.resolve([1, 1, 2, 5, 6, 6])
+	# Phase 6/7: symbol skills and shop data are loadable.
+	var skill_states: Array[DiceRuntimeState] = []
+	for value: int in [1, 1, 2, 5, 6, 6]:
+		var state: DiceRuntimeState = DiceRuntimeState.new(DiceData.new())
+		state.result = value
+		skill_states.append(state)
+	var skill_result: Dictionary = SymbolSkillSystem.evaluate(skill_states)
 	_assert(not skill_result.is_empty(), "symbol skill system resolves a roll")
 	var inventory: Array[Dictionary] = RoguelikeShopSystem.get_inventory()
 	_assert(inventory.size() >= 4, "shop inventory is available")
@@ -61,8 +66,9 @@ func _initialize() -> void:
 	_assert(run_state.inherited_die.get("faces", []).size() == 6, "inherited die preserves six faces")
 
 	# Phase 12: balance model is callable.
-	var balance: Dictionary = BalanceModel.simulate_rolls(1000, 6, 12345)
-	_assert(not balance.is_empty(), "balance model returns simulation data")
+	var balance: Dictionary = DiceGodBalanceModel.evaluate()
+	_assert(not balance.is_empty(), "balance model returns evaluation data")
+	_assert(bool(balance.get("within_target", false)), "baseline combat stays within target turns")
 
 	print("DiceGod roadmap validation: PASS")
 	quit(0)
