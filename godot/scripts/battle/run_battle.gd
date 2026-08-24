@@ -11,6 +11,7 @@ var run_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 func _ready() -> void:
 	run_rng.randomize()
+	RunStatusOverlay.attach(self)
 	if dice_data == null:
 		dice_data = load("res://resources/dice/basic_dice.tres") as DiceData
 	if player_data == null:
