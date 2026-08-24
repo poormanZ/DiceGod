@@ -8,6 +8,7 @@ var attack_dice_state: DiceRuntimeState
 var dice_roller := DiceRoller.new()
 var planned_attack_damage: int = 0
 var has_planned_attack_state: bool = false
+var temporary_armor_bonus: int = 0
 
 func _init(initial_enemy_data: EnemyData) -> void:
 	enemy_data = initial_enemy_data
@@ -19,10 +20,19 @@ func take_damage(damage: int) -> void:
 	current_hp = maxi(0, current_hp - maxi(0, damage))
 
 func take_piercing_damage(damage: int, penetration: int) -> int:
-	var effective_armor: int = maxi(0, enemy_data.armor - maxi(0, penetration))
+	var effective_armor: int = maxi(0, enemy_data.armor + temporary_armor_bonus - maxi(0, penetration))
 	var final_damage: int = maxi(0, damage - effective_armor)
 	take_damage(final_damage)
 	return final_damage
+
+func add_temporary_armor(amount: int) -> int:
+	temporary_armor_bonus += maxi(0, amount)
+	return temporary_armor_bonus
+
+func heal(amount: int) -> int:
+	var before_hp: int = current_hp
+	current_hp = mini(enemy_data.max_hp, current_hp + maxi(0, amount))
+	return current_hp - before_hp
 
 func apply_status(status_name: String, turns: int, power: int) -> bool:
 	if enemy_data.status_resistance >= 100:
@@ -58,7 +68,7 @@ func _roll_attack_preview() -> int:
 	var preview_roller := DiceRoller.new()
 	preview_roller.reset_turn_state()
 	preview_roller.roll(preview_state)
-	return maxi(0, preview_state.result)
+	return maxi(0, preview_state.result) + enemy_data.attack_bonus
 
 func plan_next_attack() -> void:
 	planned_attack_damage = _roll_attack_preview()
@@ -82,7 +92,10 @@ func _update_intent_display() -> void:
 	var intent_label := current_scene.get_node_or_null("MarginContainer/Content/EnemyArea/EnemyHint") as Label
 	if intent_label == null:
 		return
-	intent_label.text = "⚠️ 다음 공격: ⚔️ %d 피해" % planned_attack_damage
+	var boss_text: String = ""
+	if enemy_data.boss_symbol_id > 0:
+		boss_text = "  %s %s" % [BossSymbolSystem.get_icon(enemy_data.boss_symbol_id), BossSymbolSystem.get_name(enemy_data.boss_symbol_id)]
+	intent_label.text = "⚠️ 다음 공격: ⚔️ %d 피해%s" % [planned_attack_damage, boss_text]
 	intent_label.modulate = Color(1.0, 0.55, 0.45, 1.0)
 
 func roll_attack_damage() -> int:
