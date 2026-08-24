@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1_ability_data")
 display_name = "침착한 손"
-description = "같은 숫자 2개에 +2, 3개 이상에 +5의 안정적인 추가 공격력을 얻습니다."
+description = "같은 공격 심볼 2개에 +2, 3개 이상에 +5의 안정적인 추가 공격을 얻습니다."
 matching_pair_bonus = 2
 matching_triple_bonus = 5
