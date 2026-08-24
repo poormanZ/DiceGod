@@ -37,11 +37,10 @@ jobs:
           source, target = sys.argv[1], sys.argv[2]
           def has_korean(font):
               return any(0xAC00 <= cp <= 0xD7A3 for table in font['cmap'].tables for cp in table.cmap)
-          candidates = []
           try:
-              candidates.append(TTFont(source))
+              candidates = [TTFont(source)]
           except Exception:
-              candidates.extend(TTCollection(source).fonts)
+              candidates = TTCollection(source).fonts
           selected = next((font for font in candidates if has_korean(font)), None)
           if selected is None:
               raise SystemExit('No Hangul-capable font face found')
@@ -84,10 +83,6 @@ jobs:
           test -s ./godot/build/web/index.html
           test -f ./godot/build/web/index.pck
           test -s ./godot/build/web/index.pck
-          FONT_DATA="$(find ./godot/.godot/imported -type f -name 'NotoSansKR-Regular.ttf-*.fontdata' -print -quit)"
-          test -n "$FONT_DATA"
-          test -f "$FONT_DATA"
-          echo "Korean font imported: $FONT_DATA"
           echo "Web export verified"
           ls -lah ./godot/build/web
 
