@@ -91,14 +91,20 @@ jobs:
           presets_to_export: Web
           cache: false
 
-      - name: Verify Web build and embedded Korean font
+      - name: Verify Web build and Korean font import
         run: |
           set -euo pipefail
           test -f ./godot/build/web/index.html
           test -f ./godot/build/web/index.pck
           test -s ./godot/build/web/index.pck
-          test -f ./godot/.godot/imported/NotoSansKR-Regular.ttf-b1a5425772466f0b661760f5aaaf1bbb.fontdata
-          test -f ./godot/.godot/exported/133200997/export-68a551e9d7cd111a0d87e66e0f1ed237-theme_korean.res
+          FONT_DATA="$(find ./godot/.godot/imported -maxdepth 1 -type f -name 'NotoSansKR-Regular.ttf-*.fontdata' -print -quit)"
+          THEME_DATA="$(find ./godot/.godot/exported -type f -name '*-theme_korean.res' -print -quit)"
+          test -n "$FONT_DATA"
+          test -f "$FONT_DATA"
+          test -n "$THEME_DATA"
+          test -f "$THEME_DATA"
+          echo "Imported Korean font: $FONT_DATA"
+          echo "Exported Korean theme: $THEME_DATA"
           echo "Godot imported the Korean font and exported the Korean theme successfully"
           ls -lah ./godot/build/web
 
