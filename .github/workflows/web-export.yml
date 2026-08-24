@@ -65,6 +65,17 @@ jobs:
           grep -q 'theme/custom="res://theme_korean.tres"' ./godot/project.godot
           grep -q 'KoreanFontManager="\*res://scripts/ui/korean_font_manager.gd"' ./godot/project.godot
 
+      - name: Run automated roadmap validation
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/dicegod
+          curl -L --fail --retry 3 -o /tmp/dicegod/godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q /tmp/dicegod/godot.zip -d /tmp/dicegod
+          GODOT_BIN="$(find /tmp/dicegod -maxdepth 2 -type f -name 'Godot_v4.7.2-stable_linux.x86_64' -print -quit)"
+          test -x "$GODOT_BIN"
+          "$GODOT_BIN" --headless --path ./godot --script res://scripts/validation/roadmap_validation.gd
+
       - name: Export Godot project to Web
         uses: firebelley/godot-export@v8.0.0
         with:
