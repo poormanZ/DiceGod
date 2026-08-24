@@ -14,6 +14,7 @@ var gold: int = STARTING_GOLD
 var current_hp: int = STARTING_HP
 var max_hp: int = MAX_HP
 var attack_bonus: int = 0
+var selected_build_id: String = ""
 var battle_cleared: bool = false
 var reward_claimed: bool = false
 var event_resolved: bool = false
@@ -57,6 +58,7 @@ func start_new_run() -> void:
 	current_hp = MAX_HP
 	max_hp = MAX_HP
 	attack_bonus = 0
+	selected_build_id = ""
 	battle_cleared = false
 	reward_claimed = false
 	event_resolved = false
@@ -92,13 +94,13 @@ func initialize_run_dice(default_faces: PackedInt32Array) -> void:
 	if run_dice_faces.size() == STARTING_DICE_COUNT:
 		return
 	var base_faces: Array[int] = []
-	for face in default_faces:
-		base_faces.append(int(face))
+	for face: int in default_faces:
+		base_faces.append(face)
 	while base_faces.size() < DICE_FACE_COUNT:
 		base_faces.append(1)
 	if base_faces.size() > DICE_FACE_COUNT:
 		base_faces = base_faces.slice(0, DICE_FACE_COUNT)
-	for die_index in STARTING_DICE_COUNT:
+	for _die_index: int in STARTING_DICE_COUNT:
 		run_dice_faces.append(base_faces.duplicate())
 	if not inherited_die.is_empty():
 		var inherited_faces: Array = inherited_die.get("faces", [])
@@ -175,11 +177,11 @@ func record_divine_imprint(die_index: int, face_index: int, symbol_id: String) -
 		return false
 	if die_index < 0 or die_index >= run_dice_faces.size() or face_index < 0 or face_index >= DICE_FACE_COUNT:
 		return false
-	for imprint in divine_symbol_history:
+	for imprint: Dictionary in divine_symbol_history:
 		if int(imprint.get("die_index", -1)) == die_index and int(imprint.get("face_index", -1)) == face_index:
 			return false
 	var current_count: int = 0
-	for imprint in divine_symbol_history:
+	for imprint: Dictionary in divine_symbol_history:
 		if int(imprint.get("die_index", -1)) == die_index:
 			current_count += 1
 	if current_count >= MAX_DIVINE_FACES:
@@ -197,15 +199,15 @@ func prepare_inheritance(die_faces: Array, die_name: String = "환생 주사위"
 	var selected_forge: Array[Dictionary] = []
 	var selected_divine: Array[Dictionary] = []
 	var selected_upgrades: Dictionary = {}
-	for entry in forge_history:
+	for entry: Dictionary in forge_history:
 		if selected_die_index < 0 or int(entry.get("die_index", -1)) == selected_die_index:
 			selected_forge.append(entry.duplicate(true))
-	for entry in divine_symbol_history:
+	for entry: Dictionary in divine_symbol_history:
 		if selected_die_index < 0 or int(entry.get("die_index", -1)) == selected_die_index:
 			selected_divine.append(entry.duplicate(true))
 	if selected_die_index >= 0:
 		var prefix: String = "%d:" % selected_die_index
-		for key in face_upgrade_levels.keys():
+		for key: Variant in face_upgrade_levels.keys():
 			if str(key).begins_with(prefix):
 				selected_upgrades[key] = face_upgrade_levels[key]
 	else:
@@ -262,32 +264,16 @@ func spend_gold(amount: int) -> bool:
 	gold -= cost
 	return true
 
-func heal(amount: int) -> void:
-	current_hp = mini(max_hp, current_hp + maxi(0, amount))
+func record_victory() -> void:
+	permanent_wins += 1
 
-func take_damage(amount: int) -> void:
-	current_hp = maxi(0, current_hp - maxi(0, amount))
-	if current_hp <= 0:
-		die()
+func record_death() -> void:
+	permanent_deaths += 1
+	death_pending = true
 
 func die() -> void:
-	current_hp = 0
-	death_pending = true
+	record_death()
 	active_run = false
-	permanent_deaths += 1
-	ProgressionState.record_run_loss()
 
-func complete_run() -> void:
-	if not active_run:
-		return
+func finish_run() -> void:
 	active_run = false
-	permanent_wins += 1
-	ProgressionState.record_run_win()
-
-func get_inherited_die_summary() -> String:
-	if inherited_die.is_empty():
-		return "환생 계승 주사위: 없음"
-	return "%s | 6면 보존" % str(inherited_die.get("name", "환생 주사위"))
-
-func get_run_summary() -> String:
-	return "런 #%d | 골드 %d | HP %d/%d | 주사위 %d\n%s" % [run_number, gold, current_hp, max_hp, run_dice_faces.size(), get_inherited_die_summary()]
