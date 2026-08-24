@@ -47,6 +47,10 @@ var equipment: Equipment
 var calculated_attack_damage: int = 0
 var calculated_block: int = 0
 var calculated_heal: int = 0
+var calculated_special_bonus: int = 0
+var calculated_penetration: int = 0
+var calculated_extra_hits: int = 0
+var calculated_magic_bonus: int = 0
 var is_battle_over: bool = false
 var selected_build: BuildData
 var effects_applied: bool = false
@@ -126,6 +130,10 @@ func _on_build_selected(build: BuildData) -> void:
 	calculated_attack_damage = 0
 	calculated_block = 0
 	calculated_heal = 0
+	calculated_special_bonus = 0
+	calculated_penetration = 0
+	calculated_extra_hits = 0
+	calculated_magic_bonus = 0
 	effects_applied = false
 	player_name_label.text = player.player_data.display_name
 	enemy_name_label.text = enemy.enemy_data.display_name
@@ -171,6 +179,10 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	calculated_attack_damage = 0
 	calculated_block = 0
 	calculated_heal = 0
+	calculated_special_bonus = 0
+	calculated_penetration = 0
+	calculated_extra_hits = 0
+	calculated_magic_bonus = 0
 	effects_applied = false
 	for dice_state in dice_states:
 		dice_state.result = 0
@@ -229,6 +241,11 @@ func _calculate_actions() -> void:
 	calculated_attack_damage = RunState.attack_bonus
 	calculated_block = 0
 	calculated_heal = 0
+	calculated_special_bonus = 0
+	calculated_penetration = 0
+	calculated_extra_hits = 0
+	calculated_magic_bonus = 0
+
 	for dice_state in dice_states:
 		if not dice_state.has_result():
 			continue
@@ -238,6 +255,25 @@ func _calculate_actions() -> void:
 			calculated_block += 1
 		elif DiceData.is_heal(dice_state.result):
 			calculated_heal += 1
+
+	# 첫 번째 심볼별 정체성: 같은 심볼을 모을수록 효과가 강화됩니다.
+	var sword_count := ability.get_attack_symbol_count(dice_states, DiceData.SWORD)
+	var bow_count := ability.get_attack_symbol_count(dice_states, DiceData.BOW)
+	var staff_count := ability.get_attack_symbol_count(dice_states, DiceData.STAFF)
+	var shuriken_count := ability.get_attack_symbol_count(dice_states, DiceData.SHURIKEN)
+
+	if sword_count >= 2:
+		calculated_special_bonus += ability.ability_data.sword_heavy_bonus
+	if bow_count >= 2:
+		calculated_penetration = ability.ability_data.bow_penetration
+	if staff_count >= 2:
+		calculated_magic_bonus = (staff_count - 1) * ability.ability_data.staff_magic_bonus
+		calculated_special_bonus += calculated_magic_bonus
+	if shuriken_count >= 2:
+		calculated_extra_hits = ability.ability_data.shuriken_extra_hits * (shuriken_count - 1)
+		calculated_special_bonus += calculated_extra_hits
+
+	calculated_attack_damage += calculated_special_bonus
 
 func _apply_non_attack_effects() -> void:
 	if effects_applied:
@@ -271,7 +307,16 @@ func _on_attack_button_pressed() -> void:
 		dice_roll_panel.play_damage_feedback(calculated_attack_damage)
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	_pulse_control(enemy_hp_label, Color(1.0, 0.35, 0.25, 1.0))
-	_show_combat_feedback("행동 실행 — ⚔️ %d  🛡️ %d  ✚ %d" % [calculated_attack_damage, calculated_block, calculated_heal], Color(1.0, 0.45, 0.35, 1.0))
+	var special_text := ""
+	if calculated_penetration > 0:
+		special_text += " 🏹 관통"
+	if calculated_magic_bonus > 0:
+		special_text += " 杖 마법+%d" % calculated_magic_bonus
+	if calculated_extra_hits > 0:
+		special_text += " ✦ 연타+%d" % calculated_extra_hits
+	if ability.get_attack_symbol_count(dice_states, DiceData.SWORD) >= 2:
+		special_text += " ⚔ 강타+%d" % ability.ability_data.sword_heavy_bonus
+	_show_combat_feedback("행동 실행 — ⚔️ %d  🛡️ %d  ✚ %d%s" % [calculated_attack_damage, calculated_block, calculated_heal, special_text], Color(1.0, 0.45, 0.35, 1.0))
 	attack_button.disabled = true
 	if enemy.current_hp <= 0:
 		_handle_victory()
