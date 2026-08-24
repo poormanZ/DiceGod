@@ -5,7 +5,6 @@ signal resolved(event_type: String)
 signal skipped
 
 var run_state: RunStateManager
-var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var title_label: Label
 var info_label: Label
 var options_box: VBoxContainer
@@ -13,9 +12,8 @@ var options_box: VBoxContainer
 func setup(state: RunStateManager, stage: int) -> void:
 	run_state = state
 	run_state.begin_event(stage)
-	rng.randomize()
 	_build_ui()
-	_show_options()
+	_show_fixed_event()
 
 func _build_ui() -> void:
 	for child in get_children():
@@ -25,7 +23,7 @@ func _build_ui() -> void:
 	root.add_theme_constant_override("separation", 14)
 	add_child(root)
 	title_label = Label.new()
-	title_label.text = "🎲 랜덤 이벤트"
+	title_label.text = "🎲 런 이벤트"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.add_theme_font_size_override("font_size", 30)
 	root.add_child(title_label)
@@ -39,26 +37,38 @@ func _build_ui() -> void:
 	skip_button.pressed.connect(_skip)
 	root.add_child(skip_button)
 
-func _show_options() -> void:
+func _show_fixed_event() -> void:
 	for child in options_box.get_children():
 		child.queue_free()
-	var options: Array[String] = RoguelikeEventSystem.roll_event_options(rng)
-	run_state.set_event_options(options)
+	var event_type: String = run_state.current_event_type
+	if event_type.is_empty():
+		event_type = run_state.get_route_event(run_state.event_stage)
+	if event_type.is_empty():
+		info_label.text = "진행할 이벤트가 없습니다."
+		return
+	run_state.choose_event(event_type)
 	info_label.text = "골드: %dG | 이벤트 %d/2" % [run_state.gold, run_state.event_stage]
-	for event_type in options:
-		var button: Button = Button.new()
-		button.custom_minimum_size = Vector2(400, 70)
-		button.text = _event_name(event_type)
-		button.pressed.connect(_choose.bind(event_type))
-		options_box.add_child(button)
+
+	var button: Button = Button.new()
+	button.custom_minimum_size = Vector2(500, 90)
+	button.text = _event_name(event_type)
+	button.pressed.connect(_choose.bind(event_type))
+	options_box.add_child(button)
 
 func _choose(event_type: String) -> void:
+	if run_state == null or run_state.event_resolved:
+		return
 	run_state.choose_event(event_type)
 	match event_type:
 		"camp":
-			var healed: int = RoguelikeEventSystem.camp_heal(run_state)
+			# 캠프는 랜덤 결과가 아니라 확정 회복 이벤트다. 현재 HP에서 최대 HP까지 회복한다.
+			var before_hp: int = run_state.current_hp
+			var healed: int = run_state.heal(run_state.max_hp)
+			if healed <= 0:
+				info_label.text = "⛺ 캠프 — 이미 HP가 가득 찼습니다."
+			else:
+				info_label.text = "⛺ 캠프 — HP %d → %d (+%d)" % [before_hp, run_state.current_hp, healed]
 			run_state.resolve_event("camp_heal_%d" % healed)
-			info_label.text = "⛺ 캠프에서 HP %d 회복" % healed
 		"shop":
 			run_state.resolve_event("shop_open")
 			info_label.text = "🏪 상점이 열렸습니다."
@@ -71,6 +81,8 @@ func _choose(event_type: String) -> void:
 	resolved.emit(event_type)
 
 func _skip() -> void:
+	if run_state == null or run_state.event_resolved:
+		return
 	run_state.skip_event()
 	skipped.emit()
 
