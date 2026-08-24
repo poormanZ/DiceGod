@@ -5,6 +5,7 @@ const STARTING_GOLD: int = 100
 const STARTING_HP: int = 100
 const MAX_HP: int = 100
 const STARTING_DICE_COUNT: int = 6
+const DICE_FACE_COUNT: int = 6
 
 var active_run: bool = false
 var run_number: int = 0
@@ -24,9 +25,13 @@ var reward_id: String = ""
 var event_id: String = ""
 var shop_item_id: String = ""
 
-# 로그라이크 진행 단계: 일반 전투 → 보상 → 이벤트 → 엘리트 → 이벤트 → 보스
+# 로그라이크 진행 단계: 일반 전투 → 골드 → 이벤트 → 엘리트 → 이벤트 → 보스
 var event_stage: int = 0
 var event_skipped: bool = false
+
+# 현재 런에서 실제로 사용하는 6개 주사위의 6면을 저장한다.
+# 첫 전투에서는 선택한 빌드의 면 구성으로 초기화되고, 대장간 수정이 다음 전투에도 유지된다.
+var run_dice_faces: Array[Array] = []
 var inherited_die: Dictionary = {}
 var pending_inheritance_die: Dictionary = {}
 
@@ -55,10 +60,56 @@ func start_new_run() -> void:
 	shop_item_id = ""
 	event_stage = 0
 	event_skipped = false
+	run_dice_faces.clear()
 	forge_used_this_run = false
 	forge_history.clear()
 	pending_inheritance_die = inherited_die.duplicate(true)
 	ProgressionState.record_run_start()
+
+func initialize_run_dice(default_faces: PackedInt32Array) -> void:
+	if run_dice_faces.size() == STARTING_DICE_COUNT:
+		return
+	run_dice_faces.clear()
+	var base_faces: Array[int] = []
+	for face in default_faces:
+		base_faces.append(int(face))
+	while base_faces.size() < DICE_FACE_COUNT:
+		base_faces.append(1)
+	if base_faces.size() > DICE_FACE_COUNT:
+		base_faces = base_faces.slice(0, DICE_FACE_COUNT)
+	for die_index in STARTING_DICE_COUNT:
+		run_dice_faces.append(base_faces.duplicate())
+	# 환생으로 가져온 주사위는 이번 런의 첫 번째 슬롯을 덮어쓴다.
+	if not inherited_die.is_empty():
+		var inherited_faces: Array = inherited_die.get("faces", [])
+		if inherited_faces.size() == DICE_FACE_COUNT:
+			run_dice_faces[0] = inherited_faces.duplicate(true)
+
+func get_die_faces(die_index: int) -> Array:
+	if die_index < 0 or die_index >= run_dice_faces.size():
+		return []
+	return run_dice_faces[die_index].duplicate(true)
+
+func forge_change_face(die_index: int, face_index: int, symbol_id: int, cost: int) -> bool:
+	if forge_used_this_run:
+		return false
+	if die_index < 0 or die_index >= run_dice_faces.size():
+		return false
+	if face_index < 0 or face_index >= DICE_FACE_COUNT:
+		return false
+	if symbol_id < 1 or symbol_id > 6:
+		return false
+	if not spend_gold(cost):
+		return false
+	run_dice_faces[die_index][face_index] = symbol_id
+	forge_used_this_run = true
+	forge_history.append({
+		"die_index": die_index,
+		"face_index": face_index,
+		"symbol_id": symbol_id,
+		"cost": cost,
+	})
+	return true
 
 func end_run() -> void:
 	if not active_run:
@@ -104,33 +155,8 @@ func skip_event() -> void:
 	event_skipped = true
 	event_id = "skip"
 
-func advance_after_event() -> void:
-	if event_stage == 1:
-		# 첫 이벤트 뒤에는 엘리트로 진행한다.
-		return
-	if event_stage == 2:
-		# 두 번째 이벤트 뒤에는 보스로 진행한다.
-		return
-
 func record_forge_change(die_index: int, face_index: int, symbol_id: String, cost: int) -> bool:
-	if forge_used_this_run:
-		return false
-	if die_index < 0 or die_index >= STARTING_DICE_COUNT:
-		return false
-	if face_index < 0 or face_index >= 6:
-		return false
-	if symbol_id.is_empty():
-		return false
-	if not spend_gold(cost):
-		return false
-	forge_used_this_run = true
-	forge_history.append({
-		"die_index": die_index,
-		"face_index": face_index,
-		"symbol_id": symbol_id,
-		"cost": cost,
-	})
-	return true
+	return forge_change_face(die_index, face_index, int(symbol_id), cost)
 
 func unlock_divine_symbol(symbol_id: String) -> void:
 	if symbol_id.is_empty() or unlocked_divine_symbols.has(symbol_id):
@@ -142,7 +168,7 @@ func record_divine_imprint(die_index: int, face_index: int, symbol_id: String) -
 		return false
 	if die_index < 0 or die_index >= STARTING_DICE_COUNT:
 		return false
-	if face_index < 0 or face_index >= 6:
+	if face_index < 0 or face_index >= DICE_FACE_COUNT:
 		return false
 	divine_symbol_history.append({
 		"die_index": die_index,
