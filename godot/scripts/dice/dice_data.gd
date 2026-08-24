@@ -12,7 +12,6 @@ const HEAL: int = 6
 
 const FACE_COUNT: int = 6
 const STARTING_DICE_COUNT: int = 6
-const DEFAULT_FACES: PackedInt32Array = PackedInt32Array([SWORD, BOW, STAFF, SHURIKEN, SHIELD, HEAL])
 
 const SYMBOLS: Dictionary = {
 	SWORD: "⚔️",
@@ -33,7 +32,10 @@ const NAMES: Dictionary = {
 
 @export var display_name: String = "기본 심볼 주사위"
 @export_multiline var description: String = "⚔️ 🏹 🔮 🗡️ 🛡️ ❤️ 6개의 행동 심볼이 하나씩 들어 있는 기본 주사위"
-@export var face_values: PackedInt32Array = DEFAULT_FACES
+@export var face_values: PackedInt32Array
+
+func _init() -> void:
+	face_values = PackedInt32Array([SWORD, BOW, STAFF, SHURIKEN, SHIELD, HEAL])
 
 func is_valid() -> bool:
 	if face_values.size() != FACE_COUNT:
