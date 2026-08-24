@@ -90,7 +90,7 @@ func _refresh() -> void:
 	# 일부 씬에서는 RunState.start_new_run()보다 상태 패널이 먼저 생성될 수 있다.
 	# 이 경우에도 기본 6개 주사위를 즉시 보장하여 0/6으로 표시되지 않게 한다.
 	if RunState.run_dice_faces.is_empty() and RunState.has_method("initialize_run_dice"):
-		RunState.initialize_run_dice(PackedInt32Array([1, 2, 3, 4, 5, 6]))
+		RunState.initialize_run_dice(PackedInt32Array([DiceData.SWORD, DiceData.BOW, DiceData.STAFF, DiceData.SHURIKEN, DiceData.SHIELD, DiceData.HEAL]))
 
 	var summary: Dictionary = RunState.get_run_summary()
 	summary_label.text = "런 %d  |  ❤️ %d/%d  |  💰 %dG" % [
@@ -100,7 +100,7 @@ func _refresh() -> void:
 		int(summary.get("gold", 0))
 	]
 
-	var dice_lines: Array[String] = ["보유 주사위: %d/%d" % [RunState.run_dice_faces.size(), RunState.STARTING_DICE_COUNT]]
+	var dice_lines: Array[String] = ["보유 주사위: %d/%d" % [RunState.run_dice_faces.size(), DiceData.STARTING_DICE_COUNT]]
 	for die_index: int in RunState.run_dice_faces.size():
 		var faces: Array = RunState.get_die_faces(die_index)
 		var symbols: Array[String] = []
