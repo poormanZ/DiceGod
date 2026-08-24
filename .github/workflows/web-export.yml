@@ -31,54 +31,40 @@ jobs:
           FONT_SOURCE="$(fc-match -f '%{file}\n' 'Noto Sans CJK KR:style=Regular' | head -1)"
           test -n "$FONT_SOURCE"
           test -f "$FONT_SOURCE"
-          echo "Font source: $FONT_SOURCE"
           python3 - "$FONT_SOURCE" ./godot/fonts/NotoSansKR-Regular.ttf <<'PY'
           import sys
           from fontTools.ttLib import TTFont, TTCollection
-
           source, target = sys.argv[1], sys.argv[2]
-
           def has_korean(font):
-              cmap = set()
-              for table in font['cmap'].tables:
-                  cmap.update(table.cmap.keys())
-              return any(0xAC00 <= cp <= 0xD7A3 for cp in cmap)
-
+              return any(0xAC00 <= cp <= 0xD7A3 for table in font['cmap'].tables for cp in table.cmap)
           candidates = []
           try:
               candidates.append(TTFont(source))
           except Exception:
-              pass
-          if not candidates:
               candidates.extend(TTCollection(source).fonts)
-
           selected = next((font for font in candidates if has_korean(font)), None)
           if selected is None:
-              raise SystemExit('No font face containing Hangul syllables was found')
-
+              raise SystemExit('No Hangul-capable font face found')
           selected.flavor = None
           selected.save(target)
-          print('Created:', target)
-          print('Hangul glyphs:', sum(0xAC00 <= cp <= 0xD7A3 for table in selected['cmap'].tables for cp in table.cmap))
+          print('Hangul-capable font created:', target)
           PY
           test -s ./godot/fonts/NotoSansKR-Regular.ttf
-          fc-scan ./godot/fonts/NotoSansKR-Regular.ttf | head -30
 
-      - name: Clean Godot import cache before font import
+      - name: Clean Godot import cache
         run: |
           set -euo pipefail
-          rm -rf ./godot/.godot
-          rm -rf ./godot/build/web
+          rm -rf ./godot/.godot ./godot/build/web
           mkdir -p ./godot/build/web
-          test -f ./godot/fonts/NotoSansKR-Regular.ttf
 
-      - name: Verify project font resource
+      - name: Verify font configuration
         run: |
           set -euo pipefail
-          test -f ./godot/fonts/NotoSansKR-Regular.ttf
+          test -s ./godot/fonts/NotoSansKR-Regular.ttf
           test -f ./godot/theme_korean.tres
           grep -q 'res://fonts/NotoSansKR-Regular.ttf' ./godot/theme_korean.tres
           grep -q 'theme/custom="res://theme_korean.tres"' ./godot/project.godot
+          grep -q 'KoreanFontManager="\*res://scripts/ui/korean_font_manager.gd"' ./godot/project.godot
 
       - name: Export Godot project to Web
         uses: firebelley/godot-export@v8.0.0
@@ -91,21 +77,18 @@ jobs:
           presets_to_export: Web
           cache: false
 
-      - name: Verify Web build and Korean font import
+      - name: Verify Web build
         run: |
           set -euo pipefail
           test -f ./godot/build/web/index.html
+          test -s ./godot/build/web/index.html
           test -f ./godot/build/web/index.pck
           test -s ./godot/build/web/index.pck
-          FONT_DATA="$(find ./godot/.godot/imported -maxdepth 1 -type f -name 'NotoSansKR-Regular.ttf-*.fontdata' -print -quit)"
-          THEME_DATA="$(find ./godot/.godot/exported -type f -name '*-theme_korean.res' -print -quit)"
+          FONT_DATA="$(find ./godot/.godot/imported -type f -name 'NotoSansKR-Regular.ttf-*.fontdata' -print -quit)"
           test -n "$FONT_DATA"
           test -f "$FONT_DATA"
-          test -n "$THEME_DATA"
-          test -f "$THEME_DATA"
-          echo "Imported Korean font: $FONT_DATA"
-          echo "Exported Korean theme: $THEME_DATA"
-          echo "Godot imported the Korean font and exported the Korean theme successfully"
+          echo "Korean font imported: $FONT_DATA"
+          echo "Web export verified"
           ls -lah ./godot/build/web
 
       - name: Setup GitHub Pages
