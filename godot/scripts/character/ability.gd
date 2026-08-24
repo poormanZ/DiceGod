@@ -3,21 +3,19 @@ extends RefCounted
 
 var ability_data: AbilityData
 
-
 func _init(initial_ability_data: AbilityData) -> void:
 	ability_data = initial_ability_data
-
 
 func can_use(dice_states: Array[DiceRuntimeState]) -> bool:
 	return calculate_bonus(dice_states) > 0
 
-
 func calculate_bonus(dice_states: Array[DiceRuntimeState]) -> int:
 	if ability_data == null:
 		return 0
+
 	var result_counts: Dictionary = {}
 	for dice_state in dice_states:
-		if not dice_state.has_result():
+		if not dice_state.has_result() or not DiceData.is_attack(dice_state.result):
 			continue
 		result_counts[dice_state.result] = result_counts.get(dice_state.result, 0) + 1
 
