@@ -76,13 +76,19 @@ jobs:
           test -x "$GODOT_BIN"
           echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
 
-      # First pass intentionally lets Godot build its import database.
-      # Generated CI fonts may emit a transient "No loader found" message
-      # before the reimport phase. The second pass is the authoritative check.
       - name: Warm up Godot asset import
         run: |
           set -euo pipefail
-          "$GODOT_BIN" --headless --editor --path ./godot --quit 2>&1 | tee ./godot_import_warmup.log
+          "$GODOT_BIN" --headless --editor --path ./godot --quit 2>&1 | tee ./godot_import_warmup.log || true
+          echo "Waiting for Godot to finish importing generated resources..."
+          for i in $(seq 1 30); do
+            if find ./godot/.godot/imported -maxdepth 1 -type f -name 'NotoSansKR-Regular.ttf-*.fontdata' -print -quit 2>/dev/null | grep -q .; then
+              echo "Korean font import completed."
+              break
+            fi
+            sleep 1
+          done
+          test -n "$(find ./godot/.godot/imported -maxdepth 1 -type f -name 'NotoSansKR-Regular.ttf-*.fontdata' -print -quit 2>/dev/null)"
 
       - name: Validate Godot import
         run: |
@@ -90,6 +96,10 @@ jobs:
           "$GODOT_BIN" --headless --editor --path ./godot --quit 2>&1 | tee ./godot_import.log
           if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer' ./godot_import.log; then
             echo "Godot project import reported script errors."
+            exit 1
+          fi
+          if grep -Eq 'No loader found for resource: res://fonts/NotoSansKR-Regular.ttf|theme_korean.tres:6 - Parse Error|Error loading custom project theme' ./godot_import.log; then
+            echo "Korean font/theme is still not importable after the warm-up pass."
             exit 1
           fi
 
