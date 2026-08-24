@@ -58,9 +58,14 @@ func _ready() -> void:
 	selected_build_label.text = "⚔️ 🏹 🔮 🗡️ 🛡️ ❤️  심볼 주사위"
 	player_name_label.text = player.player_data.display_name
 	enemy_name_label.text = enemy.enemy_data.display_name
+	_add_run_status_overlay()
 	_update_hp_labels()
 	_update_enemy_intent()
 	_start_turn("6개의 심볼 주사위를 굴려 행동을 선택하세요.")
+
+func _add_run_status_overlay() -> void:
+	if get_node_or_null("RunStatusOverlay") == null:
+		RunStatusOverlay.attach(self)
 
 func _start_turn(message: String) -> void:
 	dice_roller.reset_turn_state()
