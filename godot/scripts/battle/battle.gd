@@ -180,11 +180,7 @@ func _on_attack_button_pressed() -> void:
 		return
 
 	var incoming: int = enemy.consume_planned_attack()
-	if calculated_block > 0:
-		player.add_shield(calculated_block)
 	player.take_damage(incoming)
-	else:
-		player.take_damage(incoming)
 	RunState.current_hp = player.current_hp
 	_update_hp_labels()
 	_update_enemy_intent()
