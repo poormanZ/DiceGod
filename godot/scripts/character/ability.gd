@@ -23,6 +23,8 @@ func calculate_bonus(dice_states: Array[DiceRuntimeState]) -> int:
 	for result_count in result_counts.values():
 		highest_match_count = maxi(highest_match_count, int(result_count))
 
+	# 공격 심볼 2개 이상: 기본 공격 보너스
+	# 같은 공격 심볼 3개 이상: 더 큰 공격 보너스
 	if highest_match_count >= 3:
 		return ability_data.matching_triple_bonus
 	if highest_match_count >= 2:
