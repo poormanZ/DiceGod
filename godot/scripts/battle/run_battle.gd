@@ -79,7 +79,10 @@ func _create_run_enemy_data() -> EnemyData:
 	data.armor = DifficultyScaler.scale_armor(data.armor, run_number, tier)
 
 	if is_boss_battle:
-		var boss_id: String = str(source.get("id", "battle_god"))
+		var boss_id: String = str(source.get("id", "flame_god"))
+		boss_id = BossRewardSystem.normalize_boss_id(boss_id)
+		if boss_id.is_empty():
+			boss_id = "flame_god"
 		var boss_symbol_id: int = int(source.get("symbol", 0))
 		RunState.current_boss_id = boss_id
 		data.armor += 1
@@ -214,7 +217,7 @@ func _handle_victory() -> void:
 	if is_boss_battle:
 		RunState.boss_cleared = true
 		RunState.boss_reward_claimed = false
-	RunState.reward_claimed = false
+		RunState.reward_claimed = false
 	_show_feedback("🏆 %s 격파! 보상을 선택하세요." % enemy.enemy_data.display_name)
 	await get_tree().create_timer(0.6).timeout
 	if is_boss_battle:
