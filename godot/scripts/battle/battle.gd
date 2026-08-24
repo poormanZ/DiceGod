@@ -11,6 +11,8 @@ extends Control
 @export var straight_build: BuildData
 @export var healing_build: BuildData
 @export var power_build: BuildData
+@export var flame_build: BuildData
+@export var guardian_build: BuildData
 @export var is_elite_battle: bool = false
 @export var is_boss_battle: bool = false
 
@@ -30,8 +32,10 @@ extends Control
 @onready var enemy_hp_label: Label = $MarginContainer/Content/EnemyArea/EnemyHpLabel
 @onready var battle_box_label: Label = $MarginContainer/Content/BattleBox/BattleBoxLabel
 @onready var build_selection_panel: PanelContainer = $BuildSelectionPanel
-@onready var build_buttons: Array[Button] = [$BuildSelectionPanel/Margin/VBox/MatchingBuildButton, $BuildSelectionPanel/Margin/VBox/StraightBuildButton, $BuildSelectionPanel/Margin/VBox/HealingBuildButton, $BuildSelectionPanel/Margin/VBox/PowerBuildButton]
+@onready var build_box: VBoxContainer = $BuildSelectionPanel/Margin/VBox
 
+var build_buttons: Array[Button] = []
+var available_builds: Array[BuildData] = []
 var dice_states: Array[DiceRuntimeState] = []
 var dice_roller := DiceRoller.new()
 var player: Player
@@ -66,15 +70,24 @@ func _hide_optional_action_buttons() -> void:
 	healing_dice_button.hide()
 
 func _setup_build_selection() -> void:
-	var builds: Array[BuildData] = [matching_build, straight_build, healing_build, power_build]
-	for index in build_buttons.size():
-		var build := builds[index]
-		build_buttons[index].text = "%s\n%s" % [build.display_name, build.description]
-		build_buttons[index].disabled = index == 3 and not ProgressionState.is_dice_unlocked("power_dice")
-		if index == 3 and build_buttons[index].disabled:
-			build_buttons[index].text += "\n🔒 보스 클리어 후 해금"
-		if not build_buttons[index].pressed.is_connected(_on_build_selected.bind(build)):
-			build_buttons[index].pressed.connect(_on_build_selected.bind(build))
+	available_builds = [matching_build, straight_build, healing_build, power_build, flame_build, guardian_build]
+	for old_button in build_buttons:
+		old_button.queue_free()
+	build_buttons.clear()
+	for build in available_builds:
+		if build == null:
+			continue
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(0, 58)
+		button.text = "%s\n%s" % [build.display_name, build.description]
+		button.add_theme_font_size_override("font_size", 14)
+		var locked := build == power_build and not ProgressionState.is_dice_unlocked("power_dice")
+		button.disabled = locked
+		if locked:
+			button.text += "\n🔒 보스 클리어 후 해금"
+		button.pressed.connect(_on_build_selected.bind(build))
+		build_box.add_child(button)
+		build_buttons.append(button)
 	build_selection_panel.show()
 	_hide_optional_action_buttons()
 	restart_build_button.hide()
@@ -103,7 +116,8 @@ func _on_build_selected(build: BuildData) -> void:
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	selected_build_label.text = "선택한 빌드: %s — %s\n런 보너스: 공격력 +%d / 주사위 강화 +%d" % [build.display_name, build.description, RunState.attack_bonus, RunState.unlocked_dice_bonus]
 	_set_action_buttons_for_build(build)
-	for dice_index in 3:
+	var dice_count := 3 + RunState.unlocked_dice_bonus
+	for dice_index in dice_count:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
 	restart_build_button.hide()
