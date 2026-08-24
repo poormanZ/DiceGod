@@ -87,6 +87,12 @@ func _update_intent_display() -> void:
 
 func roll_attack_damage() -> int:
 	# 표시된 공격 의도를 실제 공격으로 확정합니다.
-	var damage := planned_attack_damage
+	var damage: int = planned_attack_damage
+	_refresh_attack_intent()
+	return damage
+
+func consume_planned_attack() -> int:
+	# 전투에서 표시된 적 공격 의도를 실제 피해량으로 소비합니다.
+	var damage: int = planned_attack_damage
 	_refresh_attack_intent()
 	return damage
