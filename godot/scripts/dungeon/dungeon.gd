@@ -24,8 +24,13 @@ func _ready() -> void:
 	_initialize_run_dice()
 	BossRewardSystem.sync_owned_special_dice(RunState)
 	_add_codex_button()
+	_add_run_status_overlay()
 	_setup_node_buttons()
 	_update_progress()
+
+func _add_run_status_overlay() -> void:
+	if get_node_or_null("RunStatusOverlay") == null:
+		RunStatusOverlay.attach(self)
 
 func _add_codex_button() -> void:
 	var content: VBoxContainer = $MarginContainer/Content
