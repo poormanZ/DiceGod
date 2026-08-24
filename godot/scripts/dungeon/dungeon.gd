@@ -21,6 +21,7 @@ var route_stage_one_buttons: Array[Button] = []
 var route_stage_two_buttons: Array[Button] = []
 
 func _ready() -> void:
+	RunStatusOverlay.attach(self)
 	_build_route_map()
 	_update_progress()
 
@@ -106,7 +107,7 @@ func _update_progress() -> void:
 	run_status_label.text = _format_run_status()
 	if RunState.boss_cleared:
 		_disable_all_nodes()
-		status_label.text = "👑 보스 처치 완료! 현재 런이 종료되었습니다."
+		status_label.text = "👑 보스 처치 완료! 다음 런을 준비합니다."
 	elif RunState.event_stage == 2 and RunState.event_resolved:
 		_disable_all_nodes()
 		route_boss_button.disabled = false
