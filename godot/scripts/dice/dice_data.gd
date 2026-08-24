@@ -35,6 +35,7 @@ const NAMES: Dictionary = {
 @export var face_values: PackedInt32Array
 
 func _init() -> void:
+	# PackedInt32Array는 컴파일 타임 상수가 아니므로 런타임에 초기화합니다.
 	face_values = PackedInt32Array([SWORD, BOW, STAFF, SHURIKEN, SHIELD, HEAL])
 
 func is_valid() -> bool:
