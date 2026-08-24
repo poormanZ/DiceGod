@@ -12,13 +12,26 @@ var reward_claimed: bool = false
 var reward_options: Array[int] = []
 
 func _ready() -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.randomize()
 	reward_options = [40, 60, 80]
 	reward_options.shuffle()
+	var gold_bonus: int = RoguelikeEquipmentSystem.bonus(RunState, "gold")
+	var divine_gold_bonus: int = _count_divine_gold_faces()
 	for index in reward_buttons.size():
-		var gold_amount: int = reward_options[index]
+		var gold_amount: int = reward_options[index] + gold_bonus + divine_gold_bonus
+		reward_options[index] = gold_amount
 		reward_buttons[index].text = "💰 골드 +%d\n전투 보상으로 골드를 획득합니다." % gold_amount
 		reward_buttons[index].disabled = false
 	status_label.text = "골드 보상 3개 중 하나를 선택하세요."
+
+func _count_divine_gold_faces() -> int:
+	var count: int = 0
+	for die in RunState.run_dice_faces:
+		for face in die:
+			if int(face) == DiceData.DIVINE_GOLD:
+				count += 1
+	return count
 
 func _claim_reward(index: int) -> void:
 	if reward_claimed or index < 0 or index >= reward_options.size():
