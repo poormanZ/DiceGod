@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="DiceData" load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://scripts/dice/dice_data.gd" id="1_dice"]
-
-[resource]
-script = ExtResource("1_dice")
-display_name = "검 특화 주사위"
-description = "검 심볼을 집중적으로 만들어 강타를 노리는 주사위"
-face_values = PackedInt32Array(1, 1, 1, 1, 2, 3)
