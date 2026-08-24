@@ -1,83 +1,41 @@
 # DiceGod — 기술 설계
 
-## 1. 기술
-- Godot 4.x
+## 환경
+
+- Godot 4.7.2
 - GDScript
 - 2D
-- Compatibility 렌더러
-- 웹 배포 중심
+- GL Compatibility
+- Web Export / GitHub Pages
+- 1280×720 기준 Canvas Items stretch
 
-## 2. 핵심 구조
-### Core
-- 게임 상태
-- 런 상태
-- 저장 데이터
+## 핵심 구조
 
 ### Dice
-- 심볼 주사위 데이터
-- 굴림 / 잠금 / 리롤 / 결과 확정
-- 심볼 집계
+
+- `DiceData`: 정적 6면 심볼 정의
+- `DiceRuntimeState`: 개별 주사위 결과/잠금
+- `DiceRoller`: 굴림/리롤/확정 상태
+- `DiceRollPanel`: UI 표시와 입력
 
 ### Battle
-- 턴 상태
-- 공격 자원
-- 방어 자원
-- 치료 자원
-- 스킬/장비 효과
-- 적 행동
-- 승리/패배
 
-### Character
-- 플레이어 데이터
-- 스킬
-- 장비
+`Battle`은 전투 흐름을 조정하고, 주사위 계산은 Dice 계층, 플레이어 피해/회복은 Player가 담당합니다.
 
-### Dungeon
-- 던전 지도
-- 노드
-- 보상
-- 전투 연결
+### State
 
-## 3. 심볼 데이터 모델
-`DiceData`는 주사위 면을 심볼 ID로 관리합니다.
+- `RunStateManager`: 현재 런 전역 상태
+- `ProgressionState`: 영구 진행/저장
 
-- SWORD
-- BOW
-- STAFF
-- SHURIKEN
-- SHIELD
-- HEAL
+## 리팩토링 원칙
 
-내부 ID는 데이터 식별용이며 게임 수치가 아닙니다. UI는 심볼 아이콘/문자로 표시합니다.
+- 숫자/심볼 의미를 혼용하지 않습니다.
+- `DiceData`의 상수로 기본 주사위 수/면 수를 공유합니다.
+- 동적 값은 가능한 한 명시적 타입을 사용합니다.
+- 전투에서 동일 계산을 반복하지 않습니다.
+- 보호막은 Player가 관리하고 Battle은 필요한 보호막 양만 전달합니다.
+- UI 노드는 표시/입력에 집중하고 게임 규칙을 직접 소유하지 않습니다.
 
-## 4. 전투 계산 원칙
-숫자 합산을 전투 계산에 사용하지 않습니다.
+## 현재 검증
 
-- 공격: 검/활/지팡이/표창 개수
-- 방어: 방패 개수
-- 치료: 힐 개수
-
-집계 후 스킬·장비·런 보너스를 적용합니다.
-
-## 5. 데이터 중심 설계
-정적 콘텐츠는 Godot Resource로 관리합니다.
-
-- DiceData
-- AbilityData
-- EquipmentData
-- EnemyData
-- CharacterData
-- BuildData
-
-## 6. 확장 원칙
-심볼 종류가 늘어나더라도 전투 코드에 조건을 계속 하드코딩하지 않고 데이터/효과 계층으로 확장합니다.
-
-## 7. 현재 구현 범위
-- 심볼 데이터 모델
-- 심볼 UI 표시
-- 심볼 잠금/리롤
-- 공격/방어/치료 집계
-- 방어 피해 감소
-- 심볼 조합 스킬 판정
-
-향후 6개 슬롯 UI와 심볼별 특수 효과를 추가합니다.
+GitHub Actions는 Godot import, startup validation, roadmap validation, Web export를 순서대로 수행합니다. 로컬 환경에 Godot 실행 파일이 없더라도 CI에서 동일한 프로젝트를 headless 검증할 수 있도록 유지합니다.

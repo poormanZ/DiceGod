@@ -1,8 +1,8 @@
 class_name Battle
 extends Control
 
-## 심볼 주사위 전투 전용 컨트롤러
-## 기존 숫자 주사위, 빌드 선택, 특수 회복 주사위 시스템은 사용하지 않습니다.
+## 심볼 주사위 전투 컨트롤러입니다.
+## 전투의 책임은 주사위 결과 집계, 플레이어 행동 적용, 적 행동 처리로 제한합니다.
 
 @export var dice_data: DiceData
 @export var player_data: PlayerData
@@ -24,8 +24,6 @@ extends Control
 @onready var enemy_hint_label: Label = $MarginContainer/Content/EnemyArea/EnemyHint
 @onready var battle_box_label: Label = $MarginContainer/Content/BattleBox/BattleBoxLabel
 
-const STARTING_DICE_COUNT: int = 6
-
 var dice_states: Array[DiceRuntimeState] = []
 var dice_roller := DiceRoller.new()
 var player: Player
@@ -38,6 +36,19 @@ var is_battle_over: bool = false
 var ability_used: bool = false
 
 func _ready() -> void:
+	_load_default_data()
+	_create_battle_entities()
+	_create_dice_states()
+
+	selected_build_label.text = "기본 심볼 주사위 × %d" % dice_states.size()
+	player_name_label.text = player.player_data.display_name
+	enemy_name_label.text = enemy.enemy_data.display_name
+	_add_run_status_overlay()
+	_update_hp_labels()
+	_update_enemy_intent()
+	_start_turn("6개의 심볼 주사위를 굴려 행동을 선택하세요.")
+
+func _load_default_data() -> void:
 	if dice_data == null:
 		dice_data = load("res://resources/dice/basic_dice.tres") as DiceData
 	if player_data == null:
@@ -47,21 +58,15 @@ func _ready() -> void:
 	if ability_data == null:
 		ability_data = AbilityData.new()
 
+func _create_battle_entities() -> void:
 	player = Player.new(player_data)
 	enemy = Enemy.new(enemy_data)
 	ability = Ability.new(ability_data)
 
+func _create_dice_states() -> void:
 	dice_states.clear()
-	for _index in STARTING_DICE_COUNT:
+	for _index: int in DiceData.STARTING_DICE_COUNT:
 		dice_states.append(DiceRuntimeState.new(dice_data))
-
-	selected_build_label.text = "⚔️ 🏹 🔮 🗡️ 🛡️ ❤️  심볼 주사위"
-	player_name_label.text = player.player_data.display_name
-	enemy_name_label.text = enemy.enemy_data.display_name
-	_add_run_status_overlay()
-	_update_hp_labels()
-	_update_enemy_intent()
-	_start_turn("6개의 심볼 주사위를 굴려 행동을 선택하세요.")
 
 func _add_run_status_overlay() -> void:
 	if get_node_or_null("RunStatusOverlay") == null:
@@ -73,24 +78,22 @@ func _start_turn(message: String) -> void:
 	calculated_block = 0
 	calculated_heal = 0
 	ability_used = false
-	for dice_state in dice_states:
-		dice_state.result = 0
-		dice_state.is_locked = false
+	is_battle_over = false
+
+	for dice_state: DiceRuntimeState in dice_states:
+		dice_state.clear_result()
+
 	dice_roll_panel.display_results(dice_states)
 	dice_roll_panel.set_dice_interaction_enabled(false)
+	_set_action_buttons(false, false, false, false, false)
 	roll_button.disabled = false
-	reroll_button.disabled = true
-	confirm_button.disabled = true
-	ability_button.disabled = true
-	attack_button.disabled = true
 	status_label.text = message
 	_show_feedback(message)
 
 func _on_roll_button_pressed() -> void:
-	if is_battle_over:
+	if is_battle_over or not dice_roller.roll_all(dice_states):
 		return
-	for dice_state in dice_states:
-		dice_roller.roll(dice_state)
+
 	dice_roll_panel.display_results(dice_states)
 	dice_roll_panel.play_roll_feedback()
 	dice_roll_panel.set_dice_interaction_enabled(true)
@@ -98,11 +101,12 @@ func _on_roll_button_pressed() -> void:
 	reroll_button.disabled = false
 	confirm_button.disabled = false
 	_calculate_actions()
-	_show_feedback("🎲  ⚔️ 🏹 🔮 🗡️ 🛡️ ❤️  심볼을 확인하세요.")
+	_show_feedback("🎲 심볼을 확인하고 필요한 주사위를 잠그세요.")
 
 func _on_reroll_button_pressed() -> void:
 	if is_battle_over or not dice_roller.reroll(dice_states):
 		return
+
 	dice_roll_panel.display_results(dice_states)
 	dice_roll_panel.play_roll_feedback()
 	reroll_button.disabled = true
@@ -112,13 +116,16 @@ func _on_reroll_button_pressed() -> void:
 func _on_confirm_button_pressed() -> void:
 	if is_battle_over or not dice_roller.confirm_results(dice_states):
 		return
+
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	reroll_button.disabled = true
 	confirm_button.disabled = true
 	_calculate_actions()
 	_apply_heal()
+	_apply_block()
+
 	ability_button.disabled = not ability.can_use(dice_states)
-	attack_button.disabled = calculated_attack_damage <= 0 and calculated_block <= 0 and calculated_heal <= 0
+	attack_button.disabled = not _has_player_action()
 	status_label.text = "확정: ⚔️ %d  🛡️ %d  ❤️ %d" % [calculated_attack_damage, calculated_block, calculated_heal]
 	_show_feedback(status_label.text)
 
@@ -126,15 +133,20 @@ func _calculate_actions() -> void:
 	calculated_attack_damage = RunState.attack_bonus
 	calculated_block = 0
 	calculated_heal = 0
-	for dice_state in dice_states:
-		if not dice_state.has_result():
+
+	for dice_state: DiceRuntimeState in dice_states:
+		if dice_state == null or not dice_state.has_result():
 			continue
-		if DiceData.is_attack(dice_state.result):
-			calculated_attack_damage += 1
-		elif DiceData.is_defense(dice_state.result):
-			calculated_block += 1
-		elif DiceData.is_heal(dice_state.result):
-			calculated_heal += 1
+		match dice_state.result:
+			DiceData.SWORD, DiceData.BOW, DiceData.STAFF, DiceData.SHURIKEN:
+				calculated_attack_damage += 1
+			DiceData.SHIELD:
+				calculated_block += 1
+			DiceData.HEAL:
+				calculated_heal += 1
+
+	# 현재 프로토타입의 공통 조합 규칙: 같은 방어/치료 심볼이 2개 이상이면
+	# 첫 심볼은 기본 자원으로, 나머지는 추가 자원으로 한 번씩 계산합니다.
 	var counts: Dictionary = ability.get_symbol_counts(dice_states)
 	var shield_count: int = int(counts.get(DiceData.SHIELD, 0))
 	var heal_count: int = int(counts.get(DiceData.HEAL, 0))
@@ -152,13 +164,25 @@ func _apply_heal() -> void:
 	if healed > 0:
 		_show_feedback("❤️ 회복 +%d" % healed)
 
-func _on_ability_button_pressed() -> void:
-	if ability_used:
+func _apply_block() -> void:
+	if calculated_block <= 0:
 		return
+	var added_shield: int = player.add_shield(calculated_block)
+	_update_hp_labels()
+	_show_feedback("🛡️ 보호막 +%d" % added_shield)
+
+func _has_player_action() -> bool:
+	return calculated_attack_damage > 0 or calculated_block > 0 or calculated_heal > 0
+
+func _on_ability_button_pressed() -> void:
+	if is_battle_over or ability_used:
+		return
+
 	var bonus: int = ability.calculate_bonus(dice_states)
 	if bonus <= 0:
 		ability_button.disabled = true
 		return
+
 	ability_used = true
 	calculated_attack_damage += bonus
 	ability_button.disabled = true
@@ -169,9 +193,11 @@ func _on_ability_button_pressed() -> void:
 func _on_attack_button_pressed() -> void:
 	if is_battle_over:
 		return
+
 	var damage: int = calculated_attack_damage
 	if damage > 0:
 		damage = enemy.take_piercing_damage(damage, 0)
+
 	if enemy.current_hp <= 0:
 		await _handle_victory()
 		return
@@ -184,6 +210,7 @@ func _on_attack_button_pressed() -> void:
 	if player.current_hp <= 0:
 		await _handle_defeat()
 		return
+
 	_start_turn("⚔️ %d 피해를 주고 적의 공격을 견뎠습니다. 다시 굴리세요." % damage)
 
 func _handle_victory() -> void:
@@ -201,11 +228,14 @@ func _handle_defeat() -> void:
 	_show_feedback("💀 패배... 적의 공격을 견디지 못했습니다.")
 
 func run_disable_action_buttons() -> void:
-	roll_button.disabled = true
-	reroll_button.disabled = true
-	confirm_button.disabled = true
-	attack_button.disabled = true
-	ability_button.disabled = true
+	_set_action_buttons(true, true, true, true, true)
+
+func _set_action_buttons(roll_disabled: bool, reroll_disabled: bool, confirm_disabled: bool, ability_disabled: bool, attack_disabled: bool) -> void:
+	roll_button.disabled = roll_disabled
+	reroll_button.disabled = reroll_disabled
+	confirm_button.disabled = confirm_disabled
+	ability_button.disabled = ability_disabled
+	attack_button.disabled = attack_disabled
 
 func _update_hp_labels() -> void:
 	if player != null:

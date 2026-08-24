@@ -1,15 +1,11 @@
 class_name Ability
 extends RefCounted
 
+## 현재 프로토타입에서 사용하는 심볼 조합 스킬 계산기입니다.
 var ability_data: AbilityData
 
 func _init(initial_ability_data: AbilityData) -> void:
-	# 일부 기존 BuildData에는 ability_data가 비어 있을 수 있습니다.
-	# 심볼 전투에서는 기본 AbilityData를 자동 생성해 전투가 중단되지 않도록 합니다.
-	if initial_ability_data == null:
-		ability_data = AbilityData.new()
-	else:
-		ability_data = initial_ability_data
+	ability_data = initial_ability_data if initial_ability_data != null else AbilityData.new()
 
 func can_use(dice_states: Array[DiceRuntimeState]) -> bool:
 	return calculate_bonus(dice_states) > 0
@@ -19,13 +15,13 @@ func calculate_bonus(dice_states: Array[DiceRuntimeState]) -> int:
 		return 0
 
 	var result_counts: Dictionary = {}
-	for dice_state in dice_states:
+	for dice_state: DiceRuntimeState in dice_states:
 		if dice_state == null or not dice_state.has_result() or not DiceData.is_attack(dice_state.result):
 			continue
-		result_counts[dice_state.result] = result_counts.get(dice_state.result, 0) + 1
+		result_counts[dice_state.result] = int(result_counts.get(dice_state.result, 0)) + 1
 
-	var highest_match_count := 0
-	for result_count in result_counts.values():
+	var highest_match_count: int = 0
+	for result_count: Variant in result_counts.values():
 		highest_match_count = maxi(highest_match_count, int(result_count))
 
 	if highest_match_count >= 3:
@@ -36,10 +32,10 @@ func calculate_bonus(dice_states: Array[DiceRuntimeState]) -> int:
 
 func get_symbol_counts(dice_states: Array[DiceRuntimeState]) -> Dictionary:
 	var counts: Dictionary = {}
-	for dice_state in dice_states:
+	for dice_state: DiceRuntimeState in dice_states:
 		if dice_state == null or not dice_state.has_result():
 			continue
-		counts[dice_state.result] = counts.get(dice_state.result, 0) + 1
+		counts[dice_state.result] = int(counts.get(dice_state.result, 0)) + 1
 	return counts
 
 func get_symbol_count(dice_states: Array[DiceRuntimeState], symbol: int) -> int:
