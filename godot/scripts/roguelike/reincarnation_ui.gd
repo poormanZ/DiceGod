@@ -31,7 +31,7 @@ func _build_ui() -> void:
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(info_label)
 	var hint: Label = Label.new()
-	hint.text = "보유 주사위 중 단 하나만 다음 환생으로 가져갈 수 있습니다."
+	hint.text = "보유 주사위 중 정확히 하나를 선택해 다음 환생으로 가져갑니다."
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(hint)
 	dice_grid = GridContainer.new()
@@ -42,10 +42,6 @@ func _build_ui() -> void:
 	confirm_button.disabled = true
 	confirm_button.pressed.connect(_on_confirm)
 	root.add_child(confirm_button)
-	var cancel_button: Button = Button.new()
-	cancel_button.text = "계승 선택 취소"
-	cancel_button.pressed.connect(func() -> void: cancelled.emit())
-	root.add_child(cancel_button)
 
 func _refresh() -> void:
 	if run_state == null:
