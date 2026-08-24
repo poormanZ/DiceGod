@@ -2,14 +2,14 @@ class_name BossRewardSystem
 extends RefCounted
 
 const REWARDS: Dictionary = {
-	"gambling_god": {"gear": "gambling_god_coin", "die": "golden_die", "die_name": "황금 주사위", "faces": [101, 101, 1, 5, 6, 2]},
-	"battle_god": {"gear": "battle_god_blade", "die": "critical_die", "die_name": "전투 주사위", "faces": [102, 102, 1, 1, 4, 5]},
-	"wisdom_god": {"gear": "oracle_relic", "die": "oracle_die", "die_name": "예지 주사위", "faces": [103, 103, 2, 3, 5, 6]},
-	"life_god": {"gear": "life_relic", "die": "life_die", "die_name": "생명 주사위", "faces": [104, 104, 6, 6, 5, 1]},
-	"war_god": {"gear": "war_relic", "die": "berserk_die", "die_name": "광전 주사위", "faces": [105, 105, 1, 1, 4, 2]},
-	"guardian_god": {"gear": "guardian_relic", "die": "sanctuary_die", "die_name": "성역 주사위", "faces": [106, 106, 5, 5, 6, 2]},
+	"flame_god": {"gear": "flame_relic", "die": "flame_die", "die_name": "화염 주사위", "faces": [101, 101, 1, 1, 4, 5]},
+	"frost_god": {"gear": "frost_relic", "die": "frost_die", "die_name": "빙결 주사위", "faces": [102, 102, 2, 2, 5, 6]},
+	"plague_god": {"gear": "plague_relic", "die": "plague_die", "die_name": "역병 주사위", "faces": [103, 103, 1, 3, 5, 6]},
+	"blood_god": {"gear": "blood_relic", "die": "blood_die", "die_name": "혈액 주사위", "faces": [104, 104, 2, 4, 5, 6]},
+	"storm_god": {"gear": "storm_relic", "die": "storm_die", "die_name": "폭풍 주사위", "faces": [105, 105, 1, 1, 4, 6]},
+	"stone_god": {"gear": "stone_relic", "die": "stone_die", "die_name": "거암 주사위", "faces": [106, 106, 2, 3, 5, 5]},
 	"fate_god": {"gear": "fate_relic", "die": "fate_die", "die_name": "운명 주사위", "faces": [107, 107, 1, 2, 5, 6]},
-	"death_god": {"gear": "death_relic", "die": "death_die", "die_name": "사신 주사위", "faces": [108, 108, 1, 1, 3, 4]}
+	"void_god": {"gear": "void_relic", "die": "void_die", "die_name": "공허 주사위", "faces": [108, 108, 1, 1, 3, 4]}
 }
 
 static func boss_id_from_display_name(display_name: String) -> String:
