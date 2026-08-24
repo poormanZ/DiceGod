@@ -1,6 +1,91 @@
 class_name RunBattle
 extends Battle
 
+var run_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+
+func _ready() -> void:
+	run_rng.randomize()
+	super._ready()
+
+func _on_roll_button_pressed() -> void:
+	if is_battle_over:
+		return
+	for die_index in dice_states.size():
+		var dice_state: DiceRuntimeState = dice_states[die_index]
+		if die_index < RunState.run_dice_faces.size():
+			var faces: Array = RunState.get_die_faces(die_index)
+			if not faces.is_empty():
+				dice_state.result = int(faces[run_rng.randi_range(0, faces.size() - 1)])
+				continue
+		dice_roller.roll(dice_state)
+	dice_roll_panel.display_results(dice_states)
+	dice_roll_panel.play_roll_feedback()
+	dice_roll_panel.set_dice_interaction_enabled(true)
+	roll_button.disabled = true
+	reroll_button.disabled = false
+	confirm_button.disabled = false
+	ability_button.disabled = true
+	attack_button.disabled = true
+	_calculate_actions()
+	_update_damage_preview()
+	status_label.text = "심볼을 잠그거나 리롤할 수 있습니다."
+	_show_combat_feedback("🎲 보유 주사위 6개를 굴렸습니다.")
+
+func _on_reroll_button_pressed() -> void:
+	if dice_roller.has_rerolled:
+		return
+	for die_index in dice_states.size():
+		var dice_state: DiceRuntimeState = dice_states[die_index]
+		if dice_state.is_locked or die_index >= RunState.run_dice_faces.size():
+			continue
+		var faces: Array = RunState.get_die_faces(die_index)
+		if not faces.is_empty():
+			dice_state.result = int(faces[run_rng.randi_range(0, faces.size() - 1)])
+	dice_roller.has_rerolled = true
+	dice_roll_panel.display_results(dice_states)
+	dice_roll_panel.play_roll_feedback()
+	reroll_button.disabled = true
+	_calculate_actions()
+	_update_damage_preview()
+	status_label.text = "리롤을 사용했습니다. 최종 심볼을 확정하세요."
+	_show_combat_feedback("↻ 리롤 완료")
+
+func _calculate_actions() -> void:
+	super._calculate_actions()
+	var critical_count: int = _count_result(DiceData.DIVINE_CRITICAL)
+	var berserk_count: int = _count_result(DiceData.DIVINE_BERSERK)
+	var sanctuary_count: int = _count_result(DiceData.DIVINE_SANCTUARY)
+	var life_count: int = _count_result(DiceData.DIVINE_LIFE)
+	var death_count: int = _count_result(DiceData.DIVINE_DEATH)
+	if critical_count > 0:
+		calculated_attack_damage *= 2
+	if berserk_count > 0 and player != null and player.current_hp * 100 <= player.player_data.max_hp * 30:
+		calculated_attack_damage = int(ceil(float(calculated_attack_damage) * 1.5))
+	if death_count > 0 and enemy != null and enemy.current_hp * 100 <= enemy.enemy_data.max_hp * 20:
+		calculated_attack_damage *= 2
+	if sanctuary_count > 0:
+		calculated_shield += sanctuary_count
+	if life_count > 0:
+		calculated_heal += life_count
+	var critical_bonus: int = RoguelikeEquipmentSystem.bonus(RunState, "critical")
+	var heavy_bonus: int = RoguelikeEquipmentSystem.bonus(RunState, "heavy")
+	var block_bonus: int = RoguelikeEquipmentSystem.bonus(RunState, "block")
+	if critical_bonus > 0:
+		calculated_attack_damage += critical_bonus
+	if heavy_bonus > 0:
+		calculated_special_bonus += heavy_bonus
+		calculated_attack_damage += heavy_bonus
+	if block_bonus > 0:
+		calculated_block += block_bonus
+	_update_damage_preview()
+
+func _count_result(symbol_id: int) -> int:
+	var count: int = 0
+	for dice_state in dice_states:
+		if dice_state != null and dice_state.result == symbol_id:
+			count += 1
+	return count
+
 func _handle_victory() -> void:
 	is_battle_over = true
 	RunState.current_hp = player.current_hp
