@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_dice_data")
-display_name = "행운 주사위"
-face_values = PackedInt32Array(1, 3, 3, 4, 5, 6)
+display_name = "행운 심볼 주사위"
+description = "공격 심볼을 높은 비중으로 제공하는 주사위"
+face_values = PackedInt32Array(1, 2, 2, 3, 4, 6)
