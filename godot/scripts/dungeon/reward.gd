@@ -12,11 +12,11 @@ var reward_claimed: bool = false
 var reward_options: Array[int] = []
 
 func _ready() -> void:
-	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
-	rng.randomize()
 	reward_options = [40, 60, 80]
 	reward_options.shuffle()
 	var gold_bonus: int = RoguelikeEquipmentSystem.bonus(RunState, "gold")
+	if RunState.reward_id == "lucky_coin":
+		gold_bonus += 10
 	var divine_gold_bonus: int = _count_divine_gold_faces()
 	for index in reward_buttons.size():
 		var gold_amount: int = reward_options[index] + gold_bonus + divine_gold_bonus
