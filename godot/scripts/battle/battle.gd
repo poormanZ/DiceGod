@@ -168,15 +168,7 @@ func _on_attack_button_pressed() -> void:
 	if damage > 0:
 		damage = enemy.take_piercing_damage(damage, 0)
 	if enemy.current_hp <= 0:
-		is_battle_over = true
-		RunState.battle_cleared = true
-		roll_button.disabled = true
-		reroll_button.disabled = true
-		confirm_button.disabled = true
-		attack_button.disabled = true
-		ability_button.disabled = true
-		_update_hp_labels()
-		_show_feedback("🏆 전투 승리! %d 피해" % damage)
+		await _handle_victory()
 		return
 
 	var incoming: int = enemy.consume_planned_attack()
@@ -185,15 +177,30 @@ func _on_attack_button_pressed() -> void:
 	_update_hp_labels()
 	_update_enemy_intent()
 	if player.current_hp <= 0:
-		is_battle_over = true
-		roll_button.disabled = true
-		reroll_button.disabled = true
-		confirm_button.disabled = true
-		attack_button.disabled = true
-		ability_button.disabled = true
-		_show_feedback("💀 패배... 적의 공격을 견디지 못했습니다.")
+		await _handle_defeat()
 		return
 	_start_turn("⚔️ %d 피해를 주고 적의 공격을 견뎠습니다. 다시 굴리세요." % damage)
+
+func _handle_victory() -> void:
+	is_battle_over = true
+	RunState.current_hp = player.current_hp
+	RunState.battle_cleared = true
+	run_disable_action_buttons()
+	_update_hp_labels()
+	_show_feedback("🏆 전투 승리! %d 피해" % calculated_attack_damage)
+
+func _handle_defeat() -> void:
+	is_battle_over = true
+	RunState.current_hp = 0
+	run_disable_action_buttons()
+	_show_feedback("💀 패배... 적의 공격을 견디지 못했습니다.")
+
+func run_disable_action_buttons() -> void:
+	roll_button.disabled = true
+	reroll_button.disabled = true
+	confirm_button.disabled = true
+	attack_button.disabled = true
+	ability_button.disabled = true
 
 func _update_hp_labels() -> void:
 	if player != null:
