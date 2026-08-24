@@ -2,7 +2,7 @@ class_name ProgressionStateManager
 extends Node
 
 const SAVE_PATH := "user://dicegod_progression.json"
-const CURRENT_VERSION := 1
+const CURRENT_VERSION := 2
 
 var save_version: int = CURRENT_VERSION
 var total_runs: int = 0
@@ -95,6 +95,12 @@ func load_progression() -> void:
 	unlocked_dice = _load_string_array(data.get("unlocked_dice", unlocked_dice), unlocked_dice)
 	unlocked_abilities = _load_string_array(data.get("unlocked_abilities", unlocked_abilities), unlocked_abilities)
 	unlocked_equipment = _load_string_array(data.get("unlocked_equipment", unlocked_equipment), unlocked_equipment)
+	_migrate_v1_content()
+
+func _migrate_v1_content() -> void:
+	if save_version < CURRENT_VERSION:
+		save_version = CURRENT_VERSION
+		save_progression()
 
 func _load_string_array(value: Variant, fallback: Array[String]) -> Array[String]:
 	var result: Array[String] = []
