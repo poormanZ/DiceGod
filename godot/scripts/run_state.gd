@@ -25,12 +25,11 @@ var reward_id: String = ""
 var event_id: String = ""
 var shop_item_id: String = ""
 
-# 로그라이크 진행 단계: 일반 전투 → 골드 → 이벤트 → 엘리트 → 이벤트 → 보스
+# 런 진행: 일반 전투 → 골드 → 이벤트 → 엘리트 → 이벤트 → 보스
 var event_stage: int = 0
 var event_skipped: bool = false
 
-# 현재 런에서 실제로 사용하는 6개 주사위의 6면을 저장한다.
-# 첫 전투에서는 선택한 빌드의 면 구성으로 초기화되고, 대장간 수정이 다음 전투에도 유지된다.
+# 현재 런에서 실제로 사용하는 6개 주사위의 6면
 var run_dice_faces: Array[Array] = []
 var inherited_die: Dictionary = {}
 var pending_inheritance_die: Dictionary = {}
@@ -39,6 +38,21 @@ var forge_used_this_run: bool = false
 var forge_history: Array[Dictionary] = []
 var unlocked_divine_symbols: Array[String] = []
 var divine_symbol_history: Array[Dictionary] = []
+
+# 이벤트/상점/대장간/도박장 상태
+var current_event_type: String = ""
+var event_options: Array[String] = []
+var event_gold_cost: int = 0
+var shop_inventory: Array[Dictionary] = []
+var purchased_items: Array[String] = []
+var gamble_result: String = ""
+var gamble_streak: int = 0
+
+# 보스/환생 상태
+var current_boss_id: String = ""
+var boss_reward_claimed: bool = false
+var death_pending: bool = false
+var inheritance_confirmed: bool = false
 
 func start_new_run() -> void:
 	active_run = true
@@ -64,6 +78,17 @@ func start_new_run() -> void:
 	forge_used_this_run = false
 	forge_history.clear()
 	pending_inheritance_die = inherited_die.duplicate(true)
+	current_event_type = ""
+	event_options.clear()
+	event_gold_cost = 0
+	shop_inventory.clear()
+	purchased_items.clear()
+	gamble_result = ""
+	gamble_streak = 0
+	current_boss_id = ""
+	boss_reward_claimed = false
+	death_pending = false
+	inheritance_confirmed = false
 	ProgressionState.record_run_start()
 
 func initialize_run_dice(default_faces: PackedInt32Array) -> void:
@@ -79,7 +104,6 @@ func initialize_run_dice(default_faces: PackedInt32Array) -> void:
 		base_faces = base_faces.slice(0, DICE_FACE_COUNT)
 	for die_index in STARTING_DICE_COUNT:
 		run_dice_faces.append(base_faces.duplicate())
-	# 환생으로 가져온 주사위는 이번 런의 첫 번째 슬롯을 덮어쓴다.
 	if not inherited_die.is_empty():
 		var inherited_faces: Array = inherited_die.get("faces", [])
 		if inherited_faces.size() == DICE_FACE_COUNT:
@@ -103,18 +127,17 @@ func forge_change_face(die_index: int, face_index: int, symbol_id: int, cost: in
 		return false
 	run_dice_faces[die_index][face_index] = symbol_id
 	forge_used_this_run = true
-	forge_history.append({
-		"die_index": die_index,
-		"face_index": face_index,
-		"symbol_id": symbol_id,
-		"cost": cost,
-	})
+	forge_history.append({"die_index": die_index, "face_index": face_index, "symbol_id": symbol_id, "cost": cost})
 	return true
+
+func can_forge() -> bool:
+	return not forge_used_this_run and not run_dice_faces.is_empty()
 
 func end_run() -> void:
 	if not active_run:
 		return
 	active_run = false
+	death_pending = false
 	ProgressionState.record_run_loss()
 
 func complete_run() -> void:
@@ -123,11 +146,19 @@ func complete_run() -> void:
 	active_run = false
 	ProgressionState.record_run_win()
 
+func die() -> void:
+	current_hp = 0
+	death_pending = true
+	active_run = false
+	ProgressionState.record_run_loss()
+
 func heal(amount: int) -> void:
 	current_hp = mini(max_hp, current_hp + maxi(0, amount))
 
 func take_damage(amount: int) -> void:
 	current_hp = maxi(0, current_hp - maxi(0, amount))
+	if current_hp <= 0:
+		die()
 
 func add_gold(amount: int) -> void:
 	gold = maxi(0, gold + amount)
@@ -144,6 +175,19 @@ func begin_event(stage: int) -> void:
 	event_resolved = false
 	event_skipped = false
 	event_id = ""
+	current_event_type = ""
+	event_options.clear()
+
+func set_event_options(options: Array[String]) -> void:
+	event_options = options.duplicate()
+
+func choose_event(event_type: String) -> void:
+	if not event_options.is_empty() and not event_options.has(event_type):
+		return
+	current_event_type = event_type
+	event_id = event_type
+	event_resolved = false
+	event_skipped = false
 
 func resolve_event(result_id: String) -> void:
 	event_resolved = true
@@ -154,6 +198,7 @@ func skip_event() -> void:
 	event_resolved = true
 	event_skipped = true
 	event_id = "skip"
+	current_event_type = "skip"
 
 func record_forge_change(die_index: int, face_index: int, symbol_id: String, cost: int) -> bool:
 	return forge_change_face(die_index, face_index, int(symbol_id), cost)
@@ -170,26 +215,24 @@ func record_divine_imprint(die_index: int, face_index: int, symbol_id: String) -
 		return false
 	if face_index < 0 or face_index >= DICE_FACE_COUNT:
 		return false
-	divine_symbol_history.append({
-		"die_index": die_index,
-		"face_index": face_index,
-		"symbol_id": symbol_id,
-	})
+	divine_symbol_history.append({"die_index": die_index, "face_index": face_index, "symbol_id": symbol_id})
 	return true
 
 func prepare_inheritance(die_faces: Array, die_name: String = "환생 주사위") -> void:
-	pending_inheritance_die = {
-		"name": die_name,
-		"faces": die_faces.duplicate(true),
-		"source_run": run_number,
-	}
+	if die_faces.size() != DICE_FACE_COUNT:
+		return
+	pending_inheritance_die = {"name": die_name, "faces": die_faces.duplicate(true), "source_run": run_number}
 
 func confirm_inheritance() -> void:
+	if pending_inheritance_die.is_empty():
+		return
 	inherited_die = pending_inheritance_die.duplicate(true)
 	pending_inheritance_die.clear()
+	inheritance_confirmed = true
 
 func clear_pending_inheritance() -> void:
 	pending_inheritance_die.clear()
+	inheritance_confirmed = false
 
 func get_inherited_die_summary() -> String:
 	if inherited_die.is_empty():
