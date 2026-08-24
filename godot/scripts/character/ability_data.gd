@@ -5,6 +5,12 @@ extends Resource
 @export var display_name: String = ""
 @export_multiline var description: String = ""
 
-# 같은 공격 심볼 2개 / 3개 이상을 만들었을 때의 추가 공격력입니다.
+# 공통 조합 보너스
 @export var matching_pair_bonus: int = 2
 @export var matching_triple_bonus: int = 3
+
+# 심볼별 기본 개성 보너스
+@export var sword_heavy_bonus: int = 2
+@export var bow_penetration: int = 1
+@export var staff_magic_bonus: int = 1
+@export var shuriken_extra_hits: int = 1
