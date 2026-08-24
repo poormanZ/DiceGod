@@ -50,6 +50,7 @@ var permanent_runs: int = 0
 var permanent_wins: int = 0
 var permanent_deaths: int = 0
 var unlocked_gods: Array[String] = []
+var run_completed: bool = false
 
 func start_new_run() -> void:
 	active_run = true
@@ -64,6 +65,7 @@ func start_new_run() -> void:
 	event_resolved = false
 	elite_cleared = false
 	boss_cleared = false
+	run_completed = false
 	reward_id = ""
 	event_id = ""
 	event_stage = 0
@@ -293,9 +295,20 @@ func die() -> void:
 		return
 	record_death()
 	active_run = false
+	run_completed = false
 
 func finish_run() -> void:
 	active_run = false
+
+func complete_run() -> bool:
+	if run_completed:
+		return false
+	if not boss_cleared:
+		return false
+	run_completed = true
+	active_run = false
+	record_victory()
+	return true
 
 func get_run_summary() -> Dictionary:
 	var dice_count: int = run_dice_faces.size()
