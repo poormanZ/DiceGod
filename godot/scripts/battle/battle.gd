@@ -42,11 +42,12 @@ var player: Player
 var enemy: Enemy
 var ability: Ability
 var equipment: Equipment
-var healing_dice: HealingDice
 var calculated_attack_damage: int = 0
+var calculated_block: int = 0
+var calculated_heal: int = 0
 var is_battle_over: bool = false
 var selected_build: BuildData
-var healing_dice_used: bool = false
+var effects_applied: bool = false
 
 func _ready() -> void:
 	_setup_build_selection()
@@ -56,21 +57,17 @@ func _set_action_buttons_for_build(build: BuildData) -> void:
 	reroll_button.show()
 	confirm_button.show()
 	attack_button.show()
+	attack_button.text = "행동 실행"
 	ability_button.visible = build != null and build.ability_data != null
-	healing_dice_button.visible = build != null and build.healing_dice_data != null
 	if ability_button.visible:
 		ability_button.text = build.ability_data.display_name
-	else:
-		ability_button.hide()
-	if not healing_dice_button.visible:
-		healing_dice_button.hide()
+	healing_dice_button.hide()
 
 func _hide_optional_action_buttons() -> void:
 	ability_button.hide()
 	healing_dice_button.hide()
 
 func _setup_build_selection() -> void:
-	# 씬에 export된 신규 빌드가 비어 있어도 Web에서 정상 표시되도록 직접 로드합니다.
 	if flame_build == null:
 		flame_build = load("res://resources/builds/flame_build.tres") as BuildData
 	if guardian_build == null:
@@ -81,14 +78,12 @@ func _setup_build_selection() -> void:
 		if build != null:
 			available_builds.append(build)
 
-	# 씬에 남아 있는 4개의 빈 고정 버튼을 제거하고 동적으로 6개를 생성합니다.
 	for child in build_box.get_children():
 		if child is Button:
 			build_box.remove_child(child)
 			child.queue_free()
 	build_buttons.clear()
 
-	# 1280×720 기준으로 선택창이 화면을 넘지 않도록 고정합니다.
 	build_selection_panel.offset_left = -350.0
 	build_selection_panel.offset_top = -310.0
 	build_selection_panel.offset_right = 350.0
@@ -110,7 +105,7 @@ func _setup_build_selection() -> void:
 	build_selection_panel.show()
 	_hide_optional_action_buttons()
 	restart_build_button.hide()
-	status_label.text = "빌드를 선택하면 전투가 시작됩니다."
+	status_label.text = "빌드를 선택하면 심볼 주사위 전투가 시작됩니다."
 
 func _on_build_selected(build: BuildData) -> void:
 	selected_build = build
@@ -118,29 +113,30 @@ func _on_build_selected(build: BuildData) -> void:
 	dice_data = build.dice_data
 	ability_data = build.ability_data
 	equipment_data = build.equipment_data
-	healing_dice_data = build.healing_dice_data
 	player = Player.new(player_data)
 	player.current_hp = clampi(RunState.current_hp, 1, player.player_data.max_hp)
 	enemy = Enemy.new(enemy_data)
 	ability = Ability.new(ability_data)
 	equipment = Equipment.new(equipment_data)
-	healing_dice = HealingDice.new(healing_dice_data)
 	dice_states.clear()
 	is_battle_over = false
 	calculated_attack_damage = 0
-	healing_dice_used = false
+	calculated_block = 0
+	calculated_heal = 0
+	effects_applied = false
 	player_name_label.text = player.player_data.display_name
 	enemy_name_label.text = enemy.enemy_data.display_name
 	_update_player_hp_label()
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
-	selected_build_label.text = "선택한 빌드: %s — %s\n런 보너스: 공격력 +%d / 주사위 강화 +%d" % [build.display_name, build.description, RunState.attack_bonus, RunState.unlocked_dice_bonus]
+	selected_build_label.text = "선택한 빌드: %s — %s\n⚔️ 공격  🛡️ 방어  ✚ 치료" % [build.display_name, build.description]
 	_set_action_buttons_for_build(build)
-	var dice_count := 3 + RunState.unlocked_dice_bonus
-	for dice_index in dice_count:
+
+	# 현재 UI는 3개 주사위 슬롯을 사용합니다. 6개 확장은 별도 UI 단계에서 진행합니다.
+	for _dice_index in 3:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
 	restart_build_button.hide()
-	_start_turn("%s을(를) 선택했습니다. 현재 런 빌드 상태를 적용했습니다." % build.display_name)
+	_start_turn("%s을(를) 선택했습니다. 주사위를 굴려 행동 심볼을 만드세요." % build.display_name)
 
 func _update_player_hp_label() -> void:
 	player_hp_label.text = "HP %d / %d" % [player.current_hp, player.player_data.max_hp]
@@ -171,7 +167,9 @@ func _on_restart_build_button_pressed() -> void:
 func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투를 시작하세요.") -> void:
 	dice_roller.reset_turn_state()
 	calculated_attack_damage = 0
-	healing_dice_used = false
+	calculated_block = 0
+	calculated_heal = 0
+	effects_applied = false
 	for dice_state in dice_states:
 		dice_state.result = 0
 		dice_state.is_locked = false
@@ -181,7 +179,6 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	reroll_button.disabled = true
 	confirm_button.disabled = true
 	ability_button.disabled = true
-	healing_dice_button.disabled = healing_dice_data == null
 	attack_button.disabled = true
 	restart_build_button.hide()
 	status_label.text = status_message
@@ -199,10 +196,9 @@ func _on_roll_button_pressed() -> void:
 	reroll_button.disabled = false
 	confirm_button.disabled = false
 	ability_button.disabled = true
-	healing_dice_button.disabled = true
 	attack_button.disabled = true
-	status_label.text = "주사위를 잠그거나 리롤할 수 있습니다."
-	_show_combat_feedback("🎲 주사위를 굴렸습니다.")
+	status_label.text = "심볼을 잠그거나 리롤할 수 있습니다."
+	_show_combat_feedback("🎲 심볼 주사위를 굴렸습니다.")
 
 func _on_reroll_button_pressed() -> void:
 	if not dice_roller.reroll(dice_states):
@@ -210,7 +206,7 @@ func _on_reroll_button_pressed() -> void:
 	dice_roll_panel.display_results(dice_states)
 	dice_roll_panel.play_roll_feedback()
 	reroll_button.disabled = true
-	status_label.text = "리롤을 사용했습니다. 결과를 확정할 수 있습니다."
+	status_label.text = "리롤을 사용했습니다. 최종 심볼을 확정하세요."
 	_show_combat_feedback("↻ 리롤 완료")
 
 func _on_confirm_button_pressed() -> void:
@@ -220,12 +216,36 @@ func _on_confirm_button_pressed() -> void:
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	reroll_button.disabled = true
 	confirm_button.disabled = true
-	calculated_attack_damage = _calculate_attack_damage()
+	_calculate_actions()
+	_apply_non_attack_effects()
 	ability_button.disabled = not ability.can_use(dice_states)
-	healing_dice_button.disabled = healing_dice_data == null or healing_dice_used
-	attack_button.disabled = false
-	status_label.text = "결과를 확정했습니다: 공격력 %d" % calculated_attack_damage
-	_show_combat_feedback("⚡ 공격력 %d 확정" % calculated_attack_damage, Color(1.0, 0.84, 0.35, 1.0))
+	attack_button.disabled = calculated_attack_damage <= 0 and calculated_block <= 0 and calculated_heal <= 0
+	status_label.text = "확정: ⚔️ %d  🛡️ %d  ✚ %d" % [calculated_attack_damage, calculated_block, calculated_heal]
+	_show_combat_feedback("⚡ ⚔️ %d  🛡️ %d  ✚ %d" % [calculated_attack_damage, calculated_block, calculated_heal], Color(1.0, 0.84, 0.35, 1.0))
+
+func _calculate_actions() -> void:
+	calculated_attack_damage = RunState.attack_bonus
+	calculated_block = 0
+	calculated_heal = 0
+	for dice_state in dice_states:
+		if not dice_state.has_result():
+			continue
+		if DiceData.is_attack(dice_state.result):
+			calculated_attack_damage += 1
+		elif DiceData.is_defense(dice_state.result):
+			calculated_block += 1
+		elif DiceData.is_heal(dice_state.result):
+			calculated_heal += 1
+
+func _apply_non_attack_effects() -> void:
+	if effects_applied:
+		return
+	effects_applied = true
+	if calculated_heal > 0:
+		player.heal(calculated_heal)
+		RunState.current_hp = player.current_hp
+		_update_player_hp_label()
+		_pulse_control(player_hp_label, Color(0.35, 1.0, 0.5, 1.0))
 
 func _on_ability_button_pressed() -> void:
 	var bonus := ability.calculate_bonus(dice_states)
@@ -235,35 +255,21 @@ func _on_ability_button_pressed() -> void:
 	AudioManager.play_confirm()
 	calculated_attack_damage += bonus
 	ability_button.disabled = true
-	status_label.text = "%s 사용: 공격력 +%d (총 %d)" % [ability.ability_data.display_name, bonus, calculated_attack_damage]
+	status_label.text = "%s 사용: ⚔️ 공격 +%d (총 %d)" % [ability.ability_data.display_name, bonus, calculated_attack_damage]
 	_show_combat_feedback("✨ %s +%d" % [ability.ability_data.display_name, bonus], Color(0.7, 0.9, 1.0, 1.0))
 
-func _on_healing_dice_button_pressed() -> void:
-	if is_battle_over or healing_dice_used or healing_dice == null or healing_dice_data == null:
-		return
-	if not healing_dice.roll():
-		healing_dice_button.disabled = true
-		return
-	AudioManager.play_heal()
-	var healing_amount := healing_dice.get_healing_amount()
-	player.heal(healing_amount)
-	RunState.current_hp = player.current_hp
-	_update_player_hp_label()
-	_pulse_control(player_hp_label, Color(0.35, 1.0, 0.5, 1.0))
-	healing_dice_used = true
-	healing_dice_button.disabled = true
-	status_label.text = "힐 주사위 %d: HP를 %d 회복했습니다." % [healing_dice.runtime_state.result, healing_amount]
-	_show_combat_feedback("💚 HP +%d" % healing_amount, Color(0.35, 1.0, 0.5, 1.0))
-
 func _on_attack_button_pressed() -> void:
+	if is_battle_over:
+		return
 	dice_roll_panel.play_attack_feedback()
-	_pulse_control(enemy_name_label, Color(1.0, 0.35, 0.25, 1.0))
-	enemy.take_damage(calculated_attack_damage)
-	AudioManager.play_hit()
-	dice_roll_panel.play_damage_feedback(calculated_attack_damage)
+	if calculated_attack_damage > 0:
+		_pulse_control(enemy_name_label, Color(1.0, 0.35, 0.25, 1.0))
+		enemy.take_damage(calculated_attack_damage)
+		AudioManager.play_hit()
+		dice_roll_panel.play_damage_feedback(calculated_attack_damage)
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	_pulse_control(enemy_hp_label, Color(1.0, 0.35, 0.25, 1.0))
-	_show_combat_feedback("⚔️ %d 피해!" % calculated_attack_damage, Color(1.0, 0.45, 0.35, 1.0))
+	_show_combat_feedback("행동 실행 — ⚔️ %d  🛡️ %d  ✚ %d" % [calculated_attack_damage, calculated_block, calculated_heal], Color(1.0, 0.45, 0.35, 1.0))
 	attack_button.disabled = true
 	if enemy.current_hp <= 0:
 		_handle_victory()
@@ -272,20 +278,29 @@ func _on_attack_button_pressed() -> void:
 
 func _perform_enemy_action() -> void:
 	if equipment.can_evade(dice_states):
-		_show_combat_feedback("🛡️ 공격을 회피했습니다!", Color(0.55, 0.8, 1.0, 1.0))
-		_start_turn("%s이(가) 스트레이트를 만들어 적의 공격을 회피했습니다." % equipment.equipment_data.display_name)
+		_show_combat_feedback("🛡️ 방패 3개 완성! 적의 공격을 완전히 막았습니다.", Color(0.55, 0.8, 1.0, 1.0))
+		_start_turn("방어 성공. 다음 턴의 심볼을 굴리세요.")
 		return
+
 	var enemy_damage := enemy.roll_attack_damage()
-	player.take_damage(enemy_damage)
-	AudioManager.play_hit()
+	var blocked_damage := mini(enemy_damage, calculated_block)
+	var final_damage := maxi(enemy_damage - calculated_block, 0)
+	if blocked_damage > 0:
+		_show_combat_feedback("🛡️ 방어 %d로 피해 %d 차단" % [calculated_block, blocked_damage], Color(0.55, 0.8, 1.0, 1.0))
+	if final_damage > 0:
+		player.take_damage(final_damage)
+		AudioManager.play_hit()
+		_pulse_control(player_hp_label, Color(1.0, 0.35, 0.25, 1.0))
 	RunState.current_hp = player.current_hp
 	_update_player_hp_label()
-	_pulse_control(player_hp_label, Color(1.0, 0.35, 0.25, 1.0))
-	_show_combat_feedback("💥 %d 피해를 받았습니다!" % enemy_damage, Color(1.0, 0.4, 0.35, 1.0))
+	if final_damage > 0:
+		_show_combat_feedback("💥 %d 피해를 받았습니다. (방어 %d)" % [final_damage, calculated_block], Color(1.0, 0.4, 0.35, 1.0))
+	else:
+		_show_combat_feedback("🛡️ 모든 피해를 막았습니다!", Color(0.55, 0.8, 1.0, 1.0))
 	if player.current_hp <= 0:
 		_handle_defeat()
 		return
-	_start_turn("%s이(가) %d 피해를 입혔습니다. 다음 턴을 시작하세요." % [enemy.enemy_data.display_name, enemy_damage])
+	_start_turn("%s의 공격을 견뎠습니다. 다음 턴을 시작하세요." % enemy.enemy_data.display_name)
 
 func _handle_victory() -> void:
 	is_battle_over = true
@@ -306,7 +321,6 @@ func _handle_victory() -> void:
 	reroll_button.disabled = true
 	confirm_button.disabled = true
 	ability_button.disabled = true
-	healing_dice_button.disabled = true
 	attack_button.disabled = true
 	restart_build_button.hide()
 	status_label.text = "%s 승리!\n%s\n%s" % [selected_build.display_name, RunState.get_run_summary(), ProgressionState.get_unlock_summary()]
@@ -324,16 +338,8 @@ func _handle_defeat() -> void:
 	reroll_button.disabled = true
 	confirm_button.disabled = true
 	ability_button.disabled = true
-	healing_dice_button.disabled = true
 	attack_button.disabled = true
 	restart_build_button.hide()
 	status_label.text = "런이 종료되었습니다. HP가 0이 되었습니다."
 	await get_tree().create_timer(1.2).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
-
-func _calculate_attack_damage() -> int:
-	var attack_damage := 0
-	for dice_state in dice_states:
-		attack_damage += dice_state.result
-	attack_damage += RunState.attack_bonus
-	return attack_damage
