@@ -19,8 +19,11 @@ static func unlock_boss_symbol(run_state: RunStateManager, boss_id: String) -> b
 	var reward: Dictionary = get_boss_reward(boss_id)
 	if reward.is_empty():
 		return false
+	var symbol_id: String = str(reward.get("symbol", ""))
 	run_state.current_boss_id = boss_id
-	run_state.unlock_divine_symbol(str(reward.get("symbol", "")))
+	run_state.unlock_divine_symbol(symbol_id)
+	ProgressionState.unlock_divine_symbol(symbol_id)
+	ProgressionState.unlock_boss(boss_id)
 	return true
 
 static func imprint(run_state: RunStateManager, die_index: int, face_index: int, boss_id: String) -> Dictionary:
