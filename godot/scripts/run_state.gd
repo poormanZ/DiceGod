@@ -316,10 +316,10 @@ func complete_run() -> bool:
 	run_completed = true
 	active_run = false
 	record_victory()
-	_persist_completed_run_dice()
+	persist_completed_run_dice()
 	return true
 
-func _persist_completed_run_dice() -> void:
+func persist_completed_run_dice() -> void:
 	var progression_state: Node = get_node_or_null("/root/ProgressionState")
 	if progression_state != null and progression_state.has_method("save_persistent_dice_faces"):
 		progression_state.save_persistent_dice_faces(run_dice_faces)
