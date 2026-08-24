@@ -26,6 +26,7 @@ var event_skipped: bool = false
 var current_event_type: String = ""
 var event_options: Array[String] = []
 var run_dice_faces: Array[Array] = []
+var special_dice_collection: Array[Dictionary] = []
 var inherited_die: Dictionary = {}
 var pending_inheritance_die: Dictionary = {}
 var forge_used_this_run: bool = false
