@@ -5,6 +5,9 @@ extends PanelContainer
 	$Content/DiceContainer/DiceOneButton,
 	$Content/DiceContainer/DiceTwoButton,
 	$Content/DiceContainer/DiceThreeButton,
+	$Content/DiceContainer/DiceFourButton,
+	$Content/DiceContainer/DiceFiveButton,
+	$Content/DiceContainer/DiceSixButton,
 ]
 var dice_states: Array[DiceRuntimeState] = []
 
@@ -31,6 +34,8 @@ func set_dice_interaction_enabled(is_enabled: bool) -> void:
 func play_roll_feedback() -> void:
 	AudioManager.play_roll()
 	for index in dice_buttons.size():
+		if index >= dice_states.size():
+			continue
 		var button := dice_buttons[index]
 		button.scale = DICE_POP_SCALE
 		var tween := create_tween()
@@ -42,20 +47,28 @@ func play_attack_feedback() -> void:
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	for button in dice_buttons:
+		if not button.visible:
+			continue
 		button.scale = DICE_IDLE_SCALE
 		tween.parallel().tween_property(button, "scale", DICE_POP_SCALE, 0.08)
 	tween.tween_interval(0.05)
 	for button in dice_buttons:
+		if not button.visible:
+			continue
 		tween.parallel().tween_property(button, "scale", DICE_IDLE_SCALE, 0.14)
 
 func play_damage_feedback(_damage: int) -> void:
 	var flash_color := Color(1.0, 0.35, 0.25, 1.0)
 	for button in dice_buttons:
+		if not button.visible:
+			continue
 		button.modulate = flash_color
 		button.scale = FEEDBACK_SCALE
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	for button in dice_buttons:
+		if not button.visible:
+			continue
 		tween.parallel().tween_property(button, "scale", DICE_IDLE_SCALE, 0.16)
 		tween.parallel().tween_property(button, "modulate", Color.WHITE, 0.22)
 
