@@ -21,19 +21,20 @@ func _create_run_enemy_data() -> EnemyData:
 		source = CombatContentSystem.roll_elite(run_rng)
 	else:
 		source = CombatContentSystem.roll_normal_enemy(run_rng)
+
 	data.display_name = str(source.get("name", "슬라임"))
 	data.max_hp = int(source.get("hp", 10))
 	data.attack_dice = basic_dice
-	var trait: String = str(source.get("trait", ""))
+	var enemy_trait: String = str(source.get("trait", ""))
 	data.armor = 0
 	data.status_resistance = 0
-	if trait == "high_defense":
+	if enemy_trait == "high_defense":
 		data.armor = 2
-	elif trait == "evasive":
+	elif enemy_trait == "evasive":
 		data.armor = 1
-	elif trait == "heal_pressure":
+	elif enemy_trait == "heal_pressure":
 		data.status_resistance = 30
-	elif trait == "symbol_check":
+	elif enemy_trait == "symbol_check":
 		data.armor = 1
 	if is_boss_battle:
 		data.armor += 1
@@ -43,7 +44,7 @@ func _create_run_enemy_data() -> EnemyData:
 func _on_roll_button_pressed() -> void:
 	if is_battle_over:
 		return
-	for die_index in dice_states.size():
+	for die_index: int in dice_states.size():
 		var dice_state: DiceRuntimeState = dice_states[die_index]
 		if die_index < RunState.run_dice_faces.size():
 			var faces: Array = RunState.get_die_faces(die_index)
@@ -67,7 +68,7 @@ func _on_roll_button_pressed() -> void:
 func _on_reroll_button_pressed() -> void:
 	if dice_roller.has_rerolled:
 		return
-	for die_index in dice_states.size():
+	for die_index: int in dice_states.size():
 		var dice_state: DiceRuntimeState = dice_states[die_index]
 		if dice_state.is_locked or die_index >= RunState.run_dice_faces.size():
 			continue
@@ -92,11 +93,13 @@ func _calculate_actions() -> void:
 	calculated_penetration += int(skills.get("penetration", 0))
 	calculated_extra_hits += int(skills.get("hits", 0))
 	calculated_status_damage += int(skills.get("status", 0))
+
 	var critical_count: int = _count_result(DiceData.DIVINE_CRITICAL)
 	var berserk_count: int = _count_result(DiceData.DIVINE_BERSERK)
 	var sanctuary_count: int = _count_result(DiceData.DIVINE_SANCTUARY)
 	var life_count: int = _count_result(DiceData.DIVINE_LIFE)
 	var death_count: int = _count_result(DiceData.DIVINE_DEATH)
+
 	if critical_count > 0:
 		calculated_attack_damage *= 2
 	if berserk_count > 0 and player != null and player.current_hp * 100 <= player.player_data.max_hp * 30:
@@ -107,6 +110,7 @@ func _calculate_actions() -> void:
 		calculated_shield += sanctuary_count
 	if life_count > 0:
 		calculated_heal += life_count
+
 	var critical_bonus: int = RoguelikeEquipmentSystem.bonus(RunState, "critical")
 	var heavy_bonus: int = RoguelikeEquipmentSystem.bonus(RunState, "heavy")
 	var block_bonus: int = RoguelikeEquipmentSystem.bonus(RunState, "block")
@@ -117,6 +121,7 @@ func _calculate_actions() -> void:
 		calculated_attack_damage += heavy_bonus
 	if block_bonus > 0:
 		calculated_block += block_bonus
+
 	_update_damage_preview()
 	var skill_names: Array = skills.get("skills", [])
 	if not skill_names.is_empty():
@@ -124,7 +129,7 @@ func _calculate_actions() -> void:
 
 func _count_result(symbol_id: int) -> int:
 	var count: int = 0
-	for dice_state in dice_states:
+	for dice_state: DiceRuntimeState in dice_states:
 		if dice_state != null and dice_state.result == symbol_id:
 			count += 1
 	return count
