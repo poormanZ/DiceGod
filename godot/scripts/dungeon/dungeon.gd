@@ -12,7 +12,6 @@ extends Control
 @onready var map: Control = $MarginContainer/Content/Map
 @onready var run_status_label: Label = $MarginContainer/Content/RunStatusLabel
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
-@onready var new_run_button: Button = $MarginContainer/Content/NewRunButton
 
 var route_map: VBoxContainer
 var route_start_button: Button
@@ -22,8 +21,6 @@ var route_stage_one_buttons: Array[Button] = []
 var route_stage_two_buttons: Array[Button] = []
 
 func _ready() -> void:
-	# 새 던전 생성 버튼은 제거한다. 새 런은 런 종료 흐름에서 시작한다.
-	new_run_button.hide()
 	_build_route_map()
 	_update_progress()
 
@@ -109,8 +106,7 @@ func _update_progress() -> void:
 	run_status_label.text = _format_run_status()
 	if RunState.boss_cleared:
 		_disable_all_nodes()
-		new_run_button.hide()
-		status_label.text = "👑 보스 처치 완료! 다음 런은 새 런 시작 흐름에서 생성됩니다."
+		status_label.text = "👑 보스 처치 완료! 현재 런이 종료되었습니다."
 	elif RunState.event_stage == 2 and RunState.event_resolved:
 		_disable_all_nodes()
 		route_boss_button.disabled = false
@@ -164,7 +160,6 @@ func _event_scene_name(event_type: String) -> String:
 	return "event"
 
 func _on_start_battle_button_pressed() -> void:
-	# 기존 battle.tscn 경로가 아니라 실제 런 전투 씬을 사용한다.
 	get_tree().change_scene_to_file("res://scenes/battle/run_battle.tscn")
 
 func _on_elite_button_pressed() -> void:
@@ -191,8 +186,3 @@ func _make_route_button(title: String, description: String) -> Button:
 	button.text = "%s\n%s" % [title, description]
 	button.custom_minimum_size = Vector2(250, 72)
 	return button
-
-func _on_new_run_button_pressed() -> void:
-	# 하위 호환용. UI에서는 NewRunButton을 숨긴다.
-	RunState.start_new_run()
-	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
