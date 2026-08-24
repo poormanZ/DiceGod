@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/battle/boss_battle.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/battle/boss_run_battle.gd" id="2_script"]
+
+[node name="Battle" instance=ExtResource("1_base")]
+script = ExtResource("2_script")
