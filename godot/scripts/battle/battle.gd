@@ -70,17 +70,37 @@ func _hide_optional_action_buttons() -> void:
 	healing_dice_button.hide()
 
 func _setup_build_selection() -> void:
-	available_builds = [matching_build, straight_build, healing_build, power_build, flame_build, guardian_build]
-	for old_button in build_buttons:
-		old_button.queue_free()
+	# 신규 빌드는 이전 씬의 export가 비어 있어도 항상 로드되도록 보정합니다.
+	if flame_build == null:
+		flame_build = load("res://resources/builds/flame_build.tres") as BuildData
+	if guardian_build == null:
+		guardian_build = load("res://resources/builds/guardian_build.tres") as BuildData
+
+	available_builds.clear()
+	for build in [matching_build, straight_build, healing_build, power_build, flame_build, guardian_build]:
+		if build != null:
+			available_builds.append(build)
+
+	# 씬에 남아 있던 4개의 빈 고정 버튼을 제거합니다.
+	for child in build_box.get_children():
+		if child is Button:
+			build_box.remove_child(child)
+			child.queue_free()
 	build_buttons.clear()
+
+	# 1280×720 기준에서도 전체 선택창이 화면 안에 들어오도록 크기를 제한합니다.
+	build_selection_panel.offset_left = -350.0
+	build_selection_panel.offset_top = -310.0
+	build_selection_panel.offset_right = 350.0
+	build_selection_panel.offset_bottom = 310.0
+
 	for build in available_builds:
-		if build == null:
-			continue
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(0, 58)
+		button.custom_minimum_size = Vector2(0, 56)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.text = "%s\n%s" % [build.display_name, build.description]
 		button.add_theme_font_size_override("font_size", 14)
+		button.add_theme_constant_override("outline_size", 0)
 		var locked := build == power_build and not ProgressionState.is_dice_unlocked("power_dice")
 		button.disabled = locked
 		if locked:
@@ -88,6 +108,7 @@ func _setup_build_selection() -> void:
 		button.pressed.connect(_on_build_selected.bind(build))
 		build_box.add_child(button)
 		build_buttons.append(button)
+
 	build_selection_panel.show()
 	_hide_optional_action_buttons()
 	restart_build_button.hide()
@@ -116,7 +137,7 @@ func _on_build_selected(build: BuildData) -> void:
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	selected_build_label.text = "선택한 빌드: %s — %s\n런 보너스: 공격력 +%d / 주사위 강화 +%d" % [build.display_name, build.description, RunState.attack_bonus, RunState.unlocked_dice_bonus]
 	_set_action_buttons_for_build(build)
-	var dice_count := 3 + RunState.unlocked_dice_bonus
+	var dice_count: int = 3 + RunState.unlocked_dice_bonus
 	for dice_index in dice_count:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
@@ -218,103 +239,3 @@ func _on_ability_button_pressed() -> void:
 	ability_button.disabled = true
 	status_label.text = "%s 사용: 공격력 +%d (총 %d)" % [ability.ability_data.display_name, bonus, calculated_attack_damage]
 	_show_combat_feedback("✨ %s +%d" % [ability.ability_data.display_name, bonus], Color(0.7, 0.9, 1.0, 1.0))
-
-func _on_healing_dice_button_pressed() -> void:
-	if is_battle_over or healing_dice_used or healing_dice == null or healing_dice_data == null:
-		return
-	if not healing_dice.roll():
-		healing_dice_button.disabled = true
-		return
-	AudioManager.play_heal()
-	var healing_amount := healing_dice.get_healing_amount()
-	player.heal(healing_amount)
-	RunState.current_hp = player.current_hp
-	_update_player_hp_label()
-	_pulse_control(player_hp_label, Color(0.35, 1.0, 0.5, 1.0))
-	healing_dice_used = true
-	healing_dice_button.disabled = true
-	status_label.text = "힐 주사위 %d: HP를 %d 회복했습니다." % [healing_dice.runtime_state.result, healing_amount]
-	_show_combat_feedback("💚 HP +%d" % healing_amount, Color(0.35, 1.0, 0.5, 1.0))
-
-func _on_attack_button_pressed() -> void:
-	dice_roll_panel.play_attack_feedback()
-	_pulse_control(enemy_name_label, Color(1.0, 0.35, 0.25, 1.0))
-	enemy.take_damage(calculated_attack_damage)
-	AudioManager.play_hit()
-	dice_roll_panel.play_damage_feedback(calculated_attack_damage)
-	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
-	_pulse_control(enemy_hp_label, Color(1.0, 0.35, 0.25, 1.0))
-	_show_combat_feedback("⚔️ %d 피해!" % calculated_attack_damage, Color(1.0, 0.45, 0.35, 1.0))
-	attack_button.disabled = true
-	if enemy.current_hp <= 0:
-		_handle_victory()
-		return
-	_perform_enemy_action()
-
-func _perform_enemy_action() -> void:
-	if equipment.can_evade(dice_states):
-		_show_combat_feedback("🛡️ 공격을 회피했습니다!", Color(0.55, 0.8, 1.0, 1.0))
-		_start_turn("%s이(가) 스트레이트를 만들어 적의 공격을 회피했습니다." % equipment.equipment_data.display_name)
-		return
-	var enemy_damage := enemy.roll_attack_damage()
-	player.take_damage(enemy_damage)
-	AudioManager.play_hit()
-	RunState.current_hp = player.current_hp
-	_update_player_hp_label()
-	_pulse_control(player_hp_label, Color(1.0, 0.35, 0.25, 1.0))
-	_show_combat_feedback("💥 %d 피해를 받았습니다!" % enemy_damage, Color(1.0, 0.4, 0.35, 1.0))
-	if player.current_hp <= 0:
-		_handle_defeat()
-		return
-	_start_turn("%s이(가) %d 피해를 입혔습니다. 다음 턴을 시작하세요." % [enemy.enemy_data.display_name, enemy_damage])
-
-func _handle_victory() -> void:
-	is_battle_over = true
-	AudioManager.play_victory()
-	_pulse_control(enemy_hp_label, Color(1.0, 0.84, 0.35, 1.0), 0.35)
-	_show_combat_feedback("🏆 VICTORY!", Color(1.0, 0.84, 0.35, 1.0))
-	RunState.current_hp = player.current_hp
-	if is_boss_battle:
-		RunState.boss_cleared = true
-		RunState.complete_run()
-		ProgressionState.unlock_dice("power_dice")
-	elif is_elite_battle:
-		RunState.elite_cleared = true
-	else:
-		RunState.battle_cleared = true
-	dice_roll_panel.set_dice_interaction_enabled(false)
-	roll_button.disabled = true
-	reroll_button.disabled = true
-	confirm_button.disabled = true
-	ability_button.disabled = true
-	healing_dice_button.disabled = true
-	attack_button.disabled = true
-	restart_build_button.hide()
-	status_label.text = "%s 승리!\n%s\n%s" % [selected_build.display_name, RunState.get_run_summary(), ProgressionState.get_unlock_summary()]
-	await get_tree().create_timer(0.8).timeout
-	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
-
-func _handle_defeat() -> void:
-	is_battle_over = true
-	AudioManager.play_defeat()
-	_pulse_control(player_hp_label, Color(1.0, 0.2, 0.2, 1.0), 0.4)
-	_show_combat_feedback("💀 DEFEAT", Color(1.0, 0.25, 0.25, 1.0))
-	RunState.end_run()
-	dice_roll_panel.set_dice_interaction_enabled(false)
-	roll_button.disabled = true
-	reroll_button.disabled = true
-	confirm_button.disabled = true
-	ability_button.disabled = true
-	healing_dice_button.disabled = true
-	attack_button.disabled = true
-	restart_build_button.hide()
-	status_label.text = "런이 종료되었습니다. HP가 0이 되었습니다."
-	await get_tree().create_timer(1.2).timeout
-	get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
-
-func _calculate_attack_damage() -> int:
-	var attack_damage := 0
-	for dice_state in dice_states:
-		attack_damage += dice_state.result
-	attack_damage += RunState.attack_bonus
-	return attack_damage
