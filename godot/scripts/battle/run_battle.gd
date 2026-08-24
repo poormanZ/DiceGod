@@ -30,7 +30,7 @@ func _ready() -> void:
 	dice_states.clear()
 	is_battle_over = false
 	ability_used = false
-	for _dice_index in STARTING_DICE_COUNT:
+	for _dice_index in DiceData.STARTING_DICE_COUNT:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 
 	selected_build_label.text = "⚔️ 🏹 🔮 🗡️ 🛡️ ❤️  심볼 주사위"
