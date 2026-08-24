@@ -15,46 +15,71 @@ border_width_bottom = 2
 border_color = Color(0.7, 0.7, 0.72, 1)
 
 [node name="DiceRollPanel" type="PanelContainer" unique_id=1168512694]
-custom_minimum_size = Vector2(420, 120)
+custom_minimum_size = Vector2(700, 205)
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 script = ExtResource("1_dice_roll_panel")
 
 [node name="Content" type="VBoxContainer" parent="." unique_id=687712860]
 layout_mode = 2
-theme_override_constants/separation = 3
+theme_override_constants/separation = 5
 
 [node name="TitleLabel" type="Label" parent="Content" unique_id=961517556]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
 theme_override_font_sizes/font_size = 14
-text = "DICE"
+text = "DICE × 6"
 horizontal_alignment = 1
 
-[node name="DiceContainer" type="HBoxContainer" parent="Content" unique_id=1557266023]
+[node name="DiceContainer" type="GridContainer" parent="Content" unique_id=1557266023]
 layout_mode = 2
-theme_override_constants/separation = 6
-alignment = 1
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
 
 [node name="DiceOneButton" type="Button" parent="Content/DiceContainer" unique_id=1789932452]
-custom_minimum_size = Vector2(86, 86)
+custom_minimum_size = Vector2(104, 76)
 layout_mode = 2
 tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 32
 disabled = true
-text = "-"
+text = "—"
 
 [node name="DiceTwoButton" type="Button" parent="Content/DiceContainer" unique_id=1047969361]
-custom_minimum_size = Vector2(86, 86)
+custom_minimum_size = Vector2(104, 76)
 layout_mode = 2
 tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 32
 disabled = true
-text = "-"
+text = "—"
 
 [node name="DiceThreeButton" type="Button" parent="Content/DiceContainer" unique_id=802312061]
-custom_minimum_size = Vector2(86, 86)
+custom_minimum_size = Vector2(104, 76)
 layout_mode = 2
 tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 32
 disabled = true
-text = "-"
+text = "—"
+
+[node name="DiceFourButton" type="Button" parent="Content/DiceContainer"]
+custom_minimum_size = Vector2(104, 76)
+layout_mode = 2
+tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
+theme_override_font_sizes/font_size = 32
+disabled = true
+text = "—"
+
+[node name="DiceFiveButton" type="Button" parent="Content/DiceContainer"]
+custom_minimum_size = Vector2(104, 76)
+layout_mode = 2
+tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
+theme_override_font_sizes/font_size = 32
+disabled = true
+text = "—"
+
+[node name="DiceSixButton" type="Button" parent="Content/DiceContainer"]
+custom_minimum_size = Vector2(104, 76)
+layout_mode = 2
+tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
+theme_override_font_sizes/font_size = 32
+disabled = true
+text = "—"
