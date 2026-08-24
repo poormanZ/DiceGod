@@ -4,9 +4,9 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 18.0
-content_margin_top = 10.0
+content_margin_top = 7.0
 content_margin_right = 18.0
-content_margin_bottom = 10.0
+content_margin_bottom = 7.0
 bg_color = Color(0.025, 0.025, 0.03, 1)
 border_width_left = 2
 border_width_top = 2
@@ -15,46 +15,46 @@ border_width_bottom = 2
 border_color = Color(0.7, 0.7, 0.72, 1)
 
 [node name="DiceRollPanel" type="PanelContainer" unique_id=1168512694]
-custom_minimum_size = Vector2(440, 170)
+custom_minimum_size = Vector2(420, 120)
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 script = ExtResource("1_dice_roll_panel")
 
 [node name="Content" type="VBoxContainer" parent="." unique_id=687712860]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 3
 
 [node name="TitleLabel" type="Label" parent="Content" unique_id=961517556]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "DICE"
 horizontal_alignment = 1
 
 [node name="DiceContainer" type="HBoxContainer" parent="Content" unique_id=1557266023]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="DiceOneButton" type="Button" parent="Content/DiceContainer" unique_id=1789932452]
-custom_minimum_size = Vector2(120, 120)
+custom_minimum_size = Vector2(86, 86)
 layout_mode = 2
 tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 34
 disabled = true
 text = "-"
 
 [node name="DiceTwoButton" type="Button" parent="Content/DiceContainer" unique_id=1047969361]
-custom_minimum_size = Vector2(120, 120)
+custom_minimum_size = Vector2(86, 86)
 layout_mode = 2
 tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 34
 disabled = true
 text = "-"
 
 [node name="DiceThreeButton" type="Button" parent="Content/DiceContainer" unique_id=802312061]
-custom_minimum_size = Vector2(120, 120)
+custom_minimum_size = Vector2(86, 86)
 layout_mode = 2
 tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 34
 disabled = true
 text = "-"
