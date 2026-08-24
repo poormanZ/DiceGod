@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="DiceData" load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://scripts/dice/dice_data.gd" id="1_dice"]
-
-[resource]
-script = ExtResource("1_dice")
-display_name = "화염 주사위"
-description = "공격과 지팡이 심볼을 강화해 마법·화상 효과를 노리는 주사위"
-face_values = PackedInt32Array(3, 3, 3, 1, 2, 4)
