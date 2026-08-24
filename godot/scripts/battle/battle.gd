@@ -379,9 +379,9 @@ func _perform_enemy_action() -> void:
 		_show_combat_feedback("🛡️ 방패 3개 완성! 적의 공격을 완전히 막았습니다.", Color(0.55, 0.8, 1.0, 1.0))
 		_start_turn("방어 성공. 다음 턴의 심볼을 굴리세요.")
 		return
-	var enemy_damage := enemy.consume_planned_attack()
-	var blocked_damage := mini(enemy_damage, calculated_block + calculated_shield)
-	var final_damage := maxi(enemy_damage - calculated_block - calculated_shield, 0)
+	var enemy_damage: int = int(enemy.consume_planned_attack())
+	var blocked_damage: int = mini(enemy_damage, calculated_block + calculated_shield)
+	var final_damage: int = maxi(enemy_damage - calculated_block - calculated_shield, 0)
 	if blocked_damage > 0:
 		_show_combat_feedback("🛡️ 방어 %d + 보호 %d로 피해 %d 차단" % [calculated_block, calculated_shield, blocked_damage], Color(0.55, 0.8, 1.0, 1.0))
 	if final_damage > 0:
