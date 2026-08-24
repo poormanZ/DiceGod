@@ -80,13 +80,21 @@ jobs:
         run: |
           set -euo pipefail
           echo "Raw Godot export:"
-          find ./godot/build -maxdepth 3 -type f -printf '%p %s bytes\n' | sort
+          find ./godot/build -maxdepth 4 -type f -printf '%p %s bytes\n' | sort
           if [ -d ./godot/build/Web ]; then
             rm -rf ./godot/build/web
             mv ./godot/build/Web ./godot/build/web
           fi
+          if [ -d ./godot/build/web/Web ]; then
+            rm -rf ./godot/build/web-normalized
+            mv ./godot/build/web/Web ./godot/build/web-normalized
+            rm -rf ./godot/build/web
+            mv ./godot/build/web-normalized ./godot/build/web
+          fi
           test -f ./godot/build/web/index.html
           test -s ./godot/build/web/index.html
+          test -f ./godot/build/web/index.pck
+          test -f ./godot/build/web/index.wasm
           echo "Normalized Web export:"
           find ./godot/build/web -maxdepth 2 -type f -printf '%p %s bytes\n' | sort
           TOTAL_BYTES="$(find ./godot/build/web -type f -printf '%s\n' | awk '{s+=$1} END {print s+0}')"
