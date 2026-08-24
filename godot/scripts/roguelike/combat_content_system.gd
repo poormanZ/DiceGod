@@ -14,16 +14,16 @@ const ELITES: Dictionary = {
 	"arcane_knight": {"name": "비전 기사", "hp": 16, "damage": 3, "required": "wand", "trait": "symbol_check"}
 }
 
-# 각 보스는 전용 심볼 하나를 사용합니다. 심볼 효과는 BossSymbolSystem에서 해석합니다.
+# 각 보스는 전용 심볼 하나를 사용합니다.
 const BOSSES: Dictionary = {
-	"flame_god": {"name": "화염군주", "hp": 28, "damage": 2, "pattern": "burn", "symbol": 101, "gear": "flame_relic"},
-	"frost_god": {"name": "빙결왕", "hp": 30, "damage": 2, "pattern": "frost", "symbol": 102, "gear": "frost_relic"},
-	"plague_god": {"name": "역병군주", "hp": 29, "damage": 2, "pattern": "plague", "symbol": 103, "gear": "plague_relic"},
-	"blood_god": {"name": "혈왕", "hp": 32, "damage": 2, "pattern": "drain", "symbol": 104, "gear": "blood_relic"},
-	"storm_god": {"name": "폭풍신", "hp": 31, "damage": 3, "pattern": "storm", "symbol": 105, "gear": "storm_relic"},
-	"stone_god": {"name": "거암왕", "hp": 36, "damage": 2, "pattern": "stone", "symbol": 106, "gear": "stone_relic"},
-	"fate_god": {"name": "운명의 신", "hp": 30, "damage": 2, "pattern": "fate", "symbol": 107, "gear": "fate_relic"},
-	"void_god": {"name": "공허신", "hp": 34, "damage": 3, "pattern": "void", "symbol": 108, "gear": "void_relic"}
+	"flame_god": {"id": "flame_god", "name": "화염군주", "hp": 28, "damage": 2, "pattern": "burn", "symbol": 101, "gear": "flame_relic"},
+	"frost_god": {"id": "frost_god", "name": "빙결왕", "hp": 30, "damage": 2, "pattern": "frost", "symbol": 102, "gear": "frost_relic"},
+	"plague_god": {"id": "plague_god", "name": "역병군주", "hp": 29, "damage": 2, "pattern": "plague", "symbol": 103, "gear": "plague_relic"},
+	"blood_god": {"id": "blood_god", "name": "혈왕", "hp": 32, "damage": 2, "pattern": "drain", "symbol": 104, "gear": "blood_relic"},
+	"storm_god": {"id": "storm_god", "name": "폭풍신", "hp": 31, "damage": 3, "pattern": "storm", "symbol": 105, "gear": "storm_relic"},
+	"stone_god": {"id": "stone_god", "name": "거암왕", "hp": 36, "damage": 2, "pattern": "stone", "symbol": 106, "gear": "stone_relic"},
+	"fate_god": {"id": "fate_god", "name": "운명의 신", "hp": 30, "damage": 2, "pattern": "fate", "symbol": 107, "gear": "fate_relic"},
+	"void_god": {"id": "void_god", "name": "공허신", "hp": 34, "damage": 3, "pattern": "void", "symbol": 108, "gear": "void_relic"}
 }
 
 static func get_normal_enemy(enemy_id: String) -> Dictionary:
