@@ -21,8 +21,18 @@ extends Control
 func _ready() -> void:
 	if not RunState.active_run:
 		RunState.start_new_run()
+	_initialize_run_dice()
 	_setup_node_buttons()
 	_update_progress()
+
+func _initialize_run_dice() -> void:
+	if not RunState.run_dice_faces.is_empty():
+		return
+	var basic_dice: DiceData = load("res://resources/dice/basic_dice.tres") as DiceData
+	if basic_dice != null:
+		RunState.initialize_run_dice(basic_dice.face_values)
+	else:
+		RunState.initialize_run_dice(PackedInt32Array([1, 2, 3, 4, 5, 6]))
 
 func _setup_node_buttons() -> void:
 	start_button.text = "⚔ 일반 전투\n%s" % start_node_data.description
@@ -38,12 +48,11 @@ func _update_progress() -> void:
 	if RunState.boss_cleared:
 		_disable_all_nodes()
 		new_run_button.show()
-		status_label.text = "보스를 쓰러뜨렸습니다! 런 클리어! 영구 해금이 저장되었습니다."
+		status_label.text = "👑 보스 처치 완료! 특수 보상과 신성 심볼을 획득했습니다. 새 런을 시작할 수 있습니다."
 	elif RunState.elite_cleared:
 		_disable_all_nodes()
-		# 엘리트 후에는 두 번째 랜덤 이벤트를 선택할 수 있다.
 		event_button.disabled = false
-		status_label.text = "엘리트를 돌파했습니다. 두 번째 랜덤 이벤트를 선택하거나 스킵하세요."
+		status_label.text = "♛ 엘리트를 돌파했습니다. 두 번째 랜덤 이벤트를 선택하거나 스킵하세요."
 	elif RunState.event_stage == 2 and RunState.event_resolved:
 		_disable_all_nodes()
 		boss_button.disabled = false
@@ -70,7 +79,7 @@ func _disable_all_nodes() -> void:
 	boss_button.disabled = true
 
 func _on_start_battle_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/battle/battle.tscn")
+	get_tree().change_scene_to_file("res://scenes/battle/run_battle.tscn")
 
 func _on_reward_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
@@ -83,17 +92,17 @@ func _on_event_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/dungeon/event.tscn")
 
 func _on_shop_button_pressed() -> void:
-	# 상점은 이제 독립적인 필수 노드가 아니라 랜덤 이벤트에서 선택되는 이벤트다.
 	RunState.begin_event(1 if not RunState.elite_cleared else 2)
 	get_tree().change_scene_to_file("res://scenes/dungeon/shop.tscn")
 
 func _on_elite_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/battle/elite_battle.tscn")
+	get_tree().change_scene_to_file("res://scenes/battle/elite_run_battle.tscn")
 
 func _on_boss_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/battle/boss_battle.tscn")
+	get_tree().change_scene_to_file("res://scenes/battle/boss_run_battle.tscn")
 
 func _on_new_run_button_pressed() -> void:
 	RunState.start_new_run()
+	_initialize_run_dice()
 	status_label.text = "새 런을 시작합니다."
 	_update_progress()
