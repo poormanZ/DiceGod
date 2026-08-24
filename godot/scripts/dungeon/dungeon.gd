@@ -22,6 +22,7 @@ func _ready() -> void:
 	if not RunState.active_run:
 		RunState.start_new_run()
 	_initialize_run_dice()
+	BossRewardSystem.sync_owned_special_dice(RunState)
 	_setup_node_buttons()
 	_update_progress()
 
@@ -104,5 +105,6 @@ func _on_boss_button_pressed() -> void:
 func _on_new_run_button_pressed() -> void:
 	RunState.start_new_run()
 	_initialize_run_dice()
+	BossRewardSystem.sync_owned_special_dice(RunState)
 	status_label.text = "새 런을 시작합니다."
 	_update_progress()
