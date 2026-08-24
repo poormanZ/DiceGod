@@ -277,3 +277,24 @@ func die() -> void:
 
 func finish_run() -> void:
 	active_run = false
+
+func get_run_summary() -> Dictionary:
+	var dice_count: int = run_dice_faces.size()
+	var divine_count: int = divine_symbol_history.size()
+	return {
+		"run_number": run_number,
+		"gold": gold,
+		"current_hp": current_hp,
+		"max_hp": max_hp,
+		"selected_build_id": selected_build_id,
+		"dice_count": dice_count,
+		"divine_symbol_count": divine_count,
+		"battle_cleared": battle_cleared,
+		"elite_cleared": elite_cleared,
+		"boss_cleared": boss_cleared,
+		"current_boss_id": current_boss_id,
+		"permanent_runs": permanent_runs,
+		"permanent_wins": permanent_wins,
+		"permanent_deaths": permanent_deaths,
+		"inherited_die": inherited_die.duplicate(true)
+	}
