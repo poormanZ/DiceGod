@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="DiceData" load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://scripts/dice/dice_data.gd" id="1_dice"]
-
-[resource]
-script = ExtResource("1_dice")
-display_name = "행운 주사위"
-description = "리롤과 고점 플레이를 노리는 주사위"
