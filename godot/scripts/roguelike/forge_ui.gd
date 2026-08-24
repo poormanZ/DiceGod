@@ -2,6 +2,7 @@ class_name ForgeUI
 extends Control
 
 signal forge_completed(die_index: int, face_index: int, symbol_id: int)
+signal upgraded(die_index: int, face_index: int, level: int)
 signal closed
 
 var run_state: RunStateManager
@@ -13,6 +14,7 @@ var die_grid: GridContainer
 var face_grid: GridContainer
 var symbol_grid: GridContainer
 var confirm_button: Button
+var upgrade_button: Button
 
 func setup(state: RunStateManager) -> void:
 	run_state = state
@@ -41,7 +43,7 @@ func _build_ui() -> void:
 	die_grid.columns = 3
 	root.add_child(die_grid)
 	var face_title: Label = Label.new()
-	face_title.text = "수정할 면 선택"
+	face_title.text = "수정/강화할 면 선택"
 	root.add_child(face_title)
 	face_grid = GridContainer.new()
 	face_grid.columns = 6
@@ -53,9 +55,12 @@ func _build_ui() -> void:
 	symbol_grid.columns = 6
 	root.add_child(symbol_grid)
 	confirm_button = Button.new()
-	confirm_button.text = "35G로 각인"
+	confirm_button.text = "35G로 심볼 변경"
 	confirm_button.pressed.connect(_on_confirm)
 	root.add_child(confirm_button)
+	upgrade_button = Button.new()
+	upgrade_button.pressed.connect(_on_upgrade)
+	root.add_child(upgrade_button)
 	var close_button: Button = Button.new()
 	close_button.text = "나가기"
 	close_button.pressed.connect(func() -> void: closed.emit())
@@ -87,17 +92,21 @@ func _refresh() -> void:
 		symbol_button.custom_minimum_size = Vector2(150, 42)
 		symbol_button.pressed.connect(_select_symbol.bind(symbol_id))
 		symbol_grid.add_child(symbol_button)
+	var selected_text: String = "주사위를 선택하세요."
+	if selected_die >= 0:
+		selected_text = "주사위 %d" % (selected_die + 1)
+	if selected_face >= 0:
+		selected_text += " / 면 %d" % (selected_face + 1)
+	if selected_symbol >= 0:
+		selected_text += " → " + ForgeSystem.get_symbol_name(selected_symbol)
+	var level: int = 0
+	if selected_die >= 0 and selected_face >= 0:
+		level = run_state.get_face_upgrade_level(selected_die, selected_face)
+	var upgrade_cost: int = 50 + level * 25
+	info_label.text = "골드: %dG | 대장간 각인: %s | 현재 강화 +%d" % [run_state.gold, selected_text, level]
 	confirm_button.disabled = not ForgeSystem.can_modify(run_state, selected_die, selected_face) or selected_symbol < 0
-	info_label.text = "골드: %dG | 대장간 비용: %dG | %s" % [run_state.gold, ForgeSystem.FORGE_COST, _selection_text()]
-
-func _selection_text() -> String:
-	if selected_die < 0:
-		return "주사위를 선택하세요."
-	if selected_face < 0:
-		return "면을 선택하세요."
-	if selected_symbol < 0:
-		return "심볼을 선택하세요."
-	return "면 %d → %s" % [selected_face + 1, ForgeSystem.get_symbol_name(selected_symbol)]
+	upgrade_button.text = "%dG로 면 강화 (+1)" % upgrade_cost
+	upgrade_button.disabled = selected_die < 0 or selected_face < 0 or run_state.gold < upgrade_cost
 
 func _select_die(index: int) -> void:
 	selected_die = index
@@ -119,6 +128,15 @@ func _on_confirm() -> void:
 	if bool(result.get("success", false)):
 		forge_completed.emit(selected_die, selected_face, selected_symbol)
 		selected_symbol = -1
+		_refresh()
+
+func _on_upgrade() -> void:
+	if selected_die < 0 or selected_face < 0:
+		return
+	var level: int = run_state.get_face_upgrade_level(selected_die, selected_face)
+	var cost: int = 50 + level * 25
+	if run_state.upgrade_die_face(selected_die, selected_face, cost):
+		upgraded.emit(selected_die, selected_face, level + 1)
 		_refresh()
 
 func _clear_container(container: Node) -> void:
