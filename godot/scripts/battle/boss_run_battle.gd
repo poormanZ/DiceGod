@@ -9,7 +9,8 @@ func _handle_victory() -> void:
 		boss_id = "battle_god"
 	RunState.current_boss_id = boss_id
 	DivineRewardSystem.unlock_boss_symbol(RunState, boss_id)
-	RunState.boss_cleared = false
+	RunState.boss_cleared = true
+	RunState.persist_completed_run_dice()
 	_show_feedback("👑 %s 처치! 신성 심볼과 특수 보상을 선택하세요." % enemy.enemy_data.display_name)
 	await get_tree().create_timer(0.8).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/divine_reward.tscn")
