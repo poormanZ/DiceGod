@@ -124,6 +124,23 @@ func get_die_faces(die_index: int) -> Array:
 		return []
 	return run_dice_faces[die_index].duplicate(true)
 
+func heal(amount: int) -> int:
+	var requested: int = maxi(0, amount)
+	var before: int = current_hp
+	current_hp = mini(max_hp, current_hp + requested)
+	return current_hp - before
+
+func take_damage(amount: int) -> int:
+	var damage: int = maxi(0, amount)
+	var before: int = current_hp
+	current_hp = maxi(0, current_hp - damage)
+	if current_hp == 0:
+		die()
+	return before - current_hp
+
+func is_alive() -> bool:
+	return current_hp > 0
+
 func forge_change_face(die_index: int, face_index: int, symbol_id: int, cost: int) -> bool:
 	if forge_used_this_run or not can_forge():
 		return false
@@ -272,6 +289,8 @@ func record_death() -> void:
 	death_pending = true
 
 func die() -> void:
+	if not active_run and death_pending:
+		return
 	record_death()
 	active_run = false
 
