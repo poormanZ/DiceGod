@@ -196,13 +196,21 @@ func prepare_inheritance(die_faces: Array, die_name: String = "환생 주사위"
 		return
 	var selected_forge: Array[Dictionary] = []
 	var selected_divine: Array[Dictionary] = []
+	var selected_upgrades: Dictionary = {}
 	for entry in forge_history:
 		if selected_die_index < 0 or int(entry.get("die_index", -1)) == selected_die_index:
 			selected_forge.append(entry.duplicate(true))
 	for entry in divine_symbol_history:
 		if selected_die_index < 0 or int(entry.get("die_index", -1)) == selected_die_index:
 			selected_divine.append(entry.duplicate(true))
-	pending_inheritance_die = {"name": die_name, "faces": die_faces.duplicate(true), "forge_history": selected_forge, "divine_symbols": selected_divine, "face_upgrade_levels": face_upgrade_levels.duplicate(true), "source_run": run_number}
+	if selected_die_index >= 0:
+		var prefix: String = "%d:" % selected_die_index
+		for key in face_upgrade_levels.keys():
+			if str(key).begins_with(prefix):
+				selected_upgrades[key] = face_upgrade_levels[key]
+	else:
+		selected_upgrades = face_upgrade_levels.duplicate(true)
+	pending_inheritance_die = {"name": die_name, "faces": die_faces.duplicate(true), "forge_history": selected_forge, "divine_symbols": selected_divine, "face_upgrade_levels": selected_upgrades, "source_run": run_number}
 
 func confirm_inheritance() -> void:
 	if pending_inheritance_die.is_empty():
