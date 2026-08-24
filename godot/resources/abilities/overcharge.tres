@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1_ability_data")
 display_name = "과충전"
-description = "같은 숫자가 2개 이상이면 공격력 +4, 3개 이상이면 공격력 +7"
+description = "같은 공격 심볼이 2개 이상이면 공격 +4, 3개 이상이면 공격 +7"
 matching_pair_bonus = 4
 matching_triple_bonus = 7
