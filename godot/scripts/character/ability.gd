@@ -4,7 +4,12 @@ extends RefCounted
 var ability_data: AbilityData
 
 func _init(initial_ability_data: AbilityData) -> void:
-	ability_data = initial_ability_data
+	# 일부 기존 BuildData에는 ability_data가 비어 있을 수 있습니다.
+	# 심볼 전투에서는 기본 AbilityData를 자동 생성해 전투가 중단되지 않도록 합니다.
+	if initial_ability_data == null:
+		ability_data = AbilityData.new()
+	else:
+		ability_data = initial_ability_data
 
 func can_use(dice_states: Array[DiceRuntimeState]) -> bool:
 	return calculate_bonus(dice_states) > 0
@@ -15,7 +20,7 @@ func calculate_bonus(dice_states: Array[DiceRuntimeState]) -> int:
 
 	var result_counts: Dictionary = {}
 	for dice_state in dice_states:
-		if not dice_state.has_result() or not DiceData.is_attack(dice_state.result):
+		if dice_state == null or not dice_state.has_result() or not DiceData.is_attack(dice_state.result):
 			continue
 		result_counts[dice_state.result] = result_counts.get(dice_state.result, 0) + 1
 
