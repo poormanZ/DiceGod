@@ -51,6 +51,8 @@ var calculated_special_bonus: int = 0
 var calculated_penetration: int = 0
 var calculated_extra_hits: int = 0
 var calculated_magic_bonus: int = 0
+var calculated_status_damage: int = 0
+var calculated_shield: int = 0
 var is_battle_over: bool = false
 var selected_build: BuildData
 var effects_applied: bool = false
@@ -78,23 +80,19 @@ func _setup_build_selection() -> void:
 		flame_build = load("res://resources/builds/flame_build.tres") as BuildData
 	if guardian_build == null:
 		guardian_build = load("res://resources/builds/guardian_build.tres") as BuildData
-
 	available_builds.clear()
 	for build in [matching_build, straight_build, healing_build, power_build, flame_build, guardian_build]:
 		if build != null:
 			available_builds.append(build)
-
 	for child in build_box.get_children():
 		if child is Button:
 			build_box.remove_child(child)
 			child.queue_free()
 	build_buttons.clear()
-
 	build_selection_panel.offset_left = -350.0
 	build_selection_panel.offset_top = -310.0
 	build_selection_panel.offset_right = 350.0
 	build_selection_panel.offset_bottom = 310.0
-
 	for build in available_builds:
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(0, 56)
@@ -134,6 +132,8 @@ func _on_build_selected(build: BuildData) -> void:
 	calculated_penetration = 0
 	calculated_extra_hits = 0
 	calculated_magic_bonus = 0
+	calculated_status_damage = 0
+	calculated_shield = 0
 	effects_applied = false
 	player_name_label.text = player.player_data.display_name
 	enemy_name_label.text = enemy.enemy_data.display_name
@@ -141,7 +141,6 @@ func _on_build_selected(build: BuildData) -> void:
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	selected_build_label.text = "선택한 빌드: %s — %s\n⚔️ 공격  🛡️ 방어  ✚ 치료" % [build.display_name, build.description]
 	_set_action_buttons_for_build(build)
-
 	for _dice_index in STARTING_DICE_COUNT:
 		dice_states.append(DiceRuntimeState.new(dice_data))
 	build_selection_panel.hide()
@@ -183,6 +182,8 @@ func _start_turn(status_message: String = "주사위 굴리기를 눌러 전투�
 	calculated_penetration = 0
 	calculated_extra_hits = 0
 	calculated_magic_bonus = 0
+	calculated_status_damage = 0
+	calculated_shield = 0
 	effects_applied = false
 	for dice_state in dice_states:
 		dice_state.result = 0
@@ -245,7 +246,8 @@ func _calculate_actions() -> void:
 	calculated_penetration = 0
 	calculated_extra_hits = 0
 	calculated_magic_bonus = 0
-
+	calculated_status_damage = 0
+	calculated_shield = 0
 	for dice_state in dice_states:
 		if not dice_state.has_result():
 			continue
@@ -255,25 +257,28 @@ func _calculate_actions() -> void:
 			calculated_block += 1
 		elif DiceData.is_heal(dice_state.result):
 			calculated_heal += 1
-
-	# 첫 번째 심볼별 정체성: 같은 심볼을 모을수록 효과가 강화됩니다.
 	var sword_count := ability.get_attack_symbol_count(dice_states, DiceData.SWORD)
 	var bow_count := ability.get_attack_symbol_count(dice_states, DiceData.BOW)
 	var staff_count := ability.get_attack_symbol_count(dice_states, DiceData.STAFF)
 	var shuriken_count := ability.get_attack_symbol_count(dice_states, DiceData.SHURIKEN)
-
 	if sword_count >= 2:
 		calculated_special_bonus += ability.ability_data.sword_heavy_bonus
 	if bow_count >= 2:
-		calculated_penetration = ability.ability_data.bow_penetration
+		calculated_penetration = ability.ability_data.bow_penetration * (bow_count - 1)
 	if staff_count >= 2:
 		calculated_magic_bonus = (staff_count - 1) * ability.ability_data.staff_magic_bonus
 		calculated_special_bonus += calculated_magic_bonus
+		calculated_status_damage = calculated_magic_bonus
 	if shuriken_count >= 2:
 		calculated_extra_hits = ability.ability_data.shuriken_extra_hits * (shuriken_count - 1)
 		calculated_special_bonus += calculated_extra_hits
-
 	calculated_attack_damage += calculated_special_bonus
+	var shield_count := ability.get_symbol_count(dice_states, DiceData.SHIELD)
+	var heal_count := ability.get_symbol_count(dice_states, DiceData.HEAL)
+	if shield_count >= 2:
+		calculated_shield = shield_count - 1
+	if heal_count >= 2:
+		calculated_heal += heal_count - 1
 
 func _apply_non_attack_effects() -> void:
 	if effects_applied:
@@ -300,23 +305,37 @@ func _on_attack_button_pressed() -> void:
 	if is_battle_over:
 		return
 	dice_roll_panel.play_attack_feedback()
+	var final_damage := 0
 	if calculated_attack_damage > 0:
 		_pulse_control(enemy_name_label, Color(1.0, 0.35, 0.25, 1.0))
-		enemy.take_damage(calculated_attack_damage)
-		AudioManager.play_hit()
-		dice_roll_panel.play_damage_feedback(calculated_attack_damage)
+		final_damage = enemy.take_piercing_damage(calculated_attack_damage, calculated_penetration)
+		if calculated_extra_hits > 0:
+			for _hit_index in calculated_extra_hits:
+				var extra_hit_damage := enemy.take_piercing_damage(1, calculated_penetration)
+				final_damage += extra_hit_damage
+			AudioManager.play_hit()
+			dice_roll_panel.play_damage_feedback(final_damage)
+		if calculated_status_damage > 0:
+			enemy.apply_status("burn", 2, calculated_status_damage)
+			special_text = ""
+		else:
+			special_text = ""
+	else:
+		final_damage = 0
 	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 	_pulse_control(enemy_hp_label, Color(1.0, 0.35, 0.25, 1.0))
 	var special_text := ""
 	if calculated_penetration > 0:
-		special_text += " 🏹 관통"
+		special_text += " 🏹 관통-%d" % calculated_penetration
 	if calculated_magic_bonus > 0:
-		special_text += " 杖 마법+%d" % calculated_magic_bonus
+		special_text += " 杖 마법+%d/화상" % calculated_magic_bonus
 	if calculated_extra_hits > 0:
 		special_text += " ✦ 연타+%d" % calculated_extra_hits
 	if ability.get_attack_symbol_count(dice_states, DiceData.SWORD) >= 2:
 		special_text += " ⚔ 강타+%d" % ability.ability_data.sword_heavy_bonus
-	_show_combat_feedback("행동 실행 — ⚔️ %d  🛡️ %d  ✚ %d%s" % [calculated_attack_damage, calculated_block, calculated_heal, special_text], Color(1.0, 0.45, 0.35, 1.0))
+	if calculated_shield > 0:
+		special_text += " 🛡️ 보호+%d" % calculated_shield
+	_show_combat_feedback("행동 실행 — 피해 %d  🛡️ %d  ✚ %d%s" % [final_damage, calculated_block, calculated_heal, special_text], Color(1.0, 0.45, 0.35, 1.0))
 	attack_button.disabled = true
 	if enemy.current_hp <= 0:
 		_handle_victory()
@@ -328,12 +347,11 @@ func _perform_enemy_action() -> void:
 		_show_combat_feedback("🛡️ 방패 3개 완성! 적의 공격을 완전히 막았습니다.", Color(0.55, 0.8, 1.0, 1.0))
 		_start_turn("방어 성공. 다음 턴의 심볼을 굴리세요.")
 		return
-
 	var enemy_damage := enemy.roll_attack_damage()
-	var blocked_damage := mini(enemy_damage, calculated_block)
-	var final_damage := maxi(enemy_damage - calculated_block, 0)
+	var blocked_damage := mini(enemy_damage, calculated_block + calculated_shield)
+	var final_damage := maxi(enemy_damage - calculated_block - calculated_shield, 0)
 	if blocked_damage > 0:
-		_show_combat_feedback("🛡️ 방어 %d로 피해 %d 차단" % [calculated_block, blocked_damage], Color(0.55, 0.8, 1.0, 1.0))
+		_show_combat_feedback("🛡️ 방어 %d + 보호 %d로 피해 %d 차단" % [calculated_block, calculated_shield, blocked_damage], Color(0.55, 0.8, 1.0, 1.0))
 	if final_damage > 0:
 		player.take_damage(final_damage)
 		AudioManager.play_hit()
@@ -341,9 +359,14 @@ func _perform_enemy_action() -> void:
 	RunState.current_hp = player.current_hp
 	_update_player_hp_label()
 	if final_damage > 0:
-		_show_combat_feedback("💥 %d 피해를 받았습니다. (방어 %d)" % [final_damage, calculated_block], Color(1.0, 0.4, 0.35, 1.0))
+		_show_combat_feedback("💥 %d 피해를 받았습니다. (방어 %d / 보호 %d)" % [final_damage, calculated_block, calculated_shield], Color(1.0, 0.4, 0.35, 1.0))
 	else:
 		_show_combat_feedback("🛡️ 모든 피해를 막았습니다!", Color(0.55, 0.8, 1.0, 1.0))
+	var status_effects := enemy.tick_statuses()
+	if status_effects.has("burn"):
+		var burn_damage := int(status_effects["burn"])
+		enemy.take_damage(burn_damage)
+		_show_combat_feedback("🔥 화상 피해 %d" % burn_damage, Color(1.0, 0.55, 0.2, 1.0))
 	if player.current_hp <= 0:
 		_handle_defeat()
 		return
