@@ -76,7 +76,15 @@ jobs:
           test -x "$GODOT_BIN"
           echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
 
-      - name: Import Godot project
+      # First pass intentionally lets Godot build its import database.
+      # Generated CI fonts may emit a transient "No loader found" message
+      # before the reimport phase. The second pass is the authoritative check.
+      - name: Warm up Godot asset import
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path ./godot --quit 2>&1 | tee ./godot_import_warmup.log
+
+      - name: Validate Godot import
         run: |
           set -euo pipefail
           "$GODOT_BIN" --headless --editor --path ./godot --quit 2>&1 | tee ./godot_import.log
