@@ -2,7 +2,7 @@ class_name ProgressionStateManager
 extends Node
 
 const SAVE_PATH := "user://dicegod_progression.json"
-const CURRENT_VERSION := 3
+const CURRENT_VERSION := 4
 
 var save_version: int = CURRENT_VERSION
 var total_runs: int = 0
@@ -14,6 +14,7 @@ var unlocked_equipment: Array[String] = ["straight_equipment"]
 var unlocked_divine_symbols: Array[String] = []
 var unlocked_bosses: Array[String] = []
 var unlocked_special_dice: Array[String] = []
+var persistent_dice_faces: Array[Array] = []
 
 func _ready() -> void:
 	load_progression()
@@ -84,6 +85,19 @@ func is_ability_unlocked(ability_id: String) -> bool:
 func is_equipment_unlocked(equipment_id: String) -> bool:
 	return unlocked_equipment.has(equipment_id)
 
+func get_persistent_dice_faces() -> Array[Array]:
+	var result: Array[Array] = []
+	for die_faces: Array in persistent_dice_faces:
+		result.append(die_faces.duplicate(true))
+	return result
+
+func save_persistent_dice_faces(dice_faces: Array) -> void:
+	persistent_dice_faces.clear()
+	for die_faces: Variant in dice_faces:
+		if die_faces is Array and die_faces.size() > 0:
+			persistent_dice_faces.append(die_faces.duplicate(true))
+	save_progression()
+
 func get_unlock_summary() -> String:
 	return "영구 해금: 주사위 %d | 스킬 %d | 장비 %d | 신성 %d | 보스 %d" % [unlocked_dice.size(), unlocked_abilities.size(), unlocked_equipment.size(), unlocked_divine_symbols.size(), unlocked_bosses.size()]
 
@@ -99,6 +113,7 @@ func save_progression() -> void:
 		"unlocked_divine_symbols": unlocked_divine_symbols,
 		"unlocked_bosses": unlocked_bosses,
 		"unlocked_special_dice": unlocked_special_dice,
+		"persistent_dice_faces": persistent_dice_faces,
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -126,6 +141,7 @@ func load_progression() -> void:
 	unlocked_divine_symbols = _load_string_array(data.get("unlocked_divine_symbols", []), [])
 	unlocked_bosses = _load_string_array(data.get("unlocked_bosses", []), [])
 	unlocked_special_dice = _load_string_array(data.get("unlocked_special_dice", []), [])
+	persistent_dice_faces = _load_dice_faces(data.get("persistent_dice_faces", []))
 	save_progression()
 
 func _load_string_array(value: Variant, fallback: Array[String]) -> Array[String]:
@@ -135,4 +151,15 @@ func _load_string_array(value: Variant, fallback: Array[String]) -> Array[String
 			result.append(str(item))
 	if result.is_empty():
 		return fallback.duplicate()
+	return result
+
+func _load_dice_faces(value: Variant) -> Array[Array]:
+	var result: Array[Array] = []
+	if value is Array:
+		for die_value: Variant in value:
+			if die_value is Array and die_value.size() == 6:
+				var faces: Array = []
+				for face: Variant in die_value:
+					faces.append(int(face))
+				result.append(faces)
 	return result
