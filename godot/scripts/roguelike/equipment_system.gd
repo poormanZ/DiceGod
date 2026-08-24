@@ -2,8 +2,8 @@ class_name RoguelikeEquipmentSystem
 extends RefCounted
 
 const GEAR: Dictionary = {
-	"iron_armor": {"name": "철갑 장비", "description": "최대 HP +1", "max_hp": 1},
-	"war_glove": {"name": "전투 장갑", "description": "공격력 +1", "attack": 1},
+	"iron_armor": {"name": "철갑 장비", "description": "최대 HP +15", "max_hp": 15},
+	"war_glove": {"name": "전투 장갑", "description": "공격력 +3", "attack": 3},
 	"piercing_bow": {"name": "관통 활시위", "description": "활 관통 효과 강화", "tag": "bow", "penetration": 1},
 	"arcane_core": {"name": "비전 핵", "description": "지팡이 상태이상 강화", "tag": "wand", "magic": 1},
 	"shadow_ring": {"name": "그림자 반지", "description": "표창 연타 강화", "tag": "shuriken", "hits": 1},
