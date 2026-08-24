@@ -24,15 +24,14 @@ var reward_id: String = ""
 var event_id: String = ""
 var shop_item_id: String = ""
 
-# 로그라이크 계승: 한 런에서 마지막으로 선택한 주사위 1개만 다음 환생에 남긴다.
+# 로그라이크 진행 단계: 일반 전투 → 보상 → 이벤트 → 엘리트 → 이벤트 → 보스
+var event_stage: int = 0
+var event_skipped: bool = false
 var inherited_die: Dictionary = {}
 var pending_inheritance_die: Dictionary = {}
 
-# 대장간: 한 번의 서비스에서 주사위 하나의 면 하나만 원하는 심볼로 변경한다.
 var forge_used_this_run: bool = false
 var forge_history: Array[Dictionary] = []
-
-# 보스 신성 심볼: 보스를 처치할 때 해금하고, 주사위의 면 하나에 각인할 수 있다.
 var unlocked_divine_symbols: Array[String] = []
 var divine_symbol_history: Array[Dictionary] = []
 
@@ -54,6 +53,8 @@ func start_new_run() -> void:
 	reward_id = ""
 	event_id = ""
 	shop_item_id = ""
+	event_stage = 0
+	event_skipped = false
 	forge_used_this_run = false
 	forge_history.clear()
 	pending_inheritance_die = inherited_die.duplicate(true)
@@ -86,6 +87,30 @@ func spend_gold(amount: int) -> bool:
 		return false
 	gold -= cost
 	return true
+
+func begin_event(stage: int) -> void:
+	event_stage = clampi(stage, 1, 2)
+	event_resolved = false
+	event_skipped = false
+	event_id = ""
+
+func resolve_event(result_id: String) -> void:
+	event_resolved = true
+	event_skipped = false
+	event_id = result_id
+
+func skip_event() -> void:
+	event_resolved = true
+	event_skipped = true
+	event_id = "skip"
+
+func advance_after_event() -> void:
+	if event_stage == 1:
+		# 첫 이벤트 뒤에는 엘리트로 진행한다.
+		return
+	if event_stage == 2:
+		# 두 번째 이벤트 뒤에는 보스로 진행한다.
+		return
 
 func record_forge_change(die_index: int, face_index: int, symbol_id: String, cost: int) -> bool:
 	if forge_used_this_run:
