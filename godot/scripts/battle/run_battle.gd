@@ -7,6 +7,39 @@ func _ready() -> void:
 	run_rng.randomize()
 	super._ready()
 
+func _on_build_selected(build: BuildData) -> void:
+	enemy_data = _create_run_enemy_data()
+	super._on_build_selected(build)
+
+func _create_run_enemy_data() -> EnemyData:
+	var basic_dice: DiceData = load("res://resources/dice/basic_dice.tres") as DiceData
+	var data: EnemyData = EnemyData.new()
+	var source: Dictionary = {}
+	if is_boss_battle:
+		source = CombatContentSystem.roll_boss(run_rng)
+	elif is_elite_battle:
+		source = CombatContentSystem.roll_elite(run_rng)
+	else:
+		source = CombatContentSystem.roll_normal_enemy(run_rng)
+	data.display_name = str(source.get("name", "슬라임"))
+	data.max_hp = int(source.get("hp", 10))
+	data.attack_dice = basic_dice
+	var trait: String = str(source.get("trait", ""))
+	data.armor = 0
+	data.status_resistance = 0
+	if trait == "high_defense":
+		data.armor = 2
+	elif trait == "evasive":
+		data.armor = 1
+	elif trait == "heal_pressure":
+		data.status_resistance = 30
+	elif trait == "symbol_check":
+		data.armor = 1
+	if is_boss_battle:
+		data.armor += 1
+		data.status_resistance = 25
+	return data
+
 func _on_roll_button_pressed() -> void:
 	if is_battle_over:
 		return
