@@ -25,30 +25,14 @@ jobs:
       - name: Install and prepare Korean font
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk python3-fonttools
           mkdir -p ./godot/fonts
-          FONT_SOURCE="$(fc-match -f '%{file}\n' 'Noto Sans CJK KR:style=Regular' | head -1)"
-          test -n "$FONT_SOURCE"
-          test -f "$FONT_SOURCE"
-          python3 - "$FONT_SOURCE" ./godot/fonts/NotoSansKR-Regular.ttf <<'PY'
-          import sys
-          from fontTools.ttLib import TTFont, TTCollection
-          source, target = sys.argv[1], sys.argv[2]
-          def has_korean(font):
-              return any(0xAC00 <= cp <= 0xD7A3 for table in font['cmap'].tables for cp in table.cmap)
-          try:
-              candidates = [TTFont(source)]
-          except Exception:
-              candidates = TTCollection(source).fonts
-          selected = next((font for font in candidates if has_korean(font)), None)
-          if selected is None:
-              raise SystemExit('No Hangul-capable font face found')
-          selected.flavor = None
-          selected.save(target)
-          print('Hangul-capable font created:', target)
-          PY
+          curl -L --fail --retry 3 \
+            -o ./godot/fonts/NotoSansKR-Regular.ttf \
+            https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/Variable/TTF/Subset/NotoSansKR-VF.ttf
           test -s ./godot/fonts/NotoSansKR-Regular.ttf
+          file ./godot/fonts/NotoSansKR-Regular.ttf
+          fc-scan ./godot/fonts/NotoSansKR-Regular.ttf >/dev/null
+          echo "Official Noto Sans KR font downloaded: ./godot/fonts/NotoSansKR-Regular.ttf"
 
       - name: Clean Godot import cache
         run: |
@@ -94,12 +78,8 @@ jobs:
         run: |
           set -euo pipefail
           "$GODOT_BIN" --headless --editor --path ./godot --quit 2>&1 | tee ./godot_import.log
-          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer' ./godot_import.log; then
-            echo "Godot project import reported script errors."
-            exit 1
-          fi
-          if grep -Eq 'No loader found for resource: res://fonts/NotoSansKR-Regular.ttf|theme_korean.tres:6 - Parse Error|Error loading custom project theme' ./godot_import.log; then
-            echo "Korean font/theme is still not importable after the warm-up pass."
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer|No loader found for resource: res://fonts/NotoSansKR-Regular.ttf|theme_korean.tres:6 - Parse Error|Error loading custom project theme' ./godot_import.log; then
+            echo "Godot project import reported errors."
             exit 1
           fi
 
@@ -107,7 +87,7 @@ jobs:
         run: |
           set -euo pipefail
           "$GODOT_BIN" --headless --path ./godot --script res://scripts/validate_project.gd 2>&1 | tee ./godot_validation.log
-          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer' ./godot_validation.log; then
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer|No loader found for resource: res://fonts/NotoSansKR-Regular.ttf|theme_korean.tres:6 - Parse Error|Error loading custom project theme' ./godot_validation.log; then
             echo "Godot startup validation reported errors."
             exit 1
           fi
@@ -116,7 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           "$GODOT_BIN" --headless --path ./godot --script res://scripts/validation/roadmap_validation.gd 2>&1 | tee ./roadmap_validation.log
-          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer|Roadmap validation failed' ./roadmap_validation.log; then
+          if grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR: Failed to load script|ERROR: Could not find|ERROR: Cannot infer|No loader found for resource: res://fonts/NotoSansKR-Regular.ttf|theme_korean.tres:6 - Parse Error|Error loading custom project theme|Roadmap validation failed' ./roadmap_validation.log; then
             echo "Roadmap validation reported errors."
             exit 1
           fi
