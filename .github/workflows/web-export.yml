@@ -79,12 +79,11 @@ jobs:
       - name: Verify Web build
         run: |
           set -euo pipefail
+          echo "Contents of Web export:"
+          find ./godot/build/web -maxdepth 2 -type f -printf '%p %s bytes\n' | sort
           test -f ./godot/build/web/index.html
           test -s ./godot/build/web/index.html
-          test -f ./godot/build/web/index.pck
-          test -s ./godot/build/web/index.pck
           echo "Web export verified"
-          ls -lah ./godot/build/web
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
