@@ -23,8 +23,20 @@ func _ready() -> void:
 		RunState.start_new_run()
 	_initialize_run_dice()
 	BossRewardSystem.sync_owned_special_dice(RunState)
+	_add_codex_button()
 	_setup_node_buttons()
 	_update_progress()
+
+func _add_codex_button() -> void:
+	var content: VBoxContainer = $MarginContainer/Content
+	if content.get_node_or_null("GodCodexButton") != null:
+		return
+	var codex_button: Button = Button.new()
+	codex_button.name = "GodCodexButton"
+	codex_button.text = "📖 신의 축복 도감"
+	codex_button.custom_minimum_size = Vector2(0, 34)
+	codex_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/dungeon/god_codex.tscn"))
+	content.add_child(codex_button)
 
 func _initialize_run_dice() -> void:
 	if not RunState.run_dice_faces.is_empty():
