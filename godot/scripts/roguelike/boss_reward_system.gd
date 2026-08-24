@@ -22,6 +22,26 @@ static func boss_id_from_display_name(display_name: String) -> String:
 static func get_reward(boss_id: String) -> Dictionary:
 	return REWARDS.get(boss_id, {})
 
+static func get_special_die(die_id: String) -> Dictionary:
+	for boss_id in REWARDS.keys():
+		var reward: Dictionary = REWARDS[boss_id]
+		if str(reward.get("die", "")) == die_id:
+			return {"id": die_id, "name": reward.get("die_name", "특수 주사위"), "faces": reward.get("faces", []).duplicate(true), "boss_id": boss_id}
+	return {}
+
+static func sync_owned_special_dice(run_state: RunStateManager) -> void:
+	for die_id in ProgressionState.unlocked_special_dice:
+		var die: Dictionary = get_special_die(str(die_id))
+		if die.is_empty():
+			continue
+		var found: bool = false
+		for existing in run_state.special_dice_collection:
+			if str(existing.get("id", "")) == str(die.get("id", "")):
+				found = true
+				break
+		if not found:
+			run_state.special_dice_collection.append(die)
+
 static func grant(run_state: RunStateManager, boss_id: String) -> Dictionary:
 	var reward: Dictionary = get_reward(boss_id)
 	if reward.is_empty():
@@ -38,4 +58,4 @@ static func grant(run_state: RunStateManager, boss_id: String) -> Dictionary:
 		run_state.special_dice_collection.append(die_entry)
 	ProgressionState.unlock_special_dice(str(die_entry["id"]))
 	ProgressionState.unlock_equipment(gear_id)
-	return {"success": gear_result.get("success", false) or found, "gear": gear_result.get("gear", {}), "die": die_entry}
+	return {"success": true, "gear": gear_result.get("gear", {}), "die": die_entry}
