@@ -7,7 +7,7 @@ extends Control
 #   -> 엘리트 전투
 #   -> 캠프 / 도박장
 #   -> 보스 전투
-# 각 분기에서 하나를 선택하며, 선택한 이벤트는 해당 런에서만 진행된다.
+# 이벤트는 각 분기에서 한 번만 진행하며, 완료 즉시 다음 몬스터 페이즈로 자동 이동한다.
 
 @onready var map: Control = $MarginContainer/Content/Map
 @onready var run_status_label: Label = $MarginContainer/Content/RunStatusLabel
@@ -24,6 +24,7 @@ func _ready() -> void:
 	RunStatusOverlay.attach(self)
 	_build_route_map()
 	_update_progress()
+	call_deferred("_advance_after_resolved_event")
 
 func _build_route_map() -> void:
 	for child: Node in map.get_children():
@@ -110,8 +111,7 @@ func _update_progress() -> void:
 		status_label.text = "👑 보스 처치 완료! 다음 런을 준비합니다."
 	elif RunState.event_stage == 2 and RunState.event_resolved:
 		_disable_all_nodes()
-		route_boss_button.disabled = false
-		status_label.text = "두 번째 이벤트가 끝났습니다. 보스 전투로 진행하세요."
+		status_label.text = "두 번째 이벤트 완료! 보스 전투로 이동합니다."
 	elif RunState.elite_cleared:
 		_disable_all_nodes()
 		for button: Button in route_stage_two_buttons:
@@ -119,8 +119,7 @@ func _update_progress() -> void:
 		status_label.text = "♛ 엘리트를 돌파했습니다. 캠프 또는 도박장을 선택하세요."
 	elif RunState.event_stage == 1 and RunState.event_resolved:
 		_disable_all_nodes()
-		route_elite_button.disabled = false
-		status_label.text = "첫 번째 이벤트가 끝났습니다. 엘리트 전투로 진행하세요."
+		status_label.text = "첫 번째 이벤트 완료! 엘리트 전투로 이동합니다."
 	elif RunState.reward_claimed:
 		_disable_all_nodes()
 		for button: Button in route_stage_one_buttons:
@@ -130,6 +129,18 @@ func _update_progress() -> void:
 		_disable_all_nodes()
 		route_start_button.disabled = false
 		status_label.text = "일반 전투부터 시작하세요."
+
+func _advance_after_resolved_event() -> void:
+	# 이벤트는 분기마다 한 번만 진행한다.
+	# 이벤트 씬에서 resolve_event() 후 던전으로 돌아오면
+	# 별도의 두 번째 이벤트 선택 없이 다음 몬스터 페이즈로 자동 이동한다.
+	if RunState.boss_cleared:
+		return
+	if RunState.event_stage == 1 and RunState.event_resolved and not RunState.elite_cleared:
+		get_tree().change_scene_to_file("res://scenes/battle/elite_run_battle.tscn")
+		return
+	if RunState.event_stage == 2 and RunState.event_resolved and RunState.elite_cleared and not RunState.boss_cleared:
+		get_tree().change_scene_to_file("res://scenes/battle/boss_run_battle.tscn")
 
 func _disable_all_nodes() -> void:
 	route_start_button.disabled = true
