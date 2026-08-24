@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="DiceData" load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://scripts/dice/dice_data.gd" id="1_dice"]
-
-[resource]
-script = ExtResource("1_dice")
-display_name = "혼합형 주사위"
-description = "모든 전투 심볼이 고르게 등장하는 범용 주사위"
-face_values = PackedInt32Array(1, 2, 3, 4, 5, 6)
