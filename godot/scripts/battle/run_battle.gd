@@ -2,12 +2,14 @@ class_name RunBattle
 extends Battle
 
 ## 런 전투 전용 컨트롤러
-## 빌드/장비/특수 주사위 없이 6면 심볼 주사위만 사용합니다.
+## 6면 심볼 주사위를 사용하며, 런 횟수에 따라 적이 강해집니다.
+## 보스 전투에서는 보스별 전용 심볼 효과가 실제 전투에 적용됩니다.
 
 @export var is_boss_battle: bool = false
 @export var is_elite_battle: bool = false
 
 var run_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var boss_symbol_label: String = ""
 
 func _ready() -> void:
 	run_rng.randomize()
@@ -44,16 +46,22 @@ func _create_run_enemy_data() -> EnemyData:
 	var basic_dice: DiceData = load("res://resources/dice/basic_dice.tres") as DiceData
 	var data: EnemyData = EnemyData.new()
 	var source: Dictionary = {}
+	var tier: String = "normal"
 	if is_boss_battle:
 		source = CombatContentSystem.roll_boss(run_rng)
+		tier = "boss"
 	elif is_elite_battle:
 		source = CombatContentSystem.roll_elite(run_rng)
+		tier = "elite"
 	else:
 		source = CombatContentSystem.roll_normal_enemy(run_rng)
 
+	var run_number: int = maxi(1, RunState.run_number)
 	data.display_name = str(source.get("name", "슬라임"))
-	data.max_hp = int(source.get("hp", 10))
+	data.max_hp = DifficultyScaler.scale_hp(int(source.get("hp", 10)), run_number, tier)
 	data.attack_dice = basic_dice
+	var scaled_damage: int = DifficultyScaler.scale_damage(int(source.get("damage", 1)), run_number, tier)
+	data.attack_bonus = maxi(0, scaled_damage - 3)
 	var enemy_trait: String = str(source.get("trait", ""))
 	data.armor = 0
 	data.status_resistance = 0
@@ -65,9 +73,16 @@ func _create_run_enemy_data() -> EnemyData:
 		data.status_resistance = 30
 	elif enemy_trait == "symbol_check":
 		data.armor = 1
+	data.armor = DifficultyScaler.scale_armor(data.armor, run_number, tier)
+
 	if is_boss_battle:
+		RunState.current_boss_id = str(source.get("name", ""))
 		data.armor += 1
 		data.status_resistance = 25
+		data.boss_symbol_id = int(source.get("symbol", 0))
+		data.boss_symbol_effect = BossSymbolSystem.get_effect(data.boss_symbol_id)
+		data.boss_symbol_power = BossSymbolSystem.get_power(data.boss_symbol_id)
+		boss_symbol_label = "%s %s" % [BossSymbolSystem.get_icon(data.boss_symbol_id), BossSymbolSystem.get_name(data.boss_symbol_id)]
 	return data
 
 func _roll_run_dice() -> void:
@@ -117,12 +132,51 @@ func _calculate_actions() -> void:
 	if not skill_names.is_empty():
 		status_label.text = "✨ 스킬 발동: %s" % ", ".join(skill_names)
 
+func _apply_boss_symbol_effect(base_damage: int) -> int:
+	if not is_boss_battle or enemy == null or enemy.enemy_data.boss_symbol_id <= 0:
+		return 0
+
+	var power: int = enemy.enemy_data.boss_symbol_power
+	var effect: String = enemy.enemy_data.boss_symbol_effect
+	var extra_damage: int = 0
+	match effect:
+		"burn":
+			extra_damage = power
+			_show_feedback("🔥 화염 심볼: 추가 피해 +%d" % extra_damage)
+		"frost":
+			var lost_shield: int = mini(player.current_shield, power)
+			player.current_shield -= lost_shield
+			_show_feedback("❄️ 빙결 심볼: 보호막 -%d" % lost_shield)
+		"plague":
+			extra_damage = power
+			_show_feedback("☠️ 역병 심볼: 추가 피해 +%d" % extra_damage)
+		"drain":
+			var healed: int = enemy.heal(maxi(1, base_damage / 2))
+			_show_feedback("🩸 혈액 심볼: 보스 회복 +%d" % healed)
+		"storm":
+			extra_damage = power
+			_show_feedback("⚡ 폭풍 심볼: 추가 피해 +%d" % extra_damage)
+		"stone":
+			enemy.add_temporary_armor(power)
+			_show_feedback("🪨 거암 심볼: 보스 방어력 +%d" % power)
+		"fate":
+			extra_damage = maxi(0, power - 1)
+			_show_feedback("🔮 운명 심볼: 추가 피해 +%d" % extra_damage)
+		"void":
+			var bypass: int = mini(player.current_shield, power)
+			player.current_shield -= bypass
+			_show_feedback("🌑 공허 심볼: 보호막 %d 무시" % bypass)
+	return extra_damage
+
 func _handle_victory() -> void:
 	is_battle_over = true
 	RunState.current_hp = player.current_hp
 	RunState.battle_cleared = true
+	if is_boss_battle:
+		RunState.boss_cleared = true
+		RunState.boss_reward_claimed = false
 	RunState.reward_claimed = false
-	_show_feedback("🏆 전투 승리! 보상을 선택하세요.")
+	_show_feedback("🏆 %s 격파! 보상을 선택하세요." % enemy.enemy_data.display_name)
 	await get_tree().create_timer(0.6).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
 
