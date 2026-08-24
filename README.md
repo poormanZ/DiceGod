@@ -39,6 +39,14 @@ DiceGod은 **행동 심볼 주사위**를 중심으로 운과 전략을 결합�
 
 핵심 원칙은 **데이터(Resource)와 전투 런타임 로직을 분리하고, 주사위 계산을 `DiceData`/`DiceRoller`에 모으는 것**입니다.
 
+### 리팩토링 기준
+
+- 주사위 개수/면 수/기본 심볼 ID의 기준값은 `DiceData`에서 관리합니다.
+- `PackedInt32Array`와 같은 런타임 생성 객체는 `const`로 선언하지 않습니다.
+- `STARTING_DICE_COUNT` 같은 상수는 반드시 소유 클래스의 이름을 붙여 참조합니다. 예: `DiceData.STARTING_DICE_COUNT`.
+- `RunState`는 런 진행 상태를 담당하고, 주사위 규격 자체의 중복 상수 정의는 만들지 않습니다.
+- CI에서는 개별 `.gd` 파일을 독립적으로 로드하지 않고 실제 프로젝트 startup/import를 통해 의존성까지 검사합니다.
+
 ## 문서
 
 - `docs/game_design.md` — 전체 게임 방향
