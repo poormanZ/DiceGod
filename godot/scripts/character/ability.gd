@@ -23,10 +23,24 @@ func calculate_bonus(dice_states: Array[DiceRuntimeState]) -> int:
 	for result_count in result_counts.values():
 		highest_match_count = maxi(highest_match_count, int(result_count))
 
-	# 공격 심볼 2개 이상: 기본 공격 보너스
-	# 같은 공격 심볼 3개 이상: 더 큰 공격 보너스
 	if highest_match_count >= 3:
 		return ability_data.matching_triple_bonus
 	if highest_match_count >= 2:
 		return ability_data.matching_pair_bonus
 	return 0
+
+func get_symbol_counts(dice_states: Array[DiceRuntimeState]) -> Dictionary:
+	var counts: Dictionary = {}
+	for dice_state in dice_states:
+		if dice_state == null or not dice_state.has_result():
+			continue
+		counts[dice_state.result] = counts.get(dice_state.result, 0) + 1
+	return counts
+
+func get_symbol_count(dice_states: Array[DiceRuntimeState], symbol: int) -> int:
+	return int(get_symbol_counts(dice_states).get(symbol, 0))
+
+func get_attack_symbol_count(dice_states: Array[DiceRuntimeState], symbol: int) -> int:
+	if not DiceData.is_attack(symbol):
+		return 0
+	return get_symbol_count(dice_states, symbol)
