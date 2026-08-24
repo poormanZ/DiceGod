@@ -3,7 +3,7 @@ extends Battle
 
 ## 런 전투 전용 컨트롤러
 ## 6면 심볼 주사위를 사용하며, 런 횟수에 따라 적이 강해집니다.
-## 보스 전투에서는 보스별 전용 심볼 효과가 실제 전투에 적용됩니다.
+## 보스 전투에서는 랜덤 보스의 전용 심볼이 실제 적 행동에 적용됩니다.
 
 @export var is_boss_battle: bool = false
 @export var is_elite_battle: bool = false
@@ -40,7 +40,10 @@ func _ready() -> void:
 	enemy_name_label.text = enemy.enemy_data.display_name
 	_update_hp_labels()
 	_update_enemy_intent()
-	_start_turn("✨ 심볼 주사위 전투를 시작합니다. 6개의 주사위를 굴려 행동 심볼을 만드세요.")
+	if is_boss_battle:
+		_show_boss_symbol_status()
+	else:
+		_start_turn("✨ 심볼 주사위 전투를 시작합니다. 6개의 주사위를 굴려 행동 심볼을 만드세요.")
 
 func _create_run_enemy_data() -> EnemyData:
 	var basic_dice: DiceData = load("res://resources/dice/basic_dice.tres") as DiceData
@@ -76,14 +79,24 @@ func _create_run_enemy_data() -> EnemyData:
 	data.armor = DifficultyScaler.scale_armor(data.armor, run_number, tier)
 
 	if is_boss_battle:
-		RunState.current_boss_id = str(source.get("name", ""))
+		var boss_id: String = str(source.get("id", "battle_god"))
+		var boss_symbol_id: int = int(source.get("symbol", 0))
+		RunState.current_boss_id = boss_id
 		data.armor += 1
 		data.status_resistance = 25
-		data.boss_symbol_id = int(source.get("symbol", 0))
-		data.boss_symbol_effect = BossSymbolSystem.get_effect(data.boss_symbol_id)
-		data.boss_symbol_power = BossSymbolSystem.get_power(data.boss_symbol_id)
-		boss_symbol_label = "%s %s" % [BossSymbolSystem.get_icon(data.boss_symbol_id), BossSymbolSystem.get_name(data.boss_symbol_id)]
+		data.boss_symbol_id = boss_symbol_id
+		data.boss_symbol_effect = BossSymbolSystem.get_effect(boss_symbol_id)
+		data.boss_symbol_power = BossSymbolSystem.get_power(boss_symbol_id)
+		boss_symbol_label = "%s %s" % [BossSymbolSystem.get_icon(boss_symbol_id), BossSymbolSystem.get_name(boss_symbol_id)]
 	return data
+
+func _show_boss_symbol_status() -> void:
+	var effect: String = enemy.enemy_data.boss_symbol_effect
+	var power: int = enemy.enemy_data.boss_symbol_power
+	var description: String = BossSymbolSystem.get_symbol(enemy.enemy_data.boss_symbol_id).get("description", "")
+	var message: String = "👑 %s  |  %s %s  |  %s (위력 %d)" % [enemy.enemy_data.display_name, boss_symbol_label, description, power]
+	status_label.text = message
+	battle_box_label.text = message
 
 func _roll_run_dice() -> void:
 	for die_index: int in dice_states.size():
@@ -145,8 +158,7 @@ func _on_attack_button_pressed() -> void:
 		return
 
 	var incoming: int = enemy.consume_planned_attack()
-	var boss_extra_damage: int = _apply_boss_symbol_effect(incoming)
-	incoming += boss_extra_damage
+	incoming = _apply_boss_symbol_effect(incoming)
 	player.take_damage(incoming)
 	RunState.current_hp = player.current_hp
 	_update_hp_labels()
@@ -156,42 +168,44 @@ func _on_attack_button_pressed() -> void:
 		return
 
 	_start_turn("⚔️ %d 피해를 주고 적의 공격을 견뎠습니다. 다시 굴리세요." % damage)
+	if is_boss_battle:
+		_show_boss_symbol_status()
 
 func _apply_boss_symbol_effect(base_damage: int) -> int:
 	if not is_boss_battle or enemy == null or enemy.enemy_data.boss_symbol_id <= 0:
-		return 0
+		return base_damage
 
 	var power: int = enemy.enemy_data.boss_symbol_power
 	var effect: String = enemy.enemy_data.boss_symbol_effect
-	var extra_damage: int = 0
+	var incoming: int = base_damage
 	match effect:
 		"burn":
-			extra_damage = power
-			_show_feedback("🔥 화염 심볼: 추가 피해 +%d" % extra_damage)
+			incoming += power
+			_show_feedback("🔥 화염 심볼 발동: 추가 피해 +%d" % power)
 		"frost":
 			var lost_shield: int = mini(player.current_shield, power)
 			player.current_shield -= lost_shield
-			_show_feedback("❄️ 빙결 심볼: 보호막 -%d" % lost_shield)
+			_show_feedback("❄️ 빙결 심볼 발동: 보호막 -%d" % lost_shield)
 		"plague":
-			extra_damage = power
-			_show_feedback("☠️ 역병 심볼: 추가 피해 +%d" % extra_damage)
+			incoming += power
+			_show_feedback("☠️ 역병 심볼 발동: 추가 피해 +%d" % power)
 		"drain":
 			var healed: int = enemy.heal(maxi(1, base_damage / 2))
-			_show_feedback("🩸 혈액 심볼: 보스 회복 +%d" % healed)
+			_show_feedback("🩸 혈액 심볼 발동: 보스 회복 +%d" % healed)
 		"storm":
-			extra_damage = power
-			_show_feedback("⚡ 폭풍 심볼: 추가 피해 +%d" % extra_damage)
+			incoming += power
+			_show_feedback("⚡ 폭풍 심볼 발동: 추가 피해 +%d" % power)
 		"stone":
 			enemy.add_temporary_armor(power)
-			_show_feedback("🪨 거암 심볼: 보스 방어력 +%d" % power)
+			_show_feedback("🪨 거암 심볼 발동: 보스 방어력 +%d" % power)
 		"fate":
-			extra_damage = maxi(0, power - 1)
-			_show_feedback("🔮 운명 심볼: 추가 피해 +%d" % extra_damage)
+			incoming = maxi(0, incoming - power)
+			_show_feedback("🔮 운명 심볼 발동: 받는 피해 -%d" % power)
 		"void":
 			var bypass: int = mini(player.current_shield, power)
 			player.current_shield -= bypass
-			_show_feedback("🌑 공허 심볼: 보호막 %d 무시" % bypass)
-	return extra_damage
+			_show_feedback("🌑 공허 심볼 발동: 보호막 %d 무시" % bypass)
+	return incoming
 
 func _handle_victory() -> void:
 	is_battle_over = true
@@ -203,7 +217,10 @@ func _handle_victory() -> void:
 	RunState.reward_claimed = false
 	_show_feedback("🏆 %s 격파! 보상을 선택하세요." % enemy.enemy_data.display_name)
 	await get_tree().create_timer(0.6).timeout
-	get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
+	if is_boss_battle:
+		get_tree().change_scene_to_file("res://scenes/dungeon/divine_reward.tscn")
+	else:
+		get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
 
 func _handle_defeat() -> void:
 	is_battle_over = true
