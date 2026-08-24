@@ -81,12 +81,10 @@ jobs:
           set -euo pipefail
           echo "Raw Godot export:"
           find ./godot/build -maxdepth 3 -type f -printf '%p %s bytes\n' | sort
-          test -f ./godot/build/Web/index.html
-          test -s ./godot/build/Web/index.html
-          rm -rf ./godot/build/web
-          mkdir -p ./godot/build/web
-          cp -a ./godot/build/Web/. ./godot/build/web/
-          rm -rf ./godot/build/Web
+          if [ -d ./godot/build/Web ]; then
+            rm -rf ./godot/build/web
+            mv ./godot/build/Web ./godot/build/web
+          fi
           test -f ./godot/build/web/index.html
           test -s ./godot/build/web/index.html
           echo "Normalized Web export:"
