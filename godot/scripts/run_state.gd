@@ -7,6 +7,7 @@ const MAX_HP: int = 10
 const STARTING_DICE_COUNT: int = 6
 const DICE_FACE_COUNT: int = 6
 const MAX_DIVINE_FACES: int = 2
+const RANDOM_EVENT_TYPES: Array[String] = ["camp", "shop", "forge", "gamble"]
 
 var active_run: bool = false
 var run_number: int = 0
@@ -52,11 +53,10 @@ var permanent_deaths: int = 0
 var unlocked_gods: Array[String] = []
 var run_completed: bool = false
 
-# 매 런마다 새로 생성되는 분기 루트.
-# 1단계: 일반 전투 → 이벤트 A/B → 엘리트
-# 2단계: 엘리트 → 이벤트 C/D → 보스
-var route_event_stage_one: Array[String] = []
-var route_event_stage_two: Array[String] = []
+# 매 런 시작 시 이벤트가 무작위로 하나씩 확정된다.
+# 일반 전투 → 확정 이벤트 1 → 엘리트 → 확정 이벤트 2 → 보스
+var route_event_stage_one: String = ""
+var route_event_stage_two: String = ""
 var route_event_branch_one: int = 0
 var route_event_branch_two: int = 0
 
@@ -106,24 +106,29 @@ func start_new_run() -> void:
 func _generate_dungeon_route() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.randomize()
-	route_event_stage_one = ["event_a", "event_b"]
-	route_event_stage_two = ["event_c", "event_d"]
-	if rng.randi_range(0, 1) == 1:
-		route_event_stage_one.reverse()
-	if rng.randi_range(0, 1) == 1:
-		route_event_stage_two.reverse()
+	route_event_stage_one = RANDOM_EVENT_TYPES[rng.randi_range(0, RANDOM_EVENT_TYPES.size() - 1)]
+	route_event_stage_two = RANDOM_EVENT_TYPES[rng.randi_range(0, RANDOM_EVENT_TYPES.size() - 1)]
+	# 두 개의 시각적 분기 중 확정 이벤트가 표시될 쪽. 플레이어가 이벤트를 고르는 구조는 아니다.
 	route_event_branch_one = rng.randi_range(0, 1)
 	route_event_branch_two = rng.randi_range(0, 1)
 
 func get_dungeon_route() -> Dictionary:
 	return {
-		"stage_one": route_event_stage_one.duplicate(),
-		"stage_two": route_event_stage_two.duplicate(),
+		"stage_one": route_event_stage_one,
+		"stage_two": route_event_stage_two,
 		"branch_one": route_event_branch_one,
 		"branch_two": route_event_branch_two
 	}
 
+func get_route_event(stage: int) -> String:
+	if stage == 1:
+		return route_event_stage_one
+	if stage == 2:
+		return route_event_stage_two
+	return ""
+
 func select_route_event(stage: int, branch_index: int) -> bool:
+	# 하위 호환용. 이벤트는 런 시작 시 이미 확정되므로 플레이어 선택으로 변경되지 않는다.
 	if branch_index < 0 or branch_index > 1:
 		return false
 	if stage == 1 and not route_event_stage_one.is_empty():
@@ -296,16 +301,19 @@ func begin_event(stage: int) -> void:
 	event_stage = clampi(stage, 1, 2)
 	event_resolved = false
 	event_skipped = false
-	current_event_type = ""
+	current_event_type = get_route_event(event_stage)
+	event_id = current_event_type
 	event_options.clear()
 
 func set_event_options(options: Array[String]) -> void:
 	event_options = options.duplicate()
 
 func choose_event(event_type: String) -> void:
-	if not event_options.is_empty() and not event_options.has(event_type):
+	# 이벤트는 런 시작 시 확정되므로 다른 이벤트로 바꿀 수 없다.
+	if current_event_type.is_empty():
+		current_event_type = event_type
+	if event_type != current_event_type:
 		return
-	current_event_type = event_type
 	event_id = event_type
 	event_resolved = false
 	event_skipped = false
@@ -319,7 +327,6 @@ func skip_event() -> void:
 	event_resolved = true
 	event_skipped = true
 	event_id = "skip"
-	current_event_type = "skip"
 
 func add_gold(amount: int) -> void:
 	gold = maxi(0, gold + amount)
