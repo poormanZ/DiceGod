@@ -53,8 +53,8 @@ jobs:
       - name: Clean Godot import cache
         run: |
           set -euo pipefail
-          rm -rf ./godot/.godot ./godot/build/web
-          mkdir -p ./godot/build/web
+          rm -rf ./godot/.godot ./godot/build
+          mkdir -p ./godot/build
 
       - name: Verify font configuration
         run: |
@@ -71,18 +71,26 @@ jobs:
           godot_executable_download_url: https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
           godot_export_templates_download_url: https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
           relative_project_path: ./godot
-          relative_export_path: ./godot/build/web
+          relative_export_path: ./godot/build
           archive_output: false
           presets_to_export: Web
           cache: false
 
-      - name: Verify Web build
+      - name: Normalize Web export directory
         run: |
           set -euo pipefail
-          echo "Contents of Web export:"
-          find ./godot/build/web -maxdepth 2 -type f -printf '%p %s bytes\n' | sort
+          echo "Raw Godot export:"
+          find ./godot/build -maxdepth 3 -type f -printf '%p %s bytes\n' | sort
+          test -f ./godot/build/Web/index.html
+          test -s ./godot/build/Web/index.html
+          rm -rf ./godot/build/web
+          mkdir -p ./godot/build/web
+          cp -a ./godot/build/Web/. ./godot/build/web/
+          rm -rf ./godot/build/Web
           test -f ./godot/build/web/index.html
           test -s ./godot/build/web/index.html
+          echo "Normalized Web export:"
+          find ./godot/build/web -maxdepth 2 -type f -printf '%p %s bytes\n' | sort
           echo "Web export verified"
 
       - name: Setup GitHub Pages
