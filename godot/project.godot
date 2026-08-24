@@ -1,6 +1,6 @@
 ; Engine configuration file.
 ; It's best edited using the editor UI and not directly,
-; since the parameters here are standard Godot project settings.
+; since parameters here are standard Godot project settings.
 ;
 ; Format:
 ;   [section]
@@ -21,6 +21,7 @@ RunState="*res://scripts/run_state.gd"
 ProgressionState="*res://scripts/progression_state.gd"
 AudioManager="*res://scripts/audio/audio_manager.gd"
 MusicManager="*res://scripts/audio/music_manager.gd"
+KoreanFontManager="*res://scripts/ui/korean_font_manager.gd"
 
 [display]
 
