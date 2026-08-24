@@ -90,7 +90,9 @@ func start_new_run() -> void:
 	gamble_result = ""
 	gamble_streak = 0
 	permanent_runs += 1
-	ProgressionState.record_run_start()
+	var progression_state: Node = get_node_or_null("/root/ProgressionState")
+	if progression_state != null:
+		progression_state.record_run_start()
 
 func initialize_run_dice(default_faces: PackedInt32Array) -> void:
 	if run_dice_faces.size() == STARTING_DICE_COUNT:
