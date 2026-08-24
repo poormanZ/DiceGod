@@ -40,14 +40,14 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 48
-theme_override_constants/margin_top = 36
-theme_override_constants/margin_right = 48
-theme_override_constants/margin_bottom = 36
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
 
 [node name="Content" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
@@ -57,14 +57,15 @@ horizontal_alignment = 1
 
 [node name="RunStatusLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 15
 text = ""
 horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="Map" type="VBoxContainer" parent="MarginContainer/Content"]
 layout_mode = 2
 theme_override_constants/separation = 10
-size_flags_vertical = 3
+size_flags_vertical = 0
 
 [node name="Row1" type="HBoxContainer" parent="MarginContainer/Content/Map"]
 layout_mode = 2
@@ -73,39 +74,42 @@ alignment = 1
 size_flags_horizontal = 3
 
 [node name="StartBattleButton" type="Button" parent="MarginContainer/Content/Map/Row1"]
-custom_minimum_size = Vector2(0, 110)
+custom_minimum_size = Vector2(0, 86)
 size_flags_horizontal = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "일반 전투"
+text = "⚔ 일반 전투"
+clip_text = true
 
 [node name="Connection1" type="Label" parent="MarginContainer/Content/Map/Row1"]
-custom_minimum_size = Vector2(28, 0)
+custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
 text = "→"
 vertical_alignment = 1
 horizontal_alignment = 1
 
 [node name="RewardButton" type="Button" parent="MarginContainer/Content/Map/Row1"]
-custom_minimum_size = Vector2(0, 110)
+custom_minimum_size = Vector2(0, 86)
 size_flags_horizontal = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "보상"
+text = "💰 골드 보상"
+clip_text = true
 
 [node name="Connection2" type="Label" parent="MarginContainer/Content/Map/Row1"]
-custom_minimum_size = Vector2(28, 0)
+custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
 text = "→"
 vertical_alignment = 1
 horizontal_alignment = 1
 
 [node name="EventButton" type="Button" parent="MarginContainer/Content/Map/Row1"]
-custom_minimum_size = Vector2(0, 110)
+custom_minimum_size = Vector2(0, 86)
 size_flags_horizontal = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "이벤트"
+text = "🎲 랜덤 이벤트 ①"
+clip_text = true
 
 [node name="Row2" type="HBoxContainer" parent="MarginContainer/Content/Map"]
 layout_mode = 2
@@ -114,51 +118,55 @@ alignment = 1
 size_flags_horizontal = 3
 
 [node name="ShopButton" type="Button" parent="MarginContainer/Content/Map/Row2"]
-custom_minimum_size = Vector2(0, 110)
+custom_minimum_size = Vector2(0, 86)
 size_flags_horizontal = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "상점"
+text = "🎲 랜덤 이벤트 ②"
+clip_text = true
 
 [node name="Connection3" type="Label" parent="MarginContainer/Content/Map/Row2"]
-custom_minimum_size = Vector2(28, 0)
+custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
 text = "→"
 vertical_alignment = 1
 horizontal_alignment = 1
 
 [node name="EliteButton" type="Button" parent="MarginContainer/Content/Map/Row2"]
-custom_minimum_size = Vector2(0, 110)
+custom_minimum_size = Vector2(0, 86)
 size_flags_horizontal = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "엘리트"
+text = "♛ 엘리트"
+clip_text = true
 
 [node name="Connection4" type="Label" parent="MarginContainer/Content/Map/Row2"]
-custom_minimum_size = Vector2(28, 0)
+custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
 text = "→"
 vertical_alignment = 1
 horizontal_alignment = 1
 
 [node name="BossButton" type="Button" parent="MarginContainer/Content/Map/Row2"]
-custom_minimum_size = Vector2(0, 110)
+custom_minimum_size = Vector2(0, 86)
 size_flags_horizontal = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "☠ 보스"
+clip_text = true
 
 [node name="NewRunButton" type="Button" parent="MarginContainer/Content"]
-custom_minimum_size = Vector2(260, 58)
+custom_minimum_size = Vector2(260, 52)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "새 던전 시작"
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 text = "현재 위치에서 진행할 노드를 선택하세요."
 horizontal_alignment = 1
+autowrap_mode = 2
 
 [connection signal="pressed" from="MarginContainer/Content/Map/Row1/StartBattleButton" to="." method="_on_start_battle_button_pressed"]
 [connection signal="pressed" from="MarginContainer/Content/Map/Row1/RewardButton" to="." method="_on_reward_button_pressed"]
