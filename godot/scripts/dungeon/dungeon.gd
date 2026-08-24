@@ -34,11 +34,11 @@ func _setup_node_buttons() -> void:
 	new_run_button.hide()
 
 func _update_progress() -> void:
-	run_status_label.text = RunState.get_run_summary()
+	run_status_label.text = "%s\n%s" % [RunState.get_run_summary(), ProgressionState.get_unlock_summary()]
 	if RunState.boss_cleared:
 		_disable_all_nodes()
 		new_run_button.show()
-		status_label.text = "보스를 쓰러뜨렸습니다! 런 클리어!"
+		status_label.text = "보스를 쓰러뜨렸습니다! 런 클리어! 영구 해금이 저장되었습니다."
 	elif RunState.elite_cleared:
 		_disable_all_nodes()
 		boss_button.disabled = false
