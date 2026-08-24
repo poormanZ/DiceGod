@@ -26,9 +26,9 @@ func _ready() -> void:
 
 func _setup_node_buttons() -> void:
 	start_button.text = "⚔ 일반 전투\n%s" % start_node_data.description
-	reward_button.text = "★ 보상\n%s" % reward_node_data.description
-	event_button.text = "? 이벤트\n%s" % event_node_data.description
-	shop_button.text = "◆ 상점\n%s" % shop_node_data.description
+	reward_button.text = "💰 골드 보상\n%s" % reward_node_data.description
+	event_button.text = "🎲 랜덤 이벤트 (선택)\n%s" % event_node_data.description
+	shop_button.text = "🏪 상점 이벤트\n이벤트에서 선택하면 입장합니다."
 	elite_button.text = "♛ 엘리트\n%s" % elite_node_data.description
 	boss_button.text = "☠ 보스\n%s" % boss_node_data.description
 	new_run_button.hide()
@@ -41,24 +41,21 @@ func _update_progress() -> void:
 		status_label.text = "보스를 쓰러뜨렸습니다! 런 클리어! 영구 해금이 저장되었습니다."
 	elif RunState.elite_cleared:
 		_disable_all_nodes()
+		# 엘리트 후에는 두 번째 랜덤 이벤트를 선택할 수 있다.
+		event_button.disabled = false
+		status_label.text = "엘리트를 돌파했습니다. 두 번째 랜덤 이벤트를 선택하거나 스킵하세요."
+	elif RunState.event_stage == 2 and RunState.event_resolved:
+		_disable_all_nodes()
 		boss_button.disabled = false
-		status_label.text = "엘리트를 돌파했습니다. 마지막 보스에 도전하세요."
-	elif RunState.shop_resolved:
+		status_label.text = "두 번째 이벤트가 끝났습니다. 마지막 보스에 도전하세요."
+	elif RunState.event_stage == 1 and RunState.event_resolved:
 		_disable_all_nodes()
 		elite_button.disabled = false
-		status_label.text = "상점을 통과했습니다. 다음은 엘리트 노드입니다."
-	elif RunState.event_resolved:
-		_disable_all_nodes()
-		shop_button.disabled = false
-		status_label.text = "이벤트를 해결했습니다. 다음은 상점 노드입니다."
+		status_label.text = "첫 번째 이벤트가 끝났습니다. 다음은 엘리트 몬스터입니다."
 	elif RunState.reward_claimed:
 		_disable_all_nodes()
 		event_button.disabled = false
-		status_label.text = "보상을 획득했습니다. 다음은 이벤트 노드입니다."
-	elif RunState.battle_cleared:
-		_disable_all_nodes()
-		reward_button.disabled = false
-		status_label.text = "전투를 완료했습니다. 보상 노드를 선택하세요."
+		status_label.text = "💰 골드를 획득했습니다. 랜덤 이벤트를 선택하거나 스킵하세요."
 	else:
 		_disable_all_nodes()
 		start_button.disabled = false
@@ -79,9 +76,15 @@ func _on_reward_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
 
 func _on_event_button_pressed() -> void:
+	var next_stage: int = 1
+	if RunState.elite_cleared:
+		next_stage = 2
+	RunState.begin_event(next_stage)
 	get_tree().change_scene_to_file("res://scenes/dungeon/event.tscn")
 
 func _on_shop_button_pressed() -> void:
+	# 상점은 이제 독립적인 필수 노드가 아니라 랜덤 이벤트에서 선택되는 이벤트다.
+	RunState.begin_event(1 if not RunState.elite_cleared else 2)
 	get_tree().change_scene_to_file("res://scenes/dungeon/shop.tscn")
 
 func _on_elite_button_pressed() -> void:
