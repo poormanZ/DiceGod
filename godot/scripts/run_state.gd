@@ -157,6 +157,18 @@ func unlock_divine_symbol(symbol_id: String) -> void:
 	if not unlocked_gods.has(symbol_id):
 		unlocked_gods.append(symbol_id)
 
+func _divine_face_value(symbol_id: String) -> int:
+	match symbol_id:
+		"gold": return 101
+		"critical": return 102
+		"foresight": return 103
+		"life": return 104
+		"berserk": return 105
+		"sanctuary": return 106
+		"fate": return 107
+		"death": return 108
+	return 0
+
 func record_divine_imprint(die_index: int, face_index: int, symbol_id: String) -> bool:
 	if not unlocked_divine_symbols.has(symbol_id):
 		return false
@@ -171,14 +183,25 @@ func record_divine_imprint(die_index: int, face_index: int, symbol_id: String) -
 			current_count += 1
 	if current_count >= MAX_DIVINE_FACES:
 		return false
-	run_dice_faces[die_index][face_index] = 100 + unlocked_divine_symbols.find(symbol_id) + 1
+	var face_value: int = _divine_face_value(symbol_id)
+	if face_value == 0:
+		return false
+	run_dice_faces[die_index][face_index] = face_value
 	divine_symbol_history.append({"die_index": die_index, "face_index": face_index, "symbol_id": symbol_id})
 	return true
 
-func prepare_inheritance(die_faces: Array, die_name: String = "환생 주사위") -> void:
+func prepare_inheritance(die_faces: Array, die_name: String = "환생 주사위", selected_die_index: int = -1) -> void:
 	if die_faces.size() != DICE_FACE_COUNT:
 		return
-	pending_inheritance_die = {"name": die_name, "faces": die_faces.duplicate(true), "forge_history": forge_history.duplicate(true), "divine_symbols": divine_symbol_history.duplicate(true), "face_upgrade_levels": face_upgrade_levels.duplicate(true), "source_run": run_number}
+	var selected_forge: Array[Dictionary] = []
+	var selected_divine: Array[Dictionary] = []
+	for entry in forge_history:
+		if selected_die_index < 0 or int(entry.get("die_index", -1)) == selected_die_index:
+			selected_forge.append(entry.duplicate(true))
+	for entry in divine_symbol_history:
+		if selected_die_index < 0 or int(entry.get("die_index", -1)) == selected_die_index:
+			selected_divine.append(entry.duplicate(true))
+	pending_inheritance_die = {"name": die_name, "faces": die_faces.duplicate(true), "forge_history": selected_forge, "divine_symbols": selected_divine, "face_upgrade_levels": face_upgrade_levels.duplicate(true), "source_run": run_number}
 
 func confirm_inheritance() -> void:
 	if pending_inheritance_die.is_empty():
