@@ -8,11 +8,13 @@ const SYMBOL_NAMES: Dictionary = {
 	3: "杖 지팡이",
 	4: "✦ 표창",
 	5: "🛡️ 방패",
-	6: "✚ 힐",
+	6: "✚ 힐"
 }
 
 static func get_symbol_name(symbol_id: int) -> String:
-	return str(SYMBOL_NAMES.get(symbol_id, "알 수 없음"))
+	if SYMBOL_NAMES.has(symbol_id):
+		return str(SYMBOL_NAMES[symbol_id])
+	return "%s %s" % [DiceData.symbol_for(symbol_id), DiceData.name_for(symbol_id)]
 
 static func get_symbol_ids() -> Array[int]:
 	return [1, 2, 3, 4, 5, 6]
