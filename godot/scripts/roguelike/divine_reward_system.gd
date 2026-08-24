@@ -2,14 +2,14 @@ class_name DivineRewardSystem
 extends RefCounted
 
 const BOSS_SYMBOLS: Dictionary = {
-	"gambling_god": {"name": "도박의 신", "symbol": "gold", "display": "💰 황금", "description": "골드 +1"},
-	"battle_god": {"name": "전투의 신", "symbol": "critical", "display": "💥 크리티컬", "description": "공격 피해 ×2"},
-	"wisdom_god": {"name": "지혜의 신", "symbol": "foresight", "display": "🔮 예지", "description": "주사위 결과 예측 기회 +1"},
-	"life_god": {"name": "생명의 신", "symbol": "life", "display": "❤️ 생명", "description": "회복 효과 +50%"},
-	"war_god": {"name": "전쟁의 신", "symbol": "berserk", "display": "⚡ 광전", "description": "HP 30% 이하에서 공격 +50%"},
-	"guardian_god": {"name": "수호의 신", "symbol": "sanctuary", "display": "🛡️ 성역", "description": "보호막 획득량 +50%"},
-	"fate_god": {"name": "운명의 신", "symbol": "fate", "display": "⭐ 운명", "description": "전투당 심볼 1회 변환"},
-	"death_god": {"name": "죽음의 신", "symbol": "death", "display": "☠️ 사신", "description": "적 HP 20% 이하에게 마무리 피해 강화"}
+	"flame_god": {"name": "화염군주", "symbol": "flame", "display": "🔥 화염", "description": "보스의 화염 심볼 효과 강화"},
+	"frost_god": {"name": "빙결왕", "symbol": "frost", "display": "❄️ 빙결", "description": "보스의 빙결 심볼 효과 강화"},
+	"plague_god": {"name": "역병군주", "symbol": "plague", "display": "☠️ 역병", "description": "보스의 역병 심볼 효과 강화"},
+	"blood_god": {"name": "혈왕", "symbol": "blood", "display": "🩸 혈액", "description": "보스의 혈액 심볼 효과 강화"},
+	"storm_god": {"name": "폭풍신", "symbol": "storm", "display": "⚡ 폭풍", "description": "보스의 폭풍 심볼 효과 강화"},
+	"stone_god": {"name": "거암왕", "symbol": "stone", "display": "🪨 거암", "description": "보스의 거암 심볼 효과 강화"},
+	"fate_god": {"name": "운명의 신", "symbol": "fate", "display": "🔮 운명", "description": "보스의 운명 심볼 효과 강화"},
+	"void_god": {"name": "공허신", "symbol": "void", "display": "🌑 공허", "description": "보스의 공허 심볼 효과 강화"}
 }
 
 static func get_boss_reward(boss_id: String) -> Dictionary:
