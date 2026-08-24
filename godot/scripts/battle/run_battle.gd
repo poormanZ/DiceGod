@@ -4,6 +4,9 @@ extends Battle
 ## 런 전투 전용 컨트롤러
 ## 빌드/장비/특수 주사위 없이 6면 심볼 주사위만 사용합니다.
 
+@export var is_boss_battle: bool = false
+@export var is_elite_battle: bool = false
+
 var run_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 func _ready() -> void:
@@ -88,11 +91,8 @@ func _on_roll_button_pressed() -> void:
 	roll_button.disabled = true
 	reroll_button.disabled = false
 	confirm_button.disabled = false
-	ability_button.disabled = true
-	attack_button.disabled = true
 	_calculate_actions()
-	status_label.text = "심볼을 잠그거나 리롤할 수 있습니다."
-	_show_feedback("🎲 6개 심볼 주사위를 굴렸습니다.")
+	_show_feedback("🎲 보유 주사위 6개를 굴렸습니다.")
 
 func _on_reroll_button_pressed() -> void:
 	if is_battle_over or dice_roller.has_rerolled:
@@ -103,9 +103,7 @@ func _on_reroll_button_pressed() -> void:
 	dice_roll_panel.play_roll_feedback()
 	reroll_button.disabled = true
 	_calculate_actions()
-	_update_damage_preview_if_available()
-	status_label.text = "리롤을 사용했습니다. 최종 심볼을 확정하세요."
-	_show_feedback("↻ 리롤 완료")
+	_show_feedback("↻ 리롤 완료 — 최종 심볼을 확정하세요.")
 
 func _calculate_actions() -> void:
 	super._calculate_actions()
@@ -113,9 +111,25 @@ func _calculate_actions() -> void:
 	calculated_attack_damage += int(skills.get("attack", 0))
 	calculated_block += int(skills.get("block", 0))
 	calculated_heal += int(skills.get("heal", 0))
-	if not skills.get("skills", []).is_empty():
-		status_label.text = "✨ 스킬 발동: %s" % ", ".join(skills.get("skills", []))
 
-func _update_damage_preview_if_available() -> void:
-	if has_method("_update_damage_preview"):
-		_update_damage_preview()
+	_update_damage_preview()
+	var skill_names: Array = skills.get("skills", [])
+	if not skill_names.is_empty():
+		status_label.text = "✨ 스킬 발동: %s" % ", ".join(skill_names)
+
+func _handle_victory() -> void:
+	is_battle_over = true
+	RunState.current_hp = player.current_hp
+	RunState.battle_cleared = true
+	RunState.reward_claimed = false
+	_show_feedback("🏆 전투 승리! 보상을 선택하세요.")
+	await get_tree().create_timer(0.6).timeout
+	get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
+
+func _handle_defeat() -> void:
+	is_battle_over = true
+	RunState.current_hp = 0
+	RunState.die()
+	_show_feedback("💀 사망 — 주사위 하나를 계승할 수 있습니다.")
+	await get_tree().create_timer(0.7).timeout
+	get_tree().change_scene_to_file("res://scenes/dungeon/reincarnation.tscn")
