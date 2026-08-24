@@ -5,11 +5,38 @@ var run_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 func _ready() -> void:
 	run_rng.randomize()
-	super._ready()
-
-func _on_build_selected(build: BuildData) -> void:
+	# 기존 전투별 빌드 선택을 제거하고, 현재 런의 심볼 주사위를 즉시 사용한다.
 	enemy_data = _create_run_enemy_data()
-	super._on_build_selected(build)
+	player = Player.new(player_data)
+	player.current_hp = clampi(RunState.current_hp, 1, player.player_data.max_hp)
+	enemy = Enemy.new(enemy_data)
+	enemy.current_hp = enemy.enemy_data.max_hp
+	enemy.plan_next_attack()
+	ability = Ability.new(ability_data)
+	equipment = Equipment.new(equipment_data)
+	dice_states.clear()
+	is_battle_over = false
+	calculated_attack_damage = 0
+	calculated_block = 0
+	calculated_heal = 0
+	calculated_special_bonus = 0
+	calculated_penetration = 0
+	calculated_extra_hits = 0
+	calculated_magic_bonus = 0
+	calculated_status_damage = 0
+	calculated_shield = 0
+	effects_applied = false
+	player_name_label.text = player.player_data.display_name
+	enemy_name_label.text = enemy.enemy_data.display_name
+	_update_player_hp_label()
+	enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
+	_update_enemy_intent_display()
+	selected_build_label.text = "✨ 심볼 주사위"
+	_set_action_buttons_for_build(null)
+	for _dice_index in STARTING_DICE_COUNT:
+		dice_states.append(DiceRuntimeState.new(dice_data))
+	restart_build_button.hide()
+	_start_turn("✨ 심볼 주사위 전투를 시작합니다. 6개의 주사위를 굴려 행동 심볼을 만드세요.")
 
 func _create_run_enemy_data() -> EnemyData:
 	var basic_dice: DiceData = load("res://resources/dice/basic_dice.tres") as DiceData
