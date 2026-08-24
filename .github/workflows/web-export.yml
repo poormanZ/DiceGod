@@ -38,21 +38,10 @@ jobs:
 
           source, target = sys.argv[1], sys.argv[2]
 
-          def names(font):
-              out = []
-              for record in font['name'].names:
-                  if record.nameID in (1, 2, 4, 6):
-                      try:
-                          out.append(record.toUnicode())
-                      except Exception:
-                          pass
-              return out
-
           def has_korean(font):
               cmap = set()
               for table in font['cmap'].tables:
                   cmap.update(table.cmap.keys())
-              # Representative Hangul syllables + compatibility jamo.
               return any(0xAC00 <= cp <= 0xD7A3 for cp in cmap)
 
           candidates = []
@@ -63,23 +52,16 @@ jobs:
           if not candidates:
               candidates.extend(TTCollection(source).fonts)
 
-          selected = None
-          for font in candidates:
-              if has_korean(font):
-                  selected = font
-                  break
-
+          selected = next((font for font in candidates if has_korean(font)), None)
           if selected is None:
               raise SystemExit('No font face containing Hangul syllables was found')
 
           selected.flavor = None
           selected.save(target)
           print('Created:', target)
-          print('Names:', names(selected)[:20])
           print('Hangul glyphs:', sum(0xAC00 <= cp <= 0xD7A3 for table in selected['cmap'].tables for cp in table.cmap))
           PY
           test -s ./godot/fonts/NotoSansKR-Regular.ttf
-          file ./godot/fonts/NotoSansKR-Regular.ttf
           fc-scan ./godot/fonts/NotoSansKR-Regular.ttf | head -30
 
       - name: Clean Godot import cache before font import
@@ -115,9 +97,9 @@ jobs:
           test -f ./godot/build/web/index.html
           test -f ./godot/build/web/index.pck
           test -s ./godot/build/web/index.pck
-          echo "Checking exported PCK for Korean font resource..."
-          strings ./godot/build/web/index.pck | grep -q 'NotoSansKR-Regular.ttf'
-          echo "Korean font resource is embedded in the Web PCK"
+          test -f ./godot/.godot/imported/NotoSansKR-Regular.ttf-b1a5425772466f0b661760f5aaaf1bbb.fontdata
+          test -f ./godot/.godot/exported/133200997/export-68a551e9d7cd111a0d87e66e0f1ed237-theme_korean.res
+          echo "Godot imported the Korean font and exported the Korean theme successfully"
           ls -lah ./godot/build/web
 
       - name: Setup GitHub Pages
