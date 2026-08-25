@@ -1,8 +1,6 @@
 class_name DungeonDivineRewardScene
 extends DivineRewardUI
 
-var boss_id: String = ""
-
 func _ready() -> void:
 	RunStatusOverlay.attach(self)
 	boss_id = BossRewardSystem.normalize_boss_id(str(RunState.current_boss_id))
