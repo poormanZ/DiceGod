@@ -9,6 +9,16 @@ extends PanelContainer
 	$Content/DiceContainer/DiceFiveButton,
 	$Content/DiceContainer/DiceSixButton,
 ]
+
+const DICE_ICON_PATHS: Array[String] = [
+	"res://assets/icons/dice/sword.svg",
+	"res://assets/icons/dice/bow.svg",
+	"res://assets/icons/dice/staff.svg",
+	"res://assets/icons/dice/shuriken.svg",
+	"res://assets/icons/dice/shield.svg",
+	"res://assets/icons/dice/heal.svg",
+]
+
 var dice_states: Array[DiceRuntimeState] = []
 
 const DICE_IDLE_SCALE := Vector2.ONE
@@ -20,6 +30,9 @@ func _ready() -> void:
 	for index in dice_buttons.size():
 		dice_buttons[index].pressed.connect(_on_dice_button_pressed.bind(index))
 		dice_buttons[index].pivot_offset = dice_buttons[index].size * 0.5
+		dice_buttons[index].text = ""
+		dice_buttons[index].icon_max_width = 56
+		dice_buttons[index].expand_icon = true
 
 func display_results(new_dice_states: Array[DiceRuntimeState]) -> void:
 	dice_states = new_dice_states
@@ -88,13 +101,17 @@ func _refresh_dice_button(index: int) -> void:
 	var dice_button := dice_buttons[index]
 	if index >= dice_states.size() or not dice_states[index].has_result():
 		dice_button.disabled = true
-		dice_button.text = "—"
+		dice_button.text = ""
+		dice_button.icon = null
 		dice_button.tooltip_text = "주사위를 굴린 뒤 잠글 수 있습니다."
 		dice_button.modulate = Color.WHITE
 		return
 	var dice_state := dice_states[index]
 	dice_button.disabled = false
-	dice_button.text = dice_state.get_symbol()
+	var icon_index := dice_state.result - 1
+	if icon_index >= 0 and icon_index < DICE_ICON_PATHS.size():
+		dice_button.icon = load(DICE_ICON_PATHS[icon_index]) as Texture2D
+	dice_button.text = ""
 	dice_button.tooltip_text = "%s · %s" % [dice_state.get_name(), "잠금 해제" if dice_state.is_locked else "잠금"]
 	dice_button.modulate = Color(1.0, 0.84, 0.35, 1.0) if dice_state.is_locked else Color.WHITE
 	dice_button.scale = DICE_IDLE_SCALE
