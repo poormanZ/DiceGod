@@ -5,7 +5,9 @@ signal forge_completed(die_index: int, face_index: int, symbol_id: int)
 signal upgraded(die_index: int, face_index: int, level: int)
 signal closed
 
-var run_state: RunStateManager
+# RunState is an Autoload Node, not a RunStateManager script instance.
+# Keep this dependency typed as Node so the UI works directly with /root/RunState.
+var run_state: Node
 var selected_die: int = -1
 var selected_face: int = -1
 var selected_symbol: int = -1
@@ -16,7 +18,7 @@ var symbol_grid: GridContainer
 var confirm_button: Button
 var upgrade_button: Button
 
-func setup(state: RunStateManager) -> void:
+func setup(state: Node) -> void:
 	run_state = state
 	_build_ui()
 	_refresh()
@@ -107,7 +109,7 @@ func _refresh() -> void:
 	var current_faces: Array = []
 	if selected_die >= 0:
 		current_faces = run_state.get_die_faces(selected_die)
-	for face_index in RunStateManager.DICE_FACE_COUNT:
+	for face_index in DiceData.DICE_FACE_COUNT:
 		var face_button: Button = Button.new()
 		var face_symbol: String = "?"
 		if face_index < current_faces.size():
