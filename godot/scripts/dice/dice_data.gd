@@ -2,7 +2,7 @@ class_name DiceData
 extends Resource
 
 ## DiceGod의 기본 행동 심볼 주사위 데이터입니다.
-## 각 주사위는 현재 6개의 기본 심볼 면을 사용합니다.
+## 각 주사위는 검, 활, 지팡이, 표창, 방패, 힐의 6개 기본 심볼 면을 사용합니다.
 const SWORD: int = 1
 const BOW: int = 2
 const STAFF: int = 3
@@ -14,12 +14,12 @@ const FACE_COUNT: int = 6
 const STARTING_DICE_COUNT: int = 6
 
 const SYMBOLS: Dictionary = {
-	SWORD: "⚔️",
-	BOW: "🏹",
-	STAFF: "🔮",
-	SHURIKEN: "🗡️",
-	SHIELD: "🛡️",
-	HEAL: "❤️"
+	SWORD: "검",
+	BOW: "활",
+	STAFF: "지팡이",
+	SHURIKEN: "표창",
+	SHIELD: "방패",
+	HEAL: "힐"
 }
 const NAMES: Dictionary = {
 	SWORD: "검",
@@ -31,7 +31,7 @@ const NAMES: Dictionary = {
 }
 
 @export var display_name: String = "기본 심볼 주사위"
-@export_multiline var description: String = "⚔️ 🏹 🔮 🗡️ 🛡️ ❤️ 6개의 행동 심볼이 하나씩 들어 있는 기본 주사위"
+@export_multiline var description: String = "검 · 활 · 지팡이 · 표창 · 방패 · 힐 6개의 행동 심볼이 하나씩 들어 있는 기본 주사위"
 @export var face_values: PackedInt32Array
 
 func _init() -> void:
