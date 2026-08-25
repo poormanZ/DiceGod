@@ -31,8 +31,8 @@ func _ready() -> void:
 		dice_buttons[index].pressed.connect(_on_dice_button_pressed.bind(index))
 		dice_buttons[index].pivot_offset = dice_buttons[index].size * 0.5
 		dice_buttons[index].text = ""
-		dice_buttons[index].icon_max_width = 56
-		dice_buttons[index].expand_icon = true
+	# Button에는 icon_max_width 속성이 없으므로 아이콘 크기는 버튼의 레이아웃과 SVG 자체 크기에 맡긴다.
+	dice_buttons[index].expand_icon = true
 
 func display_results(new_dice_states: Array[DiceRuntimeState]) -> void:
 	dice_states = new_dice_states
