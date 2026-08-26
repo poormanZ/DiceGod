@@ -5,9 +5,10 @@ signal forge_completed(die_index: int, face_index: int, symbol_id: int)
 signal upgraded(die_index: int, face_index: int, level: int)
 signal closed
 
-# RunState is an Autoload Node, not a RunStateManager script instance.
-# Keep this dependency typed as Node so the UI works directly with /root/RunState.
-var run_state: Node
+const UPGRADE_BASE_COST: int = 50
+const UPGRADE_COST_PER_LEVEL: int = 25
+
+var run_state: RunStateManager
 var selected_die: int = -1
 var selected_face: int = -1
 var selected_symbol: int = -1
@@ -18,7 +19,7 @@ var symbol_grid: GridContainer
 var confirm_button: Button
 var upgrade_button: Button
 
-func setup(state: Node) -> void:
+func setup(state: RunStateManager) -> void:
 	run_state = state
 	_build_ui()
 	_refresh()
@@ -109,7 +110,7 @@ func _refresh() -> void:
 	var current_faces: Array = []
 	if selected_die >= 0:
 		current_faces = run_state.get_die_faces(selected_die)
-	for face_index in DiceData.DICE_FACE_COUNT:
+	for face_index in RunStateManager.DICE_FACE_COUNT:
 		var face_button: Button = Button.new()
 		var face_symbol: String = "?"
 		if face_index < current_faces.size():
@@ -126,7 +127,7 @@ func _refresh() -> void:
 	for symbol_id in ForgeSystem.get_symbol_ids():
 		var symbol_button: Button = Button.new()
 		var symbol: String = DiceData.symbol_for(symbol_id)
-		symbol_button.text = "%s\n%s" % [symbol, _symbol_short_name(symbol_id)]
+		symbol_button.text = "%s\n%s" % [symbol, DiceData.name_for(symbol_id)]
 		symbol_button.tooltip_text = ForgeSystem.get_symbol_name(symbol_id)
 		symbol_button.disabled = selected_face < 0
 		symbol_button.custom_minimum_size = Vector2(100, 68)
@@ -148,7 +149,7 @@ func _refresh() -> void:
 	var level: int = 0
 	if selected_die >= 0 and selected_face >= 0:
 		level = run_state.get_face_upgrade_level(selected_die, selected_face)
-	var upgrade_cost: int = 50 + level * 25
+	var upgrade_cost: int = _upgrade_cost(level)
 	info_label.text = "골드: %dG | %s | 현재 강화 +%d" % [run_state.gold, selected_text, level]
 	confirm_button.disabled = not ForgeSystem.can_modify(run_state, selected_die, selected_face) or selected_symbol < 0
 	upgrade_button.text = "%dG로 선택한 면 강화 (+1)" % upgrade_cost
@@ -166,15 +167,8 @@ func _format_die_card(die_index: int) -> String:
 		lines.append(row.strip_edges())
 	return "\n".join(lines)
 
-func _symbol_short_name(symbol_id: int) -> String:
-	match symbol_id:
-		1: return "검"
-		2: return "활"
-		3: return "지팡이"
-		4: return "표창"
-		5: return "방패"
-		6: return "힐"
-	return "심볼"
+func _upgrade_cost(level: int) -> int:
+	return UPGRADE_BASE_COST + level * UPGRADE_COST_PER_LEVEL
 
 func _select_die(index: int) -> void:
 	selected_die = index
@@ -202,7 +196,7 @@ func _on_upgrade() -> void:
 	if selected_die < 0 or selected_face < 0:
 		return
 	var level: int = run_state.get_face_upgrade_level(selected_die, selected_face)
-	var cost: int = 50 + level * 25
+	var cost: int = _upgrade_cost(level)
 	if run_state.upgrade_die_face(selected_die, selected_face, cost):
 		upgraded.emit(selected_die, selected_face, level + 1)
 		_refresh()

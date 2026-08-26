@@ -1,3 +1,4 @@
+class_name RunStateManager
 extends Node
 
 const STARTING_GOLD: int = 100
