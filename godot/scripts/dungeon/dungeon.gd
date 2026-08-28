@@ -46,7 +46,7 @@ func _build_route_map() -> void:
 	route_map.name = "BranchingRouteMap"
 	route_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	route_map.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	route_map.add_theme_constant_override("separation", 4)
+	route_map.add_theme_constant_override("separation", 3)
 	map.add_child(route_map)
 
 	var start_row: HBoxContainer = _make_route_row()
@@ -194,9 +194,9 @@ func _make_route_arrow() -> Label:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.custom_minimum_size = Vector2(0, 16)
+	label.custom_minimum_size = Vector2(0, 10)
 	label.add_theme_color_override("font_color", Color("#e9a83d"))
-	label.add_theme_font_size_override("font_size", 22)
+	label.add_theme_font_size_override("font_size", 18)
 	return label
 
 func _make_route_button(title: String, description: String, icon: Texture2D, wide: bool = false) -> Button:
@@ -204,8 +204,8 @@ func _make_route_button(title: String, description: String, icon: Texture2D, wid
 	button.text = "%s\n%s" % [title, description]
 	button.icon = icon
 	button.expand_icon = true
-	button.custom_minimum_size = Vector2(500 if wide else 310, 82)
+	button.custom_minimum_size = Vector2(500 if wide else 310, 68)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.focus_mode = Control.FOCUS_ALL
-	button.add_theme_font_size_override("font_size", 17)
+	button.add_theme_font_size_override("font_size", 16)
 	return button
