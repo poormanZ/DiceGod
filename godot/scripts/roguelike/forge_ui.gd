@@ -35,45 +35,50 @@ func _build_ui() -> void:
 	for child in get_children():
 		child.queue_free()
 
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.offset_left = 12.0
+	scroll.offset_right = -12.0
+	scroll.offset_top = 8.0
+	scroll.offset_bottom = -8.0
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
+
 	var root: VBoxContainer = VBoxContainer.new()
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.offset_left = 12.0
-	root.offset_right = -12.0
-	root.offset_top = 10.0
-	root.offset_bottom = -10.0
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 4)
-	add_child(root)
+	scroll.add_child(root)
 
 	var title: Label = Label.new()
 	title.text = "대장간"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 26)
-	title.custom_minimum_size = Vector2(0, 32)
+	title.add_theme_font_size_override("font_size", 24)
+	title.custom_minimum_size = Vector2(0, 30)
 	root.add_child(title)
 
 	info_label = Label.new()
 	info_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info_label.custom_minimum_size = Vector2(0, 32)
+	info_label.custom_minimum_size = Vector2(0, 30)
 	root.add_child(info_label)
 
 	var dice_title: Label = Label.new()
 	dice_title.text = "주사위 선택 — 현재 6면"
-	dice_title.add_theme_font_size_override("font_size", 17)
-	dice_title.custom_minimum_size = Vector2(0, 22)
+	dice_title.add_theme_font_size_override("font_size", 16)
+	dice_title.custom_minimum_size = Vector2(0, 20)
 	root.add_child(dice_title)
 
 	die_grid = GridContainer.new()
 	die_grid.columns = 3
 	die_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	die_grid.add_theme_constant_override("h_separation", 6)
-	die_grid.add_theme_constant_override("v_separation", 5)
+	die_grid.add_theme_constant_override("v_separation", 4)
 	root.add_child(die_grid)
 
 	var face_title: Label = Label.new()
 	face_title.text = "① 변경할 면 선택"
-	face_title.add_theme_font_size_override("font_size", 16)
-	face_title.custom_minimum_size = Vector2(0, 20)
+	face_title.add_theme_font_size_override("font_size", 15)
+	face_title.custom_minimum_size = Vector2(0, 18)
 	root.add_child(face_title)
 
 	face_grid = GridContainer.new()
@@ -84,8 +89,8 @@ func _build_ui() -> void:
 
 	var symbol_title: Label = Label.new()
 	symbol_title.text = "② 변경할 심볼 선택"
-	symbol_title.add_theme_font_size_override("font_size", 16)
-	symbol_title.custom_minimum_size = Vector2(0, 20)
+	symbol_title.add_theme_font_size_override("font_size", 15)
+	symbol_title.custom_minimum_size = Vector2(0, 18)
 	root.add_child(symbol_title)
 
 	symbol_grid = GridContainer.new()
@@ -94,23 +99,28 @@ func _build_ui() -> void:
 	symbol_grid.add_theme_constant_override("h_separation", 4)
 	root.add_child(symbol_grid)
 
-	# 액션 버튼은 항상 화면 하단에 들어오도록 높이를 작게 고정한다.
+	# ScrollContainer가 콘텐츠가 길어질 경우에도 이 영역까지 접근할 수 있게 한다.
+	var action_row: HBoxContainer = HBoxContainer.new()
+	action_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	action_row.add_theme_constant_override("separation", 6)
+	root.add_child(action_row)
+
 	confirm_button = Button.new()
 	confirm_button.text = "35G로 심볼 변경"
 	confirm_button.custom_minimum_size = Vector2(0, 38)
 	confirm_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	confirm_button.pressed.connect(_on_confirm)
-	root.add_child(confirm_button)
+	action_row.add_child(confirm_button)
 
 	upgrade_button = Button.new()
-	upgrade_button.custom_minimum_size = Vector2(0, 34)
+	upgrade_button.custom_minimum_size = Vector2(0, 38)
 	upgrade_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	upgrade_button.pressed.connect(_on_upgrade)
-	root.add_child(upgrade_button)
+	action_row.add_child(upgrade_button)
 
 	var close_button: Button = Button.new()
 	close_button.text = "나가기"
-	close_button.custom_minimum_size = Vector2(0, 32)
+	close_button.custom_minimum_size = Vector2(0, 34)
 	close_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	close_button.pressed.connect(func() -> void: closed.emit())
 	root.add_child(close_button)
@@ -127,7 +137,7 @@ func _refresh() -> void:
 		button.text = _format_die_card(die_index)
 		button.icon = ICON_DICE
 		button.tooltip_text = "주사위 %d의 현재 6면" % (die_index + 1)
-		button.custom_minimum_size = Vector2(0, 70)
+		button.custom_minimum_size = Vector2(0, 64)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.toggle_mode = true
 		button.button_pressed = die_index == selected_die
@@ -144,7 +154,7 @@ func _refresh() -> void:
 		face_button.icon = _icon_for_symbol(symbol_id)
 		face_button.tooltip_text = "현재 심볼: %s" % _symbol_name(symbol_id)
 		face_button.disabled = selected_die < 0
-		face_button.custom_minimum_size = Vector2(0, 54)
+		face_button.custom_minimum_size = Vector2(0, 50)
 		face_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		face_button.toggle_mode = true
 		face_button.button_pressed = face_index == selected_face
@@ -157,7 +167,7 @@ func _refresh() -> void:
 		symbol_button.icon = _icon_for_symbol(symbol_id)
 		symbol_button.tooltip_text = ForgeSystem.get_symbol_name(symbol_id)
 		symbol_button.disabled = selected_face < 0
-		symbol_button.custom_minimum_size = Vector2(0, 54)
+		symbol_button.custom_minimum_size = Vector2(0, 50)
 		symbol_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		symbol_button.toggle_mode = true
 		symbol_button.button_pressed = symbol_id == selected_symbol
