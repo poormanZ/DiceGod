@@ -179,7 +179,7 @@ func _on_ability_button_pressed() -> void:
 
 func _on_attack_button_pressed() -> void:
 	if is_battle_over or not dice_roller.confirm_results(dice_states): return
-	_set_action_buttons(true, true)
+	_set_action_buttons(true, true, true, true, true)
 	dice_roll_panel.set_dice_interaction_enabled(false)
 	_calculate_actions()
 	_apply_heal()
@@ -246,9 +246,9 @@ func _handle_defeat() -> void:
 	await get_tree().create_timer(0.7).timeout
 	get_tree().change_scene_to_file("res://scenes/dungeon/reincarnation.tscn")
 
-func _set_action_buttons(reroll_disabled: bool, attack_disabled: bool) -> void:
+func _set_action_buttons(roll_disabled: bool, reroll_disabled: bool, confirm_disabled: bool, ability_disabled: bool, attack_disabled: bool) -> void:
+	roll_button.disabled = roll_disabled
 	reroll_button.disabled = reroll_disabled
+	confirm_button.disabled = confirm_disabled
+	ability_button.disabled = ability_disabled
 	attack_button.disabled = attack_disabled
-	roll_button.disabled = true
-	confirm_button.disabled = true
-	ability_button.disabled = true
