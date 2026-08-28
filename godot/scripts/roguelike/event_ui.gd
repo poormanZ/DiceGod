@@ -61,23 +61,32 @@ func _choose(event_type: String) -> void:
 	run_state.choose_event(event_type)
 	match event_type:
 		"camp":
-			# 캠프는 랜덤 결과가 아니라 확정 회복 이벤트다. 현재 HP에서 최대 HP까지 회복한다.
 			var before_hp: int = run_state.current_hp
 			var healed: int = run_state.heal(run_state.max_hp)
 			if healed <= 0:
-				info_label.text = "⛺ 캠프 — 이미 HP가 가득 찼습니다."
+				info_label.text = "캠프 — 이미 HP가 가득 찼습니다."
 			else:
-				info_label.text = "⛺ 캠프 — HP %d → %d (+%d)" % [before_hp, run_state.current_hp, healed]
+				info_label.text = "캠프 — HP %d → %d (+%d)" % [before_hp, run_state.current_hp, healed]
 			run_state.resolve_event("camp_heal_%d" % healed)
 		"shop":
 			run_state.resolve_event("shop_open")
-			info_label.text = "🏪 상점이 열렸습니다."
+			info_label.text = "상점이 열렸습니다."
 		"forge":
 			run_state.resolve_event("forge_open")
-			info_label.text = "🔨 대장간이 열렸습니다."
+			info_label.text = "대장간이 열렸습니다."
 		"gamble":
 			run_state.resolve_event("gamble_open")
-			info_label.text = "🎰 도박장이 열렸습니다."
+			info_label.text = "도박장이 열렸습니다."
+		"shrine":
+			var shrine_result: Dictionary = RoguelikeEventSystem.shrine(run_state)
+			info_label.text = "신전 — %s" % str(shrine_result.get("result", "결과 없음"))
+			run_state.resolve_event("shrine_%s" % str(shrine_result.get("success", false)))
+		"mystery":
+			var mystery_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+			mystery_rng.randomize()
+			var mystery_result: Dictionary = RoguelikeEventSystem.mystery(run_state, mystery_rng)
+			info_label.text = "수수께끼 — %s" % str(mystery_result.get("result", "결과 없음"))
+			run_state.resolve_event("mystery_%s" % str(mystery_result.get("roll", 0)))
 	resolved.emit(event_type)
 
 func _skip() -> void:
@@ -88,8 +97,10 @@ func _skip() -> void:
 
 func _event_name(event_type: String) -> String:
 	match event_type:
-		"camp": return "⛺ 캠프 — HP 회복"
-		"shop": return "🏪 상점 — 장비 / 주사위 구매"
-		"forge": return "🔨 대장간 — 주사위 면 수정"
-		"gamble": return "🎰 도박장 — 주사위 도박"
+		"camp": return "캠프 — HP 회복"
+		"shop": return "상점 — 장비 / 주사위 구매"
+		"forge": return "대장간 — 주사위 면 수정"
+		"gamble": return "도박장 — 주사위 도박"
+		"shrine": return "신전 — HP를 바쳐 골드 획득"
+		"mystery": return "수수께끼 — 결과를 알 수 없음"
 	return event_type
