@@ -7,6 +7,13 @@ signal closed
 
 const UPGRADE_BASE_COST: int = 50
 const UPGRADE_COST_PER_LEVEL: int = 25
+const ICON_DICE: Texture2D = preload("res://assets/ui/icon_dice.svg")
+const ICON_SWORD: Texture2D = preload("res://assets/ui/icon_sword.svg")
+const ICON_BOW: Texture2D = preload("res://assets/ui/icon_bow.svg")
+const ICON_STAFF: Texture2D = preload("res://assets/ui/icon_staff.svg")
+const ICON_SHURIKEN: Texture2D = preload("res://assets/ui/icon_shuriken.svg")
+const ICON_SHIELD: Texture2D = preload("res://assets/ui/icon_shield.svg")
+const ICON_HEAL: Texture2D = preload("res://assets/ui/icon_heal.svg")
 
 var run_state: RunStateManager
 var selected_die: int = -1
@@ -33,7 +40,7 @@ func _build_ui() -> void:
 	add_child(root)
 
 	var title: Label = Label.new()
-	title.text = "🔨 대장간"
+	title.text = "대장간"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 28)
 	root.add_child(title)
@@ -44,8 +51,10 @@ func _build_ui() -> void:
 	root.add_child(info_label)
 
 	var dice_title: Label = Label.new()
-	dice_title.text = "🎲 주사위 선택 — 현재 6면을 확인하세요"
+	dice_title.text = "주사위 선택 — 현재 6면을 확인하세요"
 	dice_title.add_theme_font_size_override("font_size", 18)
+	dice_title.icon = ICON_DICE
+	dice_title.icon_max_width = 24
 	root.add_child(dice_title)
 
 	die_grid = GridContainer.new()
@@ -55,7 +64,7 @@ func _build_ui() -> void:
 	root.add_child(die_grid)
 
 	var face_title: Label = Label.new()
-	face_title.text = "① 변경할 면 선택 — 숫자 대신 실제 심볼을 표시합니다"
+	face_title.text = "① 변경할 면 선택 — 실제 심볼 이미지로 표시합니다"
 	face_title.add_theme_font_size_override("font_size", 17)
 	root.add_child(face_title)
 
@@ -100,6 +109,7 @@ func _refresh() -> void:
 	for die_index in run_state.run_dice_faces.size():
 		var button: Button = Button.new()
 		button.text = _format_die_card(die_index)
+		button.icon = ICON_DICE
 		button.tooltip_text = "주사위 %d의 현재 6면" % (die_index + 1)
 		button.custom_minimum_size = Vector2(210, 92)
 		button.toggle_mode = true
@@ -112,11 +122,10 @@ func _refresh() -> void:
 		current_faces = run_state.get_die_faces(selected_die)
 	for face_index in RunStateManager.DICE_FACE_COUNT:
 		var face_button: Button = Button.new()
-		var face_symbol: String = "?"
-		if face_index < current_faces.size():
-			face_symbol = DiceData.symbol_for(int(current_faces[face_index]))
-		face_button.text = "%s\n면 %d" % [face_symbol, face_index + 1]
-		face_button.tooltip_text = "현재 심볼: %s" % face_symbol
+		var symbol_id: int = int(current_faces[face_index]) if face_index < current_faces.size() else 0
+		face_button.text = "면 %d\n%s" % [face_index + 1, _symbol_name(symbol_id)]
+		face_button.icon = _icon_for_symbol(symbol_id)
+		face_button.tooltip_text = "현재 심볼: %s" % _symbol_name(symbol_id)
 		face_button.disabled = selected_die < 0
 		face_button.custom_minimum_size = Vector2(92, 68)
 		face_button.toggle_mode = true
@@ -126,8 +135,8 @@ func _refresh() -> void:
 
 	for symbol_id in ForgeSystem.get_symbol_ids():
 		var symbol_button: Button = Button.new()
-		var symbol: String = DiceData.symbol_for(symbol_id)
-		symbol_button.text = "%s\n%s" % [symbol, DiceData.name_for(symbol_id)]
+		symbol_button.text = DiceData.name_for(symbol_id)
+		symbol_button.icon = _icon_for_symbol(symbol_id)
 		symbol_button.tooltip_text = ForgeSystem.get_symbol_name(symbol_id)
 		symbol_button.disabled = selected_face < 0
 		symbol_button.custom_minimum_size = Vector2(100, 68)
@@ -141,10 +150,10 @@ func _refresh() -> void:
 		selected_text = "주사위 %d 선택" % (selected_die + 1)
 	if selected_face >= 0:
 		var selected_faces: Array = run_state.get_die_faces(selected_die)
-		var current_symbol: String = DiceData.symbol_for(int(selected_faces[selected_face])) if selected_face < selected_faces.size() else "?"
-		selected_text += " → 면 %d [%s]" % [selected_face + 1, current_symbol]
+		var current_symbol_id: int = int(selected_faces[selected_face]) if selected_face < selected_faces.size() else 0
+		selected_text += " → 면 %d [%s]" % [selected_face + 1, _symbol_name(current_symbol_id)]
 	if selected_symbol >= 0:
-		selected_text += " → %s" % DiceData.symbol_for(selected_symbol)
+		selected_text += " → %s" % ForgeSystem.get_symbol_name(selected_symbol)
 
 	var level: int = 0
 	if selected_die >= 0 and selected_face >= 0:
@@ -156,16 +165,29 @@ func _refresh() -> void:
 	upgrade_button.disabled = selected_die < 0 or selected_face < 0 or run_state.gold < upgrade_cost
 
 func _format_die_card(die_index: int) -> String:
-	var lines: Array[String] = ["🎲 주사위 %d" % (die_index + 1)]
+	var lines: Array[String] = ["주사위 %d" % (die_index + 1)]
 	var faces: Array = run_state.get_die_faces(die_index)
 	for row_start in [0, 3]:
 		var row: String = ""
 		for offset in 3:
 			var face_index: int = row_start + offset
 			if face_index < faces.size():
-				row += DiceData.symbol_for(int(faces[face_index])) + " "
+				row += _symbol_name(int(faces[face_index])) + " "
 		lines.append(row.strip_edges())
 	return "\n".join(lines)
+
+func _symbol_name(symbol_id: int) -> String:
+	return ForgeSystem.get_symbol_name(symbol_id) if ForgeSystem.get_symbol_ids().has(symbol_id) else "미지"
+
+func _icon_for_symbol(symbol_id: int) -> Texture2D:
+	match symbol_id:
+		1: return ICON_SWORD
+		2: return ICON_BOW
+		3: return ICON_STAFF
+		4: return ICON_SHURIKEN
+		5: return ICON_SHIELD
+		6: return ICON_HEAL
+	return ICON_DICE
 
 func _upgrade_cost(level: int) -> int:
 	return UPGRADE_BASE_COST + level * UPGRADE_COST_PER_LEVEL
