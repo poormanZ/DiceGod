@@ -17,12 +17,12 @@ extends Control
 @onready var ability_button: Button = $MarginContainer/Content/ActionButtons/AbilityButton
 @onready var attack_button: Button = $MarginContainer/Content/ActionButtons/AttackButton
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
-@onready var selected_build_label: Label = $MarginContainer/Content/SelectedBuildLabel
+@onready var selected_build_label: Label = $MarginContainer/Content/SelectedBuildRow/SelectedBuildLabel
 @onready var player_name_label: Label = $MarginContainer/Content/PlayerArea/PlayerNameLabel
 @onready var player_hp_label: Label = $MarginContainer/Content/PlayerArea/PlayerHpLabel
 @onready var enemy_name_label: Label = $MarginContainer/Content/EnemyArea/EnemyNameLabel
 @onready var enemy_hp_label: Label = $MarginContainer/Content/EnemyArea/EnemyHpLabel
-@onready var enemy_hint_label: Label = $MarginContainer/Content/EnemyArea/EnemyHint
+@onready var enemy_hint_label: Label = $MarginContainer/Content/EnemyArea/EnemyHintRow/EnemyHint
 @onready var battle_box_label: Label = $MarginContainer/Content/BattleBox/BattleBoxLabel
 
 var dice_states: Array[DiceRuntimeState] = []
