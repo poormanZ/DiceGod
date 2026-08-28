@@ -14,7 +14,7 @@ const ICON_GAMBLE: Texture2D = preload("res://assets/ui/icon_gamble.svg")
 const ICON_BOSS: Texture2D = preload("res://assets/ui/icon_boss.svg")
 
 @onready var map: Control = $MarginContainer/Content/Map
-@onready var run_status_label: Label = $MarginContainer/Content/RunStatusLabel
+@onready var run_status_label: Label = $MarginContainer/Content/RunStatusPanel/RunStatusLabel
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
 
 var route_map: VBoxContainer
@@ -44,14 +44,12 @@ func _build_route_map() -> void:
 	route_map.add_theme_constant_override("separation", 5)
 	map.add_child(route_map)
 
-	# 일반 전투
 	var start_row: HBoxContainer = _make_route_row()
 	route_start_button = _make_route_button("일반 전투", "시작 전투", ICON_SWORD, true)
 	route_start_button.pressed.connect(_on_start_battle_button_pressed)
 	start_row.add_child(route_start_button)
 	route_map.add_child(start_row)
 
-	# 1차 분기: 대장간 / 상점
 	route_map.add_child(_make_route_arrow())
 	var first_row: HBoxContainer = _make_route_row()
 	var forge_button: Button = _make_route_button("대장간", "주사위 심볼 수정", ICON_FORGE)
@@ -64,7 +62,6 @@ func _build_route_map() -> void:
 	first_row.add_child(shop_button)
 	route_map.add_child(first_row)
 
-	# 엘리트에서 합류
 	route_map.add_child(_make_route_arrow())
 	var elite_row: HBoxContainer = _make_route_row()
 	route_elite_button = _make_route_button("엘리트 전투", "두 경로가 여기서 합류", ICON_ELITE, true)
@@ -72,7 +69,6 @@ func _build_route_map() -> void:
 	elite_row.add_child(route_elite_button)
 	route_map.add_child(elite_row)
 
-	# 2차 분기: 캠프 / 도박장
 	route_map.add_child(_make_route_arrow())
 	var second_row: HBoxContainer = _make_route_row()
 	var camp_button: Button = _make_route_button("캠프", "HP 회복", ICON_CAMP)
@@ -85,7 +81,6 @@ func _build_route_map() -> void:
 	second_row.add_child(gamble_button)
 	route_map.add_child(second_row)
 
-	# 보스에서 최종 합류
 	route_map.add_child(_make_route_arrow())
 	var boss_row: HBoxContainer = _make_route_row()
 	route_boss_button = _make_route_button("보스 전투", "최종 전투", ICON_BOSS, true)
