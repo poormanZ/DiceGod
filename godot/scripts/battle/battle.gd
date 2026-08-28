@@ -3,6 +3,7 @@ extends Control
 
 ## 심볼 주사위 전투 컨트롤러입니다.
 ## 전투의 책임은 주사위 결과 집계, 플레이어 행동 적용, 적 행동 처리로 제한합니다.
+## UI 메시지에서는 유니코드 이모지를 사용하지 않고 이미지 아이콘/텍스트를 사용합니다.
 
 @export var dice_data: DiceData
 @export var player_data: PlayerData
@@ -40,7 +41,7 @@ func _ready() -> void:
 	_create_battle_entities()
 	_create_dice_states()
 
-	selected_build_label.text = "기본 심볼 주사위 × %d" % dice_states.size()
+	selected_build_label.text = "심볼 주사위 × %d" % dice_states.size()
 	player_name_label.text = player.player_data.display_name
 	enemy_name_label.text = enemy.enemy_data.display_name
 	_add_run_status_overlay()
@@ -101,7 +102,7 @@ func _on_roll_button_pressed() -> void:
 	reroll_button.disabled = false
 	confirm_button.disabled = false
 	_calculate_actions()
-	_show_feedback("🎲 심볼을 확인하고 필요한 주사위를 잠그세요.")
+	_show_feedback("주사위 결과를 확인하고 필요한 주사위를 잠그세요.")
 
 func _on_reroll_button_pressed() -> void:
 	if is_battle_over or not dice_roller.reroll(dice_states):
@@ -111,7 +112,7 @@ func _on_reroll_button_pressed() -> void:
 	dice_roll_panel.play_roll_feedback()
 	reroll_button.disabled = true
 	_calculate_actions()
-	_show_feedback("↻ 리롤 완료 — 최종 심볼을 확정하세요.")
+	_show_feedback("리롤 완료 — 최종 심볼을 확정하세요.")
 
 func _on_confirm_button_pressed() -> void:
 	if is_battle_over or not dice_roller.confirm_results(dice_states):
@@ -126,7 +127,7 @@ func _on_confirm_button_pressed() -> void:
 
 	ability_button.disabled = not ability.can_use(dice_states)
 	attack_button.disabled = not _has_player_action()
-	status_label.text = "확정: ⚔️ %d  🛡️ %d  ❤️ %d" % [calculated_attack_damage, calculated_block, calculated_heal]
+	status_label.text = "확정: 공격 %d  |  보호막 %d  |  회복 %d" % [calculated_attack_damage, calculated_block, calculated_heal]
 	_show_feedback(status_label.text)
 
 func _calculate_actions() -> void:
@@ -145,8 +146,6 @@ func _calculate_actions() -> void:
 			DiceData.HEAL:
 				calculated_heal += 1
 
-	# 현재 프로토타입의 공통 조합 규칙: 같은 방어/치료 심볼이 2개 이상이면
-	# 첫 심볼은 기본 자원으로, 나머지는 추가 자원으로 한 번씩 계산합니다.
 	var counts: Dictionary = ability.get_symbol_counts(dice_states)
 	var shield_count: int = int(counts.get(DiceData.SHIELD, 0))
 	var heal_count: int = int(counts.get(DiceData.HEAL, 0))
@@ -162,14 +161,14 @@ func _apply_heal() -> void:
 	RunState.current_hp = player.current_hp
 	_update_hp_labels()
 	if healed > 0:
-		_show_feedback("❤️ 회복 +%d" % healed)
+		_show_feedback("회복 +%d" % healed)
 
 func _apply_block() -> void:
 	if calculated_block <= 0:
 		return
 	var added_shield: int = player.add_shield(calculated_block)
 	_update_hp_labels()
-	_show_feedback("🛡️ 보호막 +%d" % added_shield)
+	_show_feedback("보호막 +%d" % added_shield)
 
 func _has_player_action() -> bool:
 	return calculated_attack_damage > 0 or calculated_block > 0 or calculated_heal > 0
@@ -187,7 +186,7 @@ func _on_ability_button_pressed() -> void:
 	calculated_attack_damage += bonus
 	ability_button.disabled = true
 	attack_button.disabled = false
-	status_label.text = "✨ 심볼 스킬 발동: 공격 +%d" % bonus
+	status_label.text = "심볼 스킬 발동: 공격 +%d" % bonus
 	_show_feedback(status_label.text)
 
 func _on_attack_button_pressed() -> void:
@@ -211,7 +210,7 @@ func _on_attack_button_pressed() -> void:
 		await _handle_defeat()
 		return
 
-	_start_turn("⚔️ %d 피해를 주고 적의 공격을 견뎠습니다. 다시 굴리세요." % damage)
+	_start_turn("공격 %d 피해를 주고 적의 공격을 견뎠습니다. 다시 굴리세요." % damage)
 
 func _handle_victory() -> void:
 	is_battle_over = true
@@ -219,13 +218,13 @@ func _handle_victory() -> void:
 	RunState.battle_cleared = true
 	run_disable_action_buttons()
 	_update_hp_labels()
-	_show_feedback("🏆 전투 승리! %d 피해" % calculated_attack_damage)
+	_show_feedback("전투 승리! %d 피해" % calculated_attack_damage)
 
 func _handle_defeat() -> void:
 	is_battle_over = true
 	RunState.current_hp = 0
 	run_disable_action_buttons()
-	_show_feedback("💀 패배... 적의 공격을 견디지 못했습니다.")
+	_show_feedback("패배... 적의 공격을 견디지 못했습니다.")
 
 func run_disable_action_buttons() -> void:
 	_set_action_buttons(true, true, true, true, true)
@@ -239,14 +238,14 @@ func _set_action_buttons(roll_disabled: bool, reroll_disabled: bool, confirm_dis
 
 func _update_hp_labels() -> void:
 	if player != null:
-		player_hp_label.text = "HP %d / %d  🛡️ %d" % [player.current_hp, player.player_data.max_hp, player.current_shield]
+		player_hp_label.text = "HP %d / %d  |  보호막 %d" % [player.current_hp, player.player_data.max_hp, player.current_shield]
 	if enemy != null:
 		enemy_hp_label.text = "HP %d / %d" % [enemy.current_hp, enemy.enemy_data.max_hp]
 
 func _update_enemy_intent() -> void:
 	if enemy == null or enemy_hint_label == null:
 		return
-	enemy_hint_label.text = "⚠️ 다음 공격: %d 피해" % enemy.get_attack_intent()
+	enemy_hint_label.text = "다음 공격: %d 피해" % enemy.get_attack_intent()
 
 func _show_feedback(message: String) -> void:
 	status_label.text = message
