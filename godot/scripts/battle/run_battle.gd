@@ -1,9 +1,6 @@
 class_name RunBattle
 extends Battle
 
-## 런 전투 전용 컨트롤러
-## 6면 심볼 주사위를 사용하며, 각 심볼은 고유한 전투 역할을 가진다.
-
 @export var is_boss_battle: bool = false
 @export var is_elite_battle: bool = false
 
@@ -16,13 +13,10 @@ var calculated_status: int = 0
 func _ready() -> void:
 	run_rng.randomize()
 	RunStatusOverlay.attach(self)
-	if dice_data == null:
-		dice_data = load("res://resources/dice/basic_dice.tres") as DiceData
-	if player_data == null:
-		player_data = load("res://resources/characters/basic_player.tres") as PlayerData
+	if dice_data == null: dice_data = load("res://resources/dice/basic_dice.tres") as DiceData
+	if player_data == null: player_data = load("res://resources/characters/basic_player.tres") as PlayerData
 	enemy_data = _create_run_enemy_data()
-	if ability_data == null:
-		ability_data = AbilityData.new()
+	if ability_data == null: ability_data = AbilityData.new()
 	player = Player.new(player_data)
 	player.current_hp = clampi(RunState.current_hp, 1, player.player_data.max_hp)
 	enemy = Enemy.new(enemy_data)
@@ -32,17 +26,14 @@ func _ready() -> void:
 	dice_states.clear()
 	is_battle_over = false
 	ability_used = false
-	for _dice_index in DiceData.STARTING_DICE_COUNT:
-		dice_states.append(DiceRuntimeState.new(dice_data))
+	for _dice_index: int in DiceData.STARTING_DICE_COUNT: dice_states.append(DiceRuntimeState.new(dice_data))
 	selected_build_label.text = "심볼 주사위 × %d" % dice_states.size()
 	player_name_label.text = player.player_data.display_name
 	enemy_name_label.text = enemy.enemy_data.display_name
 	_update_hp_labels()
 	_update_enemy_intent()
-	if is_boss_battle:
-		_show_boss_symbol_status()
-	else:
-		_start_turn("6개의 주사위를 굴려 행동 심볼을 만드세요.")
+	if is_boss_battle: _show_boss_symbol_status()
+	else: _start_turn("6개의 주사위를 굴려 행동 심볼을 만드세요.")
 
 func _create_run_enemy_data() -> EnemyData:
 	var basic_dice: DiceData = load("res://resources/dice/basic_dice.tres") as DiceData
@@ -55,30 +46,23 @@ func _create_run_enemy_data() -> EnemyData:
 	elif is_elite_battle:
 		source = CombatContentSystem.roll_elite(run_rng)
 		tier = "elite"
-	else:
-		source = CombatContentSystem.roll_normal_enemy(run_rng)
+	else: source = CombatContentSystem.roll_normal_enemy(run_rng)
 	var run_number: int = maxi(1, RunState.run_number)
 	data.display_name = str(source.get("name", "슬라임"))
 	data.max_hp = DifficultyScaler.scale_hp(int(source.get("hp", 10)), run_number, tier)
 	data.attack_dice = basic_dice
-	var scaled_damage: int = DifficultyScaler.scale_damage(int(source.get("damage", 1)), run_number, tier)
-	data.attack_bonus = maxi(0, scaled_damage - 3)
+	data.attack_bonus = maxi(0, DifficultyScaler.scale_damage(int(source.get("damage", 1)), run_number, tier) - 3)
 	var enemy_trait: String = str(source.get("trait", ""))
 	data.armor = 0
 	data.status_resistance = 0
-	if enemy_trait == "high_defense":
-		data.armor = 2
-	elif enemy_trait == "evasive":
-		data.armor = 1
-	elif enemy_trait == "heal_pressure":
-		data.status_resistance = 30
-	elif enemy_trait == "symbol_check":
-		data.armor = 1
+	if enemy_trait == "high_defense": data.armor = 2
+	elif enemy_trait == "evasive": data.armor = 1
+	elif enemy_trait == "heal_pressure": data.status_resistance = 30
+	elif enemy_trait == "symbol_check": data.armor = 1
 	data.armor = DifficultyScaler.scale_armor(data.armor, run_number, tier)
 	if is_boss_battle:
 		var boss_id: String = BossRewardSystem.normalize_boss_id(str(source.get("id", "flame_god")))
-		if boss_id.is_empty():
-			boss_id = "flame_god"
+		if boss_id.is_empty(): boss_id = "flame_god"
 		var boss_symbol_id: int = int(source.get("symbol", 0))
 		RunState.current_boss_id = boss_id
 		data.armor += 1
@@ -99,8 +83,7 @@ func _show_boss_symbol_status() -> void:
 func _roll_run_dice() -> void:
 	for die_index: int in dice_states.size():
 		var dice_state: DiceRuntimeState = dice_states[die_index]
-		if dice_state.is_locked:
-			continue
+		if dice_state.is_locked: continue
 		if die_index < RunState.run_dice_faces.size():
 			var faces: Array = RunState.get_die_faces(die_index)
 			if not faces.is_empty():
@@ -109,8 +92,7 @@ func _roll_run_dice() -> void:
 		dice_roller.roll(dice_state)
 
 func _on_roll_button_pressed() -> void:
-	if is_battle_over:
-		return
+	if is_battle_over: return
 	_roll_run_dice()
 	dice_roll_panel.display_results(dice_states)
 	dice_roll_panel.play_roll_feedback()
@@ -122,8 +104,7 @@ func _on_roll_button_pressed() -> void:
 	_show_feedback("보유 주사위 6개를 굴렸습니다.")
 
 func _on_reroll_button_pressed() -> void:
-	if is_battle_over or dice_roller.has_rerolled:
-		return
+	if is_battle_over or dice_roller.has_rerolled: return
 	_roll_run_dice()
 	dice_roller.has_rerolled = true
 	dice_roll_panel.display_results(dice_states)
@@ -133,15 +114,13 @@ func _on_reroll_button_pressed() -> void:
 	_show_feedback("리롤 완료 — 최종 심볼을 확정하세요.")
 
 func _calculate_actions() -> void:
-	# 기본 Battle의 숫자 주사위 계산을 사용하지 않는다.
-	# 런 전투는 오직 심볼 주사위의 역할과 시너지로 계산한다.
 	calculated_attack_damage = RunState.attack_bonus
 	calculated_block = 0
 	calculated_heal = 0
 	calculated_penetration = 0
 	calculated_hits = 0
 	calculated_status = 0
-	var symbols: Dictionary = SymbolSkillSystem.evaluate(dice_states)
+	var symbols: Dictionary = SymbolSkillSystem.evaluate(dice_states, RunState)
 	calculated_attack_damage += int(symbols.get("attack", 0))
 	calculated_block += int(symbols.get("block", 0))
 	calculated_heal += int(symbols.get("heal", 0))
@@ -149,20 +128,14 @@ func _calculate_actions() -> void:
 	calculated_hits = int(symbols.get("hits", 0))
 	calculated_status = int(symbols.get("status", 0))
 	var skill_names: Array = symbols.get("skills", [])
-	if not skill_names.is_empty():
-		status_label.text = "스킬 발동: %s" % ", ".join(skill_names)
+	if not skill_names.is_empty(): status_label.text = "자동 발동: %s" % ", ".join(skill_names)
 
 func _on_attack_button_pressed() -> void:
-	if is_battle_over:
-		return
+	if is_battle_over: return
 	var damage: int = calculated_attack_damage
-	# 표창의 다단 히트는 추가 피해로 환산하되, 기본 피해보다 과도하게 커지지 않게 한다.
-	if calculated_hits > 0:
-		damage += calculated_hits
-	if calculated_status > 0:
-		damage += calculated_status
-	if damage > 0:
-		damage = enemy.take_piercing_damage(damage, calculated_penetration)
+	if calculated_hits > 0: damage += calculated_hits
+	if calculated_status > 0: damage += calculated_status
+	if damage > 0: damage = enemy.take_piercing_damage(damage, calculated_penetration)
 	if enemy.current_hp <= 0:
 		await _handle_victory()
 		return
@@ -176,31 +149,23 @@ func _on_attack_button_pressed() -> void:
 		await _handle_defeat()
 		return
 	_start_turn("공격 %d 피해 | 관통 %d | 추가 효과 %d" % [damage, calculated_penetration, calculated_status])
-	if is_boss_battle:
-		_show_boss_symbol_status()
+	if is_boss_battle: _show_boss_symbol_status()
 
 func _apply_boss_symbol_effect(base_damage: int) -> int:
-	if not is_boss_battle or enemy == null or enemy.enemy_data.boss_symbol_id <= 0:
-		return base_damage
+	if not is_boss_battle or enemy == null or enemy.enemy_data.boss_symbol_id <= 0: return base_damage
 	var power: int = enemy.enemy_data.boss_symbol_power
 	var effect: String = enemy.enemy_data.boss_symbol_effect
 	var incoming: int = base_damage
 	match effect:
-		"burn":
-			incoming += power
+		"burn": incoming += power
 		"frost":
 			var lost_shield: int = mini(player.current_shield, power)
 			player.current_shield -= lost_shield
-		"plague":
-			incoming += power
-		"drain":
-			enemy.heal(maxi(1, base_damage / 2))
-		"storm":
-			incoming += power
-		"stone":
-			enemy.add_temporary_armor(power)
-		"fate":
-			incoming = maxi(0, incoming - power)
+		"plague": incoming += power
+		"drain": enemy.heal(maxi(1, base_damage / 2))
+		"storm": incoming += power
+		"stone": enemy.add_temporary_armor(power)
+		"fate": incoming = maxi(0, incoming - power)
 		"void":
 			var bypass: int = mini(player.current_shield, power)
 			player.current_shield -= bypass
@@ -216,10 +181,8 @@ func _handle_victory() -> void:
 		RunState.reward_claimed = false
 	_show_feedback("%s 격파! 보상을 선택하세요." % enemy.enemy_data.display_name)
 	await get_tree().create_timer(0.6).timeout
-	if is_boss_battle:
-		get_tree().change_scene_to_file("res://scenes/dungeon/divine_reward.tscn")
-	else:
-		get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
+	if is_boss_battle: get_tree().change_scene_to_file("res://scenes/dungeon/divine_reward.tscn")
+	else: get_tree().change_scene_to_file("res://scenes/dungeon/reward.tscn")
 
 func _handle_defeat() -> void:
 	is_battle_over = true
