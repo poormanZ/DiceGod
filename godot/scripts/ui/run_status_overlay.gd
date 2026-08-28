@@ -2,7 +2,12 @@ class_name RunStatusOverlay
 extends PanelContainer
 
 ## 현재 런의 주사위/장비 상태를 던전과 모든 전투 화면에서 확인하는 공용 패널.
-## RunState를 직접 읽기 때문에 주사위 수정 결과가 다음 페이즈에도 즉시 반영됩니다.
+## 모든 아이콘은 폰트/이모지가 아니라 SVG 리소스를 사용합니다.
+
+const ICON_DICE: Texture2D = preload("res://assets/ui/icon_dice.svg")
+const ICON_HEART: Texture2D = preload("res://assets/ui/icon_heart.svg")
+const ICON_COIN: Texture2D = preload("res://assets/ui/icon_coin.svg")
+const ICON_SHIELD: Texture2D = preload("res://assets/ui/icon_shield.svg")
 
 var content_box: VBoxContainer
 var summary_label: Label
@@ -34,20 +39,16 @@ func _add_ui() -> void:
 	content_box.add_theme_constant_override("separation", 8)
 	margin.add_child(content_box)
 
-	var title: Label = Label.new()
-	title.text = "📋 현재 런 상태"
-	title.add_theme_font_size_override("font_size", 22)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content_box.add_child(title)
+	var title_row: HBoxContainer = _make_icon_row(ICON_DICE, "현재 런 상태", 22)
+	title_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	content_box.add_child(title_row)
 
 	summary_label = Label.new()
 	summary_label.add_theme_font_size_override("font_size", 15)
 	content_box.add_child(summary_label)
 
-	var dice_title: Label = Label.new()
-	dice_title.text = "🎲 주사위 상태"
-	dice_title.add_theme_font_size_override("font_size", 18)
-	content_box.add_child(dice_title)
+	var dice_row: HBoxContainer = _make_icon_row(ICON_DICE, "주사위 상태", 18)
+	content_box.add_child(dice_row)
 
 	dice_label = Label.new()
 	dice_label.add_theme_font_size_override("font_size", 15)
@@ -57,10 +58,8 @@ func _add_ui() -> void:
 	var separator: HSeparator = HSeparator.new()
 	content_box.add_child(separator)
 
-	var equipment_title: Label = Label.new()
-	equipment_title.text = "🛡️ 장비 상태"
-	equipment_title.add_theme_font_size_override("font_size", 18)
-	content_box.add_child(equipment_title)
+	var equipment_row: HBoxContainer = _make_icon_row(ICON_SHIELD, "장비 상태", 18)
+	content_box.add_child(equipment_row)
 
 	equipment_label = Label.new()
 	equipment_label.add_theme_font_size_override("font_size", 15)
@@ -72,7 +71,8 @@ func _add_ui() -> void:
 	content_box.add_child(button_row)
 
 	refresh_button = Button.new()
-	refresh_button.text = "↻ 새로고침"
+	refresh_button.text = "새로고침"
+	refresh_button.icon = ICON_DICE
 	refresh_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	refresh_button.pressed.connect(_refresh)
 	button_row.add_child(refresh_button)
@@ -83,17 +83,31 @@ func _add_ui() -> void:
 	close_button.pressed.connect(_close_panel)
 	button_row.add_child(close_button)
 
+func _make_icon_row(icon: Texture2D, text: String, font_size: int) -> HBoxContainer:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var texture: TextureRect = TextureRect.new()
+	texture.texture = icon
+	texture.custom_minimum_size = Vector2(28, 28)
+	texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	row.add_child(texture)
+	var label: Label = Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", font_size)
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(label)
+	return row
+
 func _refresh() -> void:
 	if not is_instance_valid(dice_label):
 		return
 
-	# 일부 씬에서는 RunState.start_new_run()보다 상태 패널이 먼저 생성될 수 있다.
-	# 이 경우에도 기본 6개 주사위를 즉시 보장하여 0/6으로 표시되지 않게 한다.
 	if RunState.run_dice_faces.is_empty() and RunState.has_method("initialize_run_dice"):
 		RunState.initialize_run_dice(PackedInt32Array([DiceData.SWORD, DiceData.BOW, DiceData.STAFF, DiceData.SHURIKEN, DiceData.SHIELD, DiceData.HEAL]))
 
 	var summary: Dictionary = RunState.get_run_summary()
-	summary_label.text = "런 %d  |  ❤️ %d/%d  |  💰 %dG" % [
+	summary_label.text = "런 %d  |  HP %d/%d  |  골드 %dG" % [
 		int(summary.get("run_number", 0)),
 		int(summary.get("current_hp", 0)),
 		int(summary.get("max_hp", 0)),
@@ -128,16 +142,16 @@ func _refresh() -> void:
 func _symbol_for_value(value: int) -> String:
 	if value >= 101:
 		match value:
-			101: return "✨"
-			102: return "💥"
-			103: return "👁️"
-			104: return "💚"
-			105: return "🔥"
-			106: return "🛡️✨"
-			107: return "🍀"
-			108: return "💀"
-		return "❔"
-	return DiceData.symbol_for(value)
+			101: return "강화"
+			102: return "치명"
+			103: return "감지"
+			104: return "회복"
+			105: return "화염"
+			106: return "수호"
+			107: return "행운"
+			108: return "저주"
+		return "미지"
+	return DiceData.name_for(value)
 
 func _close_panel() -> void:
 	visible = false
@@ -159,7 +173,8 @@ static func attach(parent: Control) -> RunStatusOverlay:
 
 	var toggle: Button = Button.new()
 	toggle.name = "RunStatusToggle"
-	toggle.text = "📋 상태"
+	toggle.text = "상태"
+	toggle.icon = ICON_DICE
 	toggle.custom_minimum_size = Vector2(110, 40)
 	toggle.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	toggle.offset_left = -128.0
