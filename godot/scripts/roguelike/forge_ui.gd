@@ -53,8 +53,6 @@ func _build_ui() -> void:
 	var dice_title: Label = Label.new()
 	dice_title.text = "주사위 선택 — 현재 6면을 확인하세요"
 	dice_title.add_theme_font_size_override("font_size", 18)
-	dice_title.icon = ICON_DICE
-	dice_title.icon_max_width = 24
 	root.add_child(dice_title)
 
 	die_grid = GridContainer.new()
