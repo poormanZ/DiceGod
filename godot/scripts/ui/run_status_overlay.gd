@@ -1,22 +1,16 @@
 class_name RunStatusOverlay
 extends PanelContainer
 
-## 현재 런의 주사위/장비 상태를 던전과 모든 전투 화면에서 확인하는 공용 패널.
-## 모든 아이콘은 폰트/이모지가 아니라 SVG 리소스를 사용합니다.
-
 const ICON_DICE: Texture2D = preload("res://assets/ui/icon_dice.svg")
-const ICON_HEART: Texture2D = preload("res://assets/ui/icon_heart.svg")
-const ICON_COIN: Texture2D = preload("res://assets/ui/icon_coin.svg")
 const ICON_SHIELD: Texture2D = preload("res://assets/ui/icon_shield.svg")
+const EQUIPMENT_SLOTS: Array[String] = ["머리", "몸통", "다리", "신발", "무기", "목걸이", "반지"]
+const EQUIPMENT_KEYS: Array[String] = ["head", "body", "legs", "feet", "weapon", "neck", "ring"]
 
 var content_box: VBoxContainer
 var summary_label: Label
 var dice_label: Label
 var equipment_label: Label
-var close_button: Button
-var refresh_button: Button
-
-const EQUIPMENT_SLOTS: Array[String] = ["머리", "몸통", "다리", "신발", "무기", "목걸이", "반지"]
+var equipment_actions: VBoxContainer
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -28,116 +22,103 @@ func _ready() -> void:
 	_refresh()
 
 func _add_ui() -> void:
+	var scroll: ScrollContainer = ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
 	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 14)
 	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	add_child(margin)
-
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	scroll.add_child(margin)
 	content_box = VBoxContainer.new()
-	content_box.add_theme_constant_override("separation", 8)
+	content_box.add_theme_constant_override("separation", 6)
 	margin.add_child(content_box)
-
-	var title_row: HBoxContainer = _make_icon_row(ICON_DICE, "현재 런 상태", 22)
-	title_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	content_box.add_child(title_row)
-
+	var title: Label = Label.new()
+	title.text = "현재 런 상태"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 22)
+	content_box.add_child(title)
 	summary_label = Label.new()
 	summary_label.add_theme_font_size_override("font_size", 15)
 	content_box.add_child(summary_label)
-
-	var dice_row: HBoxContainer = _make_icon_row(ICON_DICE, "주사위 상태", 18)
-	content_box.add_child(dice_row)
-
+	var dice_title: Label = Label.new()
+	dice_title.text = "주사위 상태"
+	dice_title.add_theme_font_size_override("font_size", 18)
+	content_box.add_child(dice_title)
 	dice_label = Label.new()
-	dice_label.add_theme_font_size_override("font_size", 15)
+	dice_label.add_theme_font_size_override("font_size", 14)
 	dice_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content_box.add_child(dice_label)
-
-	var separator: HSeparator = HSeparator.new()
-	content_box.add_child(separator)
-
-	var equipment_row: HBoxContainer = _make_icon_row(ICON_SHIELD, "장비 상태", 18)
-	content_box.add_child(equipment_row)
-
+	var equipment_title: Label = Label.new()
+	equipment_title.text = "장비 상태 — 부위당 1개"
+	equipment_title.add_theme_font_size_override("font_size", 18)
+	content_box.add_child(equipment_title)
 	equipment_label = Label.new()
-	equipment_label.add_theme_font_size_override("font_size", 15)
-	equipment_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	equipment_label.add_theme_font_size_override("font_size", 14)
 	content_box.add_child(equipment_label)
-
-	var button_row: HBoxContainer = HBoxContainer.new()
-	button_row.add_theme_constant_override("separation", 8)
-	content_box.add_child(button_row)
-
-	refresh_button = Button.new()
-	refresh_button.text = "새로고침"
-	refresh_button.icon = ICON_DICE
-	refresh_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	refresh_button.pressed.connect(_refresh)
-	button_row.add_child(refresh_button)
-
-	close_button = Button.new()
+	equipment_actions = VBoxContainer.new()
+	equipment_actions.add_theme_constant_override("separation", 3)
+	content_box.add_child(equipment_actions)
+	var close_button: Button = Button.new()
 	close_button.text = "닫기"
-	close_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	close_button.pressed.connect(_close_panel)
-	button_row.add_child(close_button)
-
-func _make_icon_row(icon: Texture2D, text: String, font_size: int) -> HBoxContainer:
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	var texture: TextureRect = TextureRect.new()
-	texture.texture = icon
-	texture.custom_minimum_size = Vector2(28, 28)
-	texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	row.add_child(texture)
-	var label: Label = Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", font_size)
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	row.add_child(label)
-	return row
+	close_button.custom_minimum_size = Vector2(0, 36)
+	close_button.pressed.connect(func() -> void: visible = false)
+	content_box.add_child(close_button)
 
 func _refresh() -> void:
-	if not is_instance_valid(dice_label):
-		return
-
-	if RunState.run_dice_faces.is_empty() and RunState.has_method("initialize_run_dice"):
-		RunState.initialize_run_dice(PackedInt32Array([DiceData.SWORD, DiceData.BOW, DiceData.STAFF, DiceData.SHURIKEN, DiceData.SHIELD, DiceData.HEAL]))
-
+	if not is_instance_valid(dice_label): return
 	var summary: Dictionary = RunState.get_run_summary()
-	summary_label.text = "런 %d  |  HP %d/%d  |  골드 %dG" % [
-		int(summary.get("run_number", 0)),
-		int(summary.get("current_hp", 0)),
-		int(summary.get("max_hp", 0)),
-		int(summary.get("gold", 0))
-	]
-
+	summary_label.text = "런 %d | HP %d/%d | 골드 %dG" % [int(summary.get("run_number", 0)), int(summary.get("current_hp", 0)), int(summary.get("max_hp", 0)), int(summary.get("gold", 0))]
 	var dice_lines: Array[String] = ["보유 주사위: %d/%d" % [RunState.run_dice_faces.size(), DiceData.STARTING_DICE_COUNT]]
 	for die_index: int in RunState.run_dice_faces.size():
 		var faces: Array = RunState.get_die_faces(die_index)
 		var symbols: Array[String] = []
 		for face_index: int in faces.size():
-			var value: int = int(faces[face_index])
-			var symbol: String = _symbol_for_value(value)
-			var upgrade: int = RunState.get_face_upgrade_level(die_index, face_index)
-			if upgrade > 0:
-				symbol += "+%d" % upgrade
+			var symbol: String = _symbol_for_value(int(faces[face_index]))
+			var level: int = RunState.get_face_upgrade_level(die_index, face_index)
+			if level > 0: symbol += "+%d" % level
 			symbols.append(symbol)
-		dice_lines.append("주사위 %d  %s" % [die_index + 1, "  ".join(symbols)])
+		dice_lines.append("주사위 %d: %s" % [die_index + 1, "  ".join(symbols)])
 	dice_label.text = "\n".join(dice_lines)
+	var lines: Array[String] = []
+	for index: int in EQUIPMENT_SLOTS.size():
+		var gear_id: String = str(RunState.equipped_by_slot.get(EQUIPMENT_KEYS[index], ""))
+		var name: String = "비어 있음"
+		if not gear_id.is_empty(): name = str(RoguelikeEquipmentSystem.get_gear(gear_id).get("name", gear_id))
+		lines.append("%s: %s" % [EQUIPMENT_SLOTS[index], name])
+	equipment_label.text = "\n".join(lines)
+	for child in equipment_actions.get_children(): child.queue_free()
+	for gear_id: String in RunState.purchased_items:
+		var gear: Dictionary = RoguelikeEquipmentSystem.get_gear(gear_id)
+		if gear.is_empty(): continue
+		var row: HBoxContainer = HBoxContainer.new()
+		var label: Label = Label.new()
+		label.text = "%s [%s]" % [str(gear.get("name", gear_id)), _slot_name(str(gear.get("slot", "")))]
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
+		var button: Button = Button.new()
+		var slot: String = str(gear.get("slot", ""))
+		var equipped_id: String = str(RunState.equipped_by_slot.get(slot, ""))
+		button.text = "해제" if equipped_id == gear_id else "장착"
+		button.disabled = equipped_id == gear_id and not RoguelikeEquipmentSystem.is_owned(RunState, gear_id)
+		button.pressed.connect(_toggle_equipment.bind(gear_id))
+		row.add_child(button)
+		equipment_actions.add_child(row)
 
-	var equipped: Array = RunState.equipped_items
-	var equipment_lines: Array[String] = []
-	for slot_index: int in EQUIPMENT_SLOTS.size():
-		var item_text: String = "비어 있음"
-		if slot_index < equipped.size():
-			var item_id: String = str(equipped[slot_index])
-			if not item_id.is_empty():
-				item_text = item_id
-		equipment_lines.append("%s  :  %s" % [EQUIPMENT_SLOTS[slot_index], item_text])
-	equipment_label.text = "\n".join(equipment_lines)
+func _toggle_equipment(gear_id: String) -> void:
+	var gear: Dictionary = RoguelikeEquipmentSystem.get_gear(gear_id)
+	var slot: String = str(gear.get("slot", ""))
+	if str(RunState.equipped_by_slot.get(slot, "")) == gear_id:
+		RoguelikeEquipmentSystem.unequip(RunState, slot)
+	else:
+		RoguelikeEquipmentSystem.equip(RunState, gear_id)
+	_refresh()
+
+func _slot_name(slot: String) -> String:
+	var index: int = EQUIPMENT_KEYS.find(slot)
+	return EQUIPMENT_SLOTS[index] if index >= 0 else "기타"
 
 func _symbol_for_value(value: int) -> String:
 	if value >= 101:
@@ -153,14 +134,9 @@ func _symbol_for_value(value: int) -> String:
 		return "미지"
 	return DiceData.name_for(value)
 
-func _close_panel() -> void:
-	visible = false
-
 static func attach(parent: Control) -> RunStatusOverlay:
 	var existing: Node = parent.get_node_or_null("RunStatusOverlay")
-	if existing is RunStatusOverlay:
-		return existing as RunStatusOverlay
-
+	if existing is RunStatusOverlay: return existing as RunStatusOverlay
 	var overlay: RunStatusOverlay = RunStatusOverlay.new()
 	overlay.name = "RunStatusOverlay"
 	parent.add_child(overlay)
@@ -168,9 +144,8 @@ static func attach(parent: Control) -> RunStatusOverlay:
 	overlay.offset_left = -382.0
 	overlay.offset_right = -18.0
 	overlay.offset_top = 68.0
-	overlay.offset_bottom = 568.0
+	overlay.offset_bottom = 620.0
 	overlay.visible = false
-
 	var toggle: Button = Button.new()
 	toggle.name = "RunStatusToggle"
 	toggle.text = "상태"
@@ -185,7 +160,6 @@ static func attach(parent: Control) -> RunStatusOverlay:
 	parent.add_child(toggle)
 	toggle.pressed.connect(func() -> void:
 		overlay.visible = not overlay.visible
-		if overlay.visible:
-			overlay._refresh()
+		if overlay.visible: overlay._refresh()
 	)
 	return overlay
