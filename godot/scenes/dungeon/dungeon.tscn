@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource path="res://scripts/dungeon/dungeon.gd" type="Script" id="1"]
 [ext_resource path="res://resources/dungeon_nodes/start_battle.tres" type="Resource" id="2"]
@@ -8,76 +8,85 @@
 [ext_resource path="res://resources/dungeon_nodes/elite_1.tres" type="Resource" id="6"]
 [ext_resource path="res://resources/dungeon_nodes/boss_1.tres" type="Resource" id="7"]
 [ext_resource path="res://assets/ui/dungeon_background.svg" type="Texture2D" id="8"]
+[ext_resource path="res://assets/ui/icon_sword.svg" type="Texture2D" id="9"]
+[ext_resource path="res://assets/ui/icon_forge.svg" type="Texture2D" id="10"]
+[ext_resource path="res://assets/ui/icon_shop.svg" type="Texture2D" id="11"]
+[ext_resource path="res://assets/ui/icon_elite.svg" type="Texture2D" id="12"]
+[ext_resource path="res://assets/ui/icon_camp.svg" type="Texture2D" id="13"]
+[ext_resource path="res://assets/ui/icon_gamble.svg" type="Texture2D" id="14"]
+[ext_resource path="res://assets/ui/icon_boss.svg" type="Texture2D" id="15"]
+[ext_resource path="res://assets/ui/icon_heart.svg" type="Texture2D" id="16"]
+[ext_resource path="res://assets/ui/icon_coin.svg" type="Texture2D" id="17"]
 
-[sub_resource type="StyleBoxFlat" id="PanelDark"]
-bg_color = Color(0.035, 0.055, 0.08, 0.94)
+[sub_resource type="StyleBoxFlat" id="Panel"]
+bg_color = Color(0.025, 0.045, 0.075, 0.96)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.55, 0.39, 0.2, 0.75)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 8
-
-[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
-bg_color = Color(0.065, 0.085, 0.12, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.34, 0.31, 0.27, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-shadow_color = Color(0, 0, 0, 0.45)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="ButtonHover"]
-bg_color = Color(0.10, 0.11, 0.14, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.88, 0.61, 0.24, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0.85, 0.52, 0.16, 0.35)
+border_color = Color(0.56, 0.39, 0.22, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.65)
 shadow_size = 10
 
-[sub_resource type="StyleBoxFlat" id="ButtonPressed"]
-bg_color = Color(0.13, 0.10, 0.07, 1)
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+bg_color = Color(0.055, 0.075, 0.11, 0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.43, 0.36, 0.3, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 7
+
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+bg_color = Color(0.10, 0.11, 0.15, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.96, 0.70, 0.29, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+border_color = Color(0.96, 0.66, 0.24, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0.95, 0.55, 0.12, 0.42)
+shadow_size = 13
+
+[sub_resource type="StyleBoxFlat" id="ButtonPressed"]
+bg_color = Color(0.15, 0.105, 0.055, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.77, 0.33, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [sub_resource type="StyleBoxFlat" id="ButtonDisabled"]
-bg_color = Color(0.045, 0.055, 0.07, 0.78)
+bg_color = Color(0.035, 0.045, 0.065, 0.82)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.18, 0.19, 0.21, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+border_color = Color(0.17, 0.18, 0.21, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [node name="Dungeon" type="Control"]
 layout_mode = 3
@@ -93,9 +102,9 @@ event_node_data = ExtResource("4")
 shop_node_data = ExtResource("5")
 elite_node_data = ExtResource("6")
 boss_node_data = ExtResource("7")
-theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
-theme_override_colors/font_disabled_color = Color(0.4, 0.4, 0.42, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.94, 0.94, 0.95, 1)
+theme_override_colors/font_disabled_color = Color(0.42, 0.43, 0.46, 1)
+theme_override_font_sizes/font_size = 17
 theme_override_styles/button = SubResource("ButtonNormal")
 theme_override_styles/button_hover = SubResource("ButtonHover")
 theme_override_styles/button_pressed = SubResource("ButtonPressed")
@@ -120,7 +129,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.015, 0.025, 0.045, 0.28)
+color = Color(0.008, 0.018, 0.035, 0.34)
 mouse_filter = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -131,74 +140,263 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 34
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 34
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 400
 theme_override_constants/margin_bottom = 18
 
 [node name="Content" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 7
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
+custom_minimum_size = Vector2(0, 68)
 
-[node name="Logo" type="Label" parent="MarginContainer/Content/Header"]
+[node name="LogoMark" type="TextureRect" parent="MarginContainer/Content/Header"]
+custom_minimum_size = Vector2(70, 64)
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.94, 0.76, 0.39, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+texture = ExtResource("9")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LogoText" type="Label" parent="MarginContainer/Content/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.78, 0.38, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
+theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 30
 text = "DICEGOD"
 vertical_alignment = 1
 
 [node name="Tagline" type="Label" parent="MarginContainer/Content/Header"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.58, 0.61, 0.67, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.65, 0.67, 0.72, 1)
+theme_override_font_sizes/font_size = 11
 text = "ROLL THE DICE · SHAPE YOUR FATE"
 vertical_alignment = 1
+size_flags_horizontal = 3
 
 [node name="StatusButton" type="Button" parent="MarginContainer/Content/Header"]
-custom_minimum_size = Vector2(120, 42)
+custom_minimum_size = Vector2(110, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 16
 text = "상태"
 
-[node name="RunStatusPanel" type="PanelContainer" parent="MarginContainer/Content"]
+[node name="RunStatusPanel" type="Panel" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("PanelDark")
+theme_override_styles/panel = SubResource("Panel")
+custom_minimum_size = Vector2(0, 58)
 
 [node name="RunStatusLabel" type="Label" parent="MarginContainer/Content/RunStatusPanel"]
+visible = false
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+text = "RUN 0 | HP 10/10 | GOLD 100G | DICE 6 | DIVINE 0"
+
+[node name="StatusCards" type="HBoxContainer" parent="MarginContainer/Content/RunStatusPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = 6.0
+offset_right = -14.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="Run" type="Label" parent="MarginContainer/Content/RunStatusPanel/StatusCards"]
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.82, 0.66, 1)
-theme_override_font_sizes/font_size = 14
-text = "RUN 0    |    HP 10/10    |    GOLD 100G    |    DICE 6    |    DIVINE 0"
+theme_override_colors/font_color = Color(0.85, 0.78, 0.62, 1)
+theme_override_font_sizes/font_size = 15
+text = "RUN 0"
 horizontal_alignment = 1
 vertical_alignment = 1
-custom_minimum_size = Vector2(0, 36)
+
+[node name="HeartIcon" type="TextureRect" parent="MarginContainer/Content/RunStatusPanel/StatusCards"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+texture = ExtResource("16")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HP" type="Label" parent="MarginContainer/Content/RunStatusPanel/StatusCards"]
+custom_minimum_size = Vector2(82, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "10/10"
+vertical_alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="MarginContainer/Content/RunStatusPanel/StatusCards"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+texture = ExtResource("17")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Gold" type="Label" parent="MarginContainer/Content/RunStatusPanel/StatusCards"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "100G"
+vertical_alignment = 1
+
+[node name="Dice" type="Label" parent="MarginContainer/Content/RunStatusPanel/StatusCards"]
+custom_minimum_size = Vector2(88, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.82, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "DICE 6"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Divine" type="Label" parent="MarginContainer/Content/RunStatusPanel/StatusCards"]
+custom_minimum_size = Vector2(95, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.47, 1)
+theme_override_font_sizes/font_size = 15
+text = "DIVINE 0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Title" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.93, 0.88, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(0.97, 0.96, 0.93, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 34
 text = "DUNGEON"
 horizontal_alignment = 1
 
 [node name="Map" type="VBoxContainer" parent="MarginContainer/Content"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
 [node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.69, 0.54, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.86, 0.76, 0.58, 1)
+theme_override_font_sizes/font_size = 16
 text = "일반 전투부터 시작하세요."
 horizontal_alignment = 1
 vertical_alignment = 1
-custom_minimum_size = Vector2(0, 28)
+custom_minimum_size = Vector2(0, 32)
+
+[node name="Sidebar" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 0.72
+anchor_top = 0.13
+anchor_right = 0.98
+anchor_bottom = 0.96
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="PlayerPanel" type="PanelContainer" parent="Sidebar"]
+custom_minimum_size = Vector2(0, 145)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="Player" type="VBoxContainer" parent="Sidebar/PlayerPanel"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Header" type="Label" parent="Sidebar/PlayerPanel/Player"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.9, 0.67, 1)
+theme_override_font_sizes/font_size = 19
+text = "플레이어"
+
+[node name="Info" type="Label" parent="Sidebar/PlayerPanel/Player"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Lv.1\n\nHP  10 / 10\nGOLD  100G\nDICE  6개"
+vertical_alignment = 1
+
+[node name="BuffPanel" type="PanelContainer" parent="Sidebar"]
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="Buffs" type="VBoxContainer" parent="Sidebar/BuffPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="Sidebar/BuffPanel/Buffs"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.9, 0.67, 1)
+theme_override_font_sizes/font_size = 18
+text = "보유 버프"
+
+[node name="Slots" type="HBoxContainer" parent="Sidebar/BuffPanel/Buffs"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Slot1" type="Label" parent="Sidebar/BuffPanel/Buffs/Slots"]
+custom_minimum_size = Vector2(52, 58)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.47, 0.52, 1)
+theme_override_font_sizes/font_size = 28
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot2" type="Label" parent="Sidebar/BuffPanel/Buffs/Slots"]
+custom_minimum_size = Vector2(52, 58)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.47, 0.52, 1)
+theme_override_font_sizes/font_size = 28
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot3" type="Label" parent="Sidebar/BuffPanel/Buffs/Slots"]
+custom_minimum_size = Vector2(52, 58)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.47, 0.52, 1)
+theme_override_font_sizes/font_size = 28
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Slot4" type="Label" parent="Sidebar/BuffPanel/Buffs/Slots"]
+custom_minimum_size = Vector2(52, 58)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.47, 0.52, 1)
+theme_override_font_sizes/font_size = 28
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LogPanel" type="PanelContainer" parent="Sidebar"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("Panel")
+
+[node name="Log" type="VBoxContainer" parent="Sidebar/LogPanel"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Header" type="Label" parent="Sidebar/LogPanel/Log"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.9, 0.67, 1)
+theme_override_font_sizes/font_size = 18
+text = "게임 로그"
+
+[node name="Text" type="Label" parent="Sidebar/LogPanel/Log"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.82, 0.84, 0.89, 1)
+theme_override_font_sizes/font_size = 13
+text = "새로운 신의 여정이 시작되었습니다.\n\n체력이 10으로 시작합니다.\n\n골드 100G를 보유하고 있습니다.\n\n주사위 6개로 시작합니다.\n\n신성 포인트 0으로 시작합니다."
+autowrap_mode = 2

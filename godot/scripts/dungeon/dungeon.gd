@@ -3,7 +3,7 @@ extends Control
 
 # 현재 런의 던전 구조:
 # 일반 전투 -> 대장간 / 상점 -> 엘리트 전투 -> 캠프 / 도박장 -> 보스 전투
-# UI에서 유니코드 이모지를 사용하지 않고 SVG 아이콘을 사용한다.
+# 유니코드 이모지를 UI 아이콘으로 사용하지 않고 SVG 이미지 리소스를 사용한다.
 
 const ICON_SWORD: Texture2D = preload("res://assets/ui/icon_sword.svg")
 const ICON_FORGE: Texture2D = preload("res://assets/ui/icon_forge.svg")
@@ -16,6 +16,11 @@ const ICON_BOSS: Texture2D = preload("res://assets/ui/icon_boss.svg")
 @onready var map: Control = $MarginContainer/Content/Map
 @onready var run_status_label: Label = $MarginContainer/Content/RunStatusPanel/RunStatusLabel
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
+@onready var run_value: Label = $MarginContainer/Content/RunStatusPanel/StatusCards/Run
+@onready var hp_value: Label = $MarginContainer/Content/RunStatusPanel/StatusCards/HP
+@onready var gold_value: Label = $MarginContainer/Content/RunStatusPanel/StatusCards/Gold
+@onready var dice_value: Label = $MarginContainer/Content/RunStatusPanel/StatusCards/Dice
+@onready var divine_value: Label = $MarginContainer/Content/RunStatusPanel/StatusCards/Divine
 
 var route_map: VBoxContainer
 var route_start_button: Button
@@ -41,7 +46,7 @@ func _build_route_map() -> void:
 	route_map.name = "BranchingRouteMap"
 	route_map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	route_map.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	route_map.add_theme_constant_override("separation", 5)
+	route_map.add_theme_constant_override("separation", 4)
 	map.add_child(route_map)
 
 	var start_row: HBoxContainer = _make_route_row()
@@ -95,10 +100,16 @@ func _format_run_status() -> String:
 	var divine_count: int = int(summary.get("divine_symbol_count", 0))
 	var gold: int = int(summary.get("gold", 0))
 	var run_number: int = int(summary.get("run_number", 0))
-	return "RUN %d    |    HP %s    |    GOLD %dG    |    DICE %d    |    DIVINE %d" % [run_number, hp_text, gold, dice_count, divine_count]
+	return "RUN %d | HP %s | GOLD %dG | DICE %d | DIVINE %d" % [run_number, hp_text, gold, dice_count, divine_count]
 
 func _update_progress() -> void:
+	var summary: Dictionary = RunState.get_run_summary()
 	run_status_label.text = _format_run_status()
+	run_value.text = "RUN %d" % int(summary.get("run_number", 0))
+	hp_value.text = "%d/%d" % [int(summary.get("current_hp", 0)), int(summary.get("max_hp", 0))]
+	gold_value.text = "%dG" % int(summary.get("gold", 0))
+	dice_value.text = "DICE %d" % int(summary.get("dice_count", 0))
+	divine_value.text = "DIVINE %d" % int(summary.get("divine_symbol_count", 0))
 	if RunState.boss_cleared:
 		_disable_all_nodes()
 		status_label.text = "보스 처치 완료! 다음 런을 준비합니다."
@@ -183,8 +194,8 @@ func _make_route_arrow() -> Label:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.custom_minimum_size = Vector2(0, 18)
-	label.add_theme_color_override("font_color", Color("#e2b35b"))
+	label.custom_minimum_size = Vector2(0, 16)
+	label.add_theme_color_override("font_color", Color("#e9a83d"))
 	label.add_theme_font_size_override("font_size", 22)
 	return label
 
@@ -192,10 +203,9 @@ func _make_route_button(title: String, description: String, icon: Texture2D, wid
 	var button: Button = Button.new()
 	button.text = "%s\n%s" % [title, description]
 	button.icon = icon
-	# Button에는 icon_max_width 속성이 없으므로 SVG 아이콘은 원본 크기로 렌더링한다.
-	# 아이콘 자체가 작게 제작되어 있어 별도의 비표준 프로퍼티가 필요하지 않다.
 	button.expand_icon = true
-	button.custom_minimum_size = Vector2(500 if wide else 310, 72)
+	button.custom_minimum_size = Vector2(500 if wide else 310, 82)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.focus_mode = Control.FOCUS_ALL
+	button.add_theme_font_size_override("font_size", 17)
 	return button
