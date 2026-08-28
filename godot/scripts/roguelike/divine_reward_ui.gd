@@ -4,6 +4,8 @@ extends Control
 signal completed
 
 const GOLD_REWARD: int = 100
+const UI_ICON_PATH: String = "res://assets/ui/"
+const DICE_ICON_PATH: String = "res://assets/icons/dice/"
 
 var run_state: RunStateManager
 var boss_id: String = ""
@@ -34,15 +36,18 @@ func _build_ui() -> void:
 
 	var reward: Dictionary = DivineRewardSystem.get_boss_reward(boss_id)
 	var boss_reward: Dictionary = BossRewardSystem.get_reward(boss_id)
+	var reward_name: String = str(reward.get("name", "신"))
+	var reward_symbol: String = _boss_symbol_name(str(reward.get("symbol", "")))
 
 	var title: Label = Label.new()
-	title.text = "👑 보스 처치 보상 — %s" % str(reward.get("name", "신"))
+	title.text = "보스 처치 보상 — %s" % reward_name
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_icon_override("icon", _load_ui_icon("icon_boss.svg"))
 	root.add_child(title)
 
 	var reward_label: Label = Label.new()
-	reward_label.text = "%s\n%s\n\n🔨 보스 전용 장비: %s\n🎲 보스 전용 주사위: %s" % [str(reward.get("display", "")), str(reward.get("description", "")), str(boss_reward.get("gear", "")), str(boss_reward.get("die_name", "특수 주사위"))]
+	reward_label.text = "%s\n%s\n\n보스 전용 장비: %s\n보스 전용 주사위: %s" % [reward_symbol, str(reward.get("description", "")), str(boss_reward.get("gear", "")), str(boss_reward.get("die_name", "특수 주사위"))]
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(reward_label)
 
@@ -56,8 +61,9 @@ func _build_ui() -> void:
 	root.add_child(info_label)
 
 	var dice_title: Label = Label.new()
-	dice_title.text = "🎲 현재 주사위 — 실제 심볼 배치"
+	dice_title.text = "현재 주사위 — 실제 심볼 배치"
 	dice_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	dice_title.add_theme_icon_override("icon", _load_ui_icon("icon_dice.svg"))
 	root.add_child(dice_title)
 
 	die_grid = GridContainer.new()
@@ -78,14 +84,16 @@ func _build_ui() -> void:
 	root.add_child(action_row)
 
 	imprint_button = Button.new()
-	imprint_button.text = "🔨 선택한 면에 %s 각인" % str(reward.get("display", "신성 심볼"))
+	imprint_button.text = "선택한 면에 %s 각인" % reward_symbol
+	imprint_button.icon = _load_ui_icon("icon_divine.svg")
 	imprint_button.custom_minimum_size = Vector2(260, 55)
 	imprint_button.disabled = true
 	imprint_button.pressed.connect(_on_imprint)
 	action_row.add_child(imprint_button)
 
 	gold_button = Button.new()
-	gold_button.text = "💰 골드 +%d G 획득" % GOLD_REWARD
+	gold_button.text = "골드 +%d G 획득" % GOLD_REWARD
+	gold_button.icon = _load_ui_icon("icon_coin.svg")
 	gold_button.custom_minimum_size = Vector2(220, 55)
 	gold_button.pressed.connect(_on_gold)
 	action_row.add_child(gold_button)
@@ -102,6 +110,7 @@ func _refresh() -> void:
 	for die_index in run_state.run_dice_faces.size():
 		var die_button: Button = Button.new()
 		die_button.text = _format_die_text(die_index)
+		die_button.icon = _load_ui_icon("icon_dice.svg")
 		die_button.custom_minimum_size = Vector2(230, 100)
 		die_button.pressed.connect(_select_die.bind(die_index))
 		die_grid.add_child(die_button)
@@ -111,6 +120,7 @@ func _refresh() -> void:
 		for face_index in RunStateManager.DICE_FACE_COUNT:
 			var face_button: Button = Button.new()
 			face_button.text = _symbol_for_face(faces[face_index])
+			face_button.icon = _icon_for_face(faces[face_index])
 			face_button.custom_minimum_size = Vector2(80, 55)
 			face_button.pressed.connect(_select_face.bind(face_index))
 			face_grid.add_child(face_button)
@@ -135,26 +145,65 @@ func _format_die_text(die_index: int) -> String:
 	var second_row: String = ""
 	if lines.size() > 3:
 		second_row = "\n" + " ".join(lines.slice(3, lines.size()))
-	return "🎲 주사위 %d\n%s%s" % [die_index + 1, first_row, second_row]
+	return "주사위 %d\n%s%s" % [die_index + 1, first_row, second_row]
 
 func _symbol_for_face(value: Variant) -> String:
 	var face_value: int = int(value)
 	match face_value:
-		1: return "⚔️"
-		2: return "🏹"
-		3: return "🔮"
-		4: return "🗡️"
-		5: return "🛡️"
-		6: return "❤️"
-		101: return "💰"
-		102: return "💥"
-		103: return "🔮✨"
-		104: return "❤️✨"
-		105: return "⚡"
-		106: return "🛡️✨"
-		107: return "⭐"
-		108: return "☠️"
-	return "❔"
+		1: return "검"
+		2: return "활"
+		3: return "지팡이"
+		4: return "표창"
+		5: return "방패"
+		6: return "회복"
+		101: return "골드"
+		102: return "폭발"
+		103: return "역병"
+		104: return "혈액"
+		105: return "폭풍"
+		106: return "강화 방패"
+		107: return "운명"
+		108: return "죽음"
+		201: return "화염"
+		202: return "빙결"
+		203: return "역병"
+		204: return "혈액"
+		205: return "폭풍"
+		206: return "거암"
+		207: return "운명"
+		208: return "공허"
+	return "알 수 없음"
+
+func _icon_for_face(value: Variant) -> Texture2D:
+	var face_value: int = int(value)
+	match face_value:
+		1: return _load_dice_icon("sword.svg")
+		2: return _load_dice_icon("bow.svg")
+		3: return _load_dice_icon("staff.svg")
+		4: return _load_dice_icon("shuriken.svg")
+		5: return _load_dice_icon("shield.svg")
+		6: return _load_dice_icon("heal.svg")
+		101, 102, 103, 104, 105, 106, 107, 108, 201, 202, 203, 204, 205, 206, 207, 208:
+			return _load_ui_icon("icon_divine.svg")
+	return null
+
+func _boss_symbol_name(symbol_id: String) -> String:
+	match symbol_id:
+		"flame": return "화염"
+		"frost": return "빙결"
+		"plague": return "역병"
+		"blood": return "혈액"
+		"storm": return "폭풍"
+		"stone": return "거암"
+		"fate": return "운명"
+		"void": return "공허"
+	return "신성 심볼"
+
+func _load_ui_icon(file_name: String) -> Texture2D:
+	return load(UI_ICON_PATH + file_name) as Texture2D
+
+func _load_dice_icon(file_name: String) -> Texture2D:
+	return load(DICE_ICON_PATH + file_name) as Texture2D
 
 func _select_die(index: int) -> void:
 	if selected_mode != "":
@@ -178,7 +227,7 @@ func _on_imprint() -> void:
 		return
 	selected_mode = "imprint"
 	run_state.persist_completed_run_dice()
-	info_label.text = "✅ %s 각인 완료! 이 주사위 변경은 다음 런에도 유지됩니다." % str(result.get("display", "신성 심볼"))
+	info_label.text = "각인 완료! 이 주사위 변경은 다음 런에도 유지됩니다."
 	_refresh()
 	completed.emit()
 
@@ -187,6 +236,6 @@ func _on_gold() -> void:
 		return
 	run_state.add_gold(GOLD_REWARD)
 	selected_mode = "gold"
-	info_label.text = "✅ 골드 +%d G 획득!" % GOLD_REWARD
+	info_label.text = "골드 +%d G 획득!" % GOLD_REWARD
 	_refresh()
 	completed.emit()
