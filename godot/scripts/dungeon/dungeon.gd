@@ -30,6 +30,11 @@ var route_stage_one_buttons: Array[Button] = []
 var route_stage_two_buttons: Array[Button] = []
 
 func _ready() -> void:
+	# project.godot가 던전 씬을 직접 main scene으로 실행하므로
+	# 별도의 런 시작 화면이 없는 경우 여기서 최초 런을 생성한다.
+	# 이미 진행 중인 런은 절대로 다시 초기화하지 않는다.
+	if RunState.run_number == 0 and RunState.run_dice_faces.is_empty():
+		RunState.start_new_run()
 	RunStatusOverlay.attach(self)
 	_build_route_map()
 	_update_progress()
