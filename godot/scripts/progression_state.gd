@@ -2,19 +2,25 @@ class_name ProgressionStateManager
 extends Node
 
 const SAVE_PATH := "user://dicegod_progression.json"
-const CURRENT_VERSION := 4
+const CURRENT_VERSION := 5
 
 var save_version: int = CURRENT_VERSION
 var total_runs: int = 0
 var total_wins: int = 0
 var total_losses: int = 0
+
+# 메타 성장은 전투 수치가 아니라 선택지/콘텐츠를 확장한다.
 var unlocked_dice: Array[String] = ["basic_dice", "healing_dice"]
 var unlocked_abilities: Array[String] = ["matching_numbers"]
 var unlocked_equipment: Array[String] = ["straight_equipment"]
 var unlocked_divine_symbols: Array[String] = []
 var unlocked_bosses: Array[String] = []
 var unlocked_special_dice: Array[String] = []
-var persistent_dice_faces: Array[Array] = []
+var unlocked_events: Array[String] = []
+var unlocked_forge_options: Array[String] = []
+var unlocked_legacy_options: Array[String] = []
+var legacy_slots: int = 0
+var meta_currency: int = 0
 
 func _ready() -> void:
 	load_progression()
@@ -31,13 +37,14 @@ func record_run_win() -> void:
 	total_wins += 1
 	save_progression()
 
+func add_meta_currency(amount: int) -> void:
+	meta_currency = maxi(0, meta_currency + amount)
+	save_progression()
+
 func unlock_dice(dice_id: String) -> bool:
 	if unlocked_dice.has(dice_id):
 		return false
 	unlocked_dice.append(dice_id)
-	if dice_id == "power_dice":
-		unlock_ability("critical_force")
-		unlock_equipment("war_amulet")
 	save_progression()
 	return true
 
@@ -76,6 +83,31 @@ func unlock_special_dice(dice_id: String) -> bool:
 	save_progression()
 	return true
 
+func unlock_event(event_id: String) -> bool:
+	if unlocked_events.has(event_id):
+		return false
+	unlocked_events.append(event_id)
+	save_progression()
+	return true
+
+func unlock_forge_option(option_id: String) -> bool:
+	if unlocked_forge_options.has(option_id):
+		return false
+	unlocked_forge_options.append(option_id)
+	save_progression()
+	return true
+
+func unlock_legacy_option(legacy_id: String) -> bool:
+	if unlocked_legacy_options.has(legacy_id):
+		return false
+	unlocked_legacy_options.append(legacy_id)
+	save_progression()
+	return true
+
+func increase_legacy_slots(amount: int = 1) -> void:
+	legacy_slots = maxi(0, legacy_slots + maxi(0, amount))
+	save_progression()
+
 func is_dice_unlocked(dice_id: String) -> bool:
 	return unlocked_dice.has(dice_id)
 
@@ -85,21 +117,20 @@ func is_ability_unlocked(ability_id: String) -> bool:
 func is_equipment_unlocked(equipment_id: String) -> bool:
 	return unlocked_equipment.has(equipment_id)
 
-func get_persistent_dice_faces() -> Array[Array]:
-	var result: Array[Array] = []
-	for die_faces: Array in persistent_dice_faces:
-		result.append(die_faces.duplicate(true))
-	return result
+func is_legacy_unlocked(legacy_id: String) -> bool:
+	return unlocked_legacy_options.has(legacy_id)
 
-func save_persistent_dice_faces(dice_faces: Array) -> void:
-	persistent_dice_faces.clear()
-	for die_faces: Variant in dice_faces:
-		if die_faces is Array and die_faces.size() > 0:
-			persistent_dice_faces.append(die_faces.duplicate(true))
-	save_progression()
+# 이전 영구 주사위 면 API는 의도적으로 비활성화한다.
+# 완성된 런 주사위는 다음 런으로 전투력을 계승하지 않는다.
+func get_persistent_dice_faces() -> Array[Array]:
+	return []
+
+func save_persistent_dice_faces(_dice_faces: Array) -> void:
+	# 구버전 호출과의 호환성을 위해 함수는 유지하되 저장하지 않는다.
+	return
 
 func get_unlock_summary() -> String:
-	return "영구 해금: 주사위 %d | 스킬 %d | 장비 %d | 신성 %d | 보스 %d" % [unlocked_dice.size(), unlocked_abilities.size(), unlocked_equipment.size(), unlocked_divine_symbols.size(), unlocked_bosses.size()]
+	return "영구 해금: 주사위 %d | 스킬 %d | 장비 %d | 신성 %d | 보스 %d | 이벤트 %d | 유산 %d" % [unlocked_dice.size(), unlocked_abilities.size(), unlocked_equipment.size(), unlocked_divine_symbols.size(), unlocked_bosses.size(), unlocked_events.size(), unlocked_legacy_options.size()]
 
 func save_progression() -> void:
 	var data := {
@@ -113,7 +144,11 @@ func save_progression() -> void:
 		"unlocked_divine_symbols": unlocked_divine_symbols,
 		"unlocked_bosses": unlocked_bosses,
 		"unlocked_special_dice": unlocked_special_dice,
-		"persistent_dice_faces": persistent_dice_faces,
+		"unlocked_events": unlocked_events,
+		"unlocked_forge_options": unlocked_forge_options,
+		"unlocked_legacy_options": unlocked_legacy_options,
+		"legacy_slots": legacy_slots,
+		"meta_currency": meta_currency,
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -141,7 +176,11 @@ func load_progression() -> void:
 	unlocked_divine_symbols = _load_string_array(data.get("unlocked_divine_symbols", []), [])
 	unlocked_bosses = _load_string_array(data.get("unlocked_bosses", []), [])
 	unlocked_special_dice = _load_string_array(data.get("unlocked_special_dice", []), [])
-	persistent_dice_faces = _load_dice_faces(data.get("persistent_dice_faces", []))
+	unlocked_events = _load_string_array(data.get("unlocked_events", []), [])
+	unlocked_forge_options = _load_string_array(data.get("unlocked_forge_options", []), [])
+	unlocked_legacy_options = _load_string_array(data.get("unlocked_legacy_options", []), [])
+	legacy_slots = maxi(0, int(data.get("legacy_slots", 0)))
+	meta_currency = maxi(0, int(data.get("meta_currency", 0)))
 	save_progression()
 
 func _load_string_array(value: Variant, fallback: Array[String]) -> Array[String]:
@@ -151,15 +190,4 @@ func _load_string_array(value: Variant, fallback: Array[String]) -> Array[String
 			result.append(str(item))
 	if result.is_empty():
 		return fallback.duplicate()
-	return result
-
-func _load_dice_faces(value: Variant) -> Array[Array]:
-	var result: Array[Array] = []
-	if value is Array:
-		for die_value: Variant in value:
-			if die_value is Array and die_value.size() == 6:
-				var faces: Array = []
-				for face: Variant in die_value:
-					faces.append(int(face))
-				result.append(faces)
 	return result
