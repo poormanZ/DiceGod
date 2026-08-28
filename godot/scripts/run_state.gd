@@ -106,11 +106,10 @@ func start_new_run() -> void:
 		progression_state.record_run_start()
 
 func get_reroll_bonus() -> int:
-	# 기본값은 0. 장착 장비가 향후 이 보너스를 제공한다.
-	return 0
+	return maxi(0, RoguelikeEquipmentSystem.bonus(self, "reroll"))
 
 func get_max_rerolls() -> int:
-	return 1 + maxi(0, get_reroll_bonus())
+	return mini(3, 1 + get_reroll_bonus())
 
 func _generate_dungeon_route() -> void:
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
