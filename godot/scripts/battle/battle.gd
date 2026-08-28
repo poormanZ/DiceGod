@@ -31,6 +31,7 @@ var calculated_block: int = 0
 var calculated_heal: int = 0
 var is_battle_over: bool = false
 var ability_used: bool = false
+var active_synergy_messages: Array[String] = []
 
 func _ready() -> void:
 	_load_default_data()
@@ -59,7 +60,15 @@ func _create_battle_entities() -> void:
 
 func _create_dice_states() -> void:
 	dice_states.clear()
-	for _index: int in DiceData.STARTING_DICE_COUNT: dice_states.append(DiceRuntimeState.new(dice_data))
+	# 전투 주사위는 현재 런에서 보유한 주사위 구성을 우선 사용합니다.
+	if RunState.run_dice_faces.size() > 0:
+		for faces: Array in RunState.run_dice_faces:
+			var runtime_data: DiceData = DiceData.new()
+			runtime_data.face_values = PackedInt32Array(faces)
+			dice_states.append(DiceRuntimeState.new(runtime_data))
+	if dice_states.is_empty():
+		for _index: int in DiceData.STARTING_DICE_COUNT:
+			dice_states.append(DiceRuntimeState.new(dice_data))
 
 func _add_run_status_overlay() -> void:
 	if get_node_or_null("RunStatusOverlay") == null: RunStatusOverlay.attach(self)
@@ -69,6 +78,7 @@ func _start_turn(message: String) -> void:
 	calculated_attack_damage = 0
 	calculated_block = 0
 	calculated_heal = 0
+	active_synergy_messages.clear()
 	ability_used = false
 	is_battle_over = false
 	for dice_state: DiceRuntimeState in dice_states: dice_state.clear_result()
@@ -106,31 +116,84 @@ func _on_confirm_button_pressed() -> void:
 	_calculate_actions()
 	_apply_heal()
 	_apply_block()
-	# 스킬은 별도 버튼 없이 확정 결과의 조건을 만족하면 자동 적용한다.
 	var bonus: int = ability.calculate_bonus(dice_states)
 	if bonus > 0:
 		calculated_attack_damage += bonus
 		ability_used = true
-		_show_feedback("스킬 자동 발동: 공격 +%d" % bonus)
+		active_synergy_messages.append("스킬 +%d" % bonus)
 	ability_button.visible = false
 	attack_button.disabled = not _has_player_action()
-	status_label.text = "확정: 공격 %d  |  보호막 %d  |  회복 %d" % [calculated_attack_damage, calculated_block, calculated_heal]
+	var result_message: String = "확정: 공격 %d  |  보호막 %d  |  회복 %d" % [calculated_attack_damage, calculated_block, calculated_heal]
+	if not active_synergy_messages.is_empty():
+		result_message += "\n시너지: " + " · ".join(active_synergy_messages)
+	status_label.text = result_message
+	_show_feedback(result_message)
 
 func _calculate_actions() -> void:
 	calculated_attack_damage = RunState.attack_bonus
 	calculated_block = 0
 	calculated_heal = 0
+	active_synergy_messages.clear()
+	var counts: Dictionary = {}
 	for dice_state: DiceRuntimeState in dice_states:
 		if dice_state == null or not dice_state.has_result(): continue
-		match dice_state.result:
+		var value: int = dice_state.result
+		counts[value] = int(counts.get(value, 0)) + 1
+		match value:
 			DiceData.SWORD, DiceData.BOW, DiceData.STAFF, DiceData.SHURIKEN: calculated_attack_damage += 1
 			DiceData.SHIELD: calculated_block += 1
 			DiceData.HEAL: calculated_heal += 1
-	var counts: Dictionary = ability.get_symbol_counts(dice_states)
 	var shield_count: int = int(counts.get(DiceData.SHIELD, 0))
 	var heal_count: int = int(counts.get(DiceData.HEAL, 0))
 	if shield_count >= 2: calculated_block += shield_count - 1
 	if heal_count >= 2: calculated_heal += heal_count - 1
+	_apply_symbol_synergies(counts)
+	var ability_counts: Dictionary = ability.get_symbol_counts(dice_states)
+	# 기존 능력 보너스 계산은 시너지와 독립적으로 유지합니다.
+	if ability_counts.is_empty():
+		return
+
+func _apply_symbol_synergies(counts: Dictionary) -> void:
+	var attack_total: int = 0
+	var distinct_attack: int = 0
+	for symbol: int in [DiceData.SWORD, DiceData.BOW, DiceData.STAFF, DiceData.SHURIKEN]:
+		var count: int = int(counts.get(symbol, 0))
+		attack_total += count
+		if count > 0: distinct_attack += 1
+
+	# 2개 조합: 공격 심볼 2개 이상이면 작은 추가 공격 보너스.
+	if attack_total >= 2:
+		calculated_attack_damage += 1
+		active_synergy_messages.append("공격 조합 +1")
+
+	# 같은 공격 심볼 3개 이상: 높은 확률이 필요한 완성형 조합에만 추가 보너스.
+	var triple_attack: bool = false
+	for symbol: int in [DiceData.SWORD, DiceData.BOW, DiceData.STAFF, DiceData.SHURIKEN]:
+		if int(counts.get(symbol, 0)) >= 3:
+			triple_attack = true
+			break
+	if triple_attack:
+		calculated_attack_damage += 2
+		active_synergy_messages.append("집중 공격 +2")
+	elif attack_total >= 3 and distinct_attack >= 2:
+		calculated_attack_damage += 1
+		active_synergy_messages.append("연계 공격 +1")
+
+	var shield_count: int = int(counts.get(DiceData.SHIELD, 0))
+	var heal_count: int = int(counts.get(DiceData.HEAL, 0))
+	# 방패 + 힐 2개 조합은 생존용 소폭 보너스입니다.
+	if shield_count >= 1 and heal_count >= 1:
+		calculated_block += 1
+		calculated_heal += 1
+		active_synergy_messages.append("수호 회복 +1/+1")
+	# 방패 3개 이상은 안정성 대신 제한된 추가 보호막만 제공합니다.
+	if shield_count >= 3:
+		calculated_block += 1
+		active_synergy_messages.append("철벽 +1")
+	# 힐 3개 이상은 과도한 무한 회복을 막기 위해 추가 +1만 제공합니다.
+	if heal_count >= 3:
+		calculated_heal += 1
+		active_synergy_messages.append("집중 회복 +1")
 
 func _apply_heal() -> void:
 	if calculated_heal <= 0: return
@@ -149,7 +212,6 @@ func _has_player_action() -> bool:
 	return calculated_attack_damage > 0 or calculated_block > 0 or calculated_heal > 0
 
 func _on_ability_button_pressed() -> void:
-	# 하위 씬과 기존 연결을 위한 호환 함수. 실제 발동은 확정 시 자동 처리한다.
 	return
 
 func _on_attack_button_pressed() -> void:
