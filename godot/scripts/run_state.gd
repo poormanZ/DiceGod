@@ -99,6 +99,12 @@ func start_new_run() -> void:
 	unlocked_dice_bonus = 0
 	gamble_result = ""
 	gamble_streak = 0
+	# 새 런에서는 전투에 들어가기 전에 반드시 6개의 기본 심볼 주사위를 준비합니다.
+	# 기존 구현은 run_dice_faces를 clear()한 뒤 다시 초기화하지 않아
+	# 던전/전투 UI에서 주사위 수가 0개로 표시되는 문제가 있었습니다.
+	var basic_dice: DiceData = load("res://resources/dice/basic_dice.tres") as DiceData
+	if basic_dice != null:
+		initialize_run_dice(basic_dice.face_values)
 	_generate_dungeon_route()
 	permanent_runs += 1
 	var progression_state: Node = get_node_or_null("/root/ProgressionState")
