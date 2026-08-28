@@ -131,13 +131,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 34
-theme_override_constants/margin_top = 22
+theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 34
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_bottom = 18
 
 [node name="Content" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 7
+theme_override_constants/separation = 6
 
 [node name="Header" type="HBoxContainer" parent="MarginContainer/Content"]
 layout_mode = 2
@@ -157,7 +157,7 @@ vertical_alignment = 1
 [node name="Tagline" type="Label" parent="MarginContainer/Content/Header"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.61, 0.67, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 12
 text = "ROLL THE DICE · SHAPE YOUR FATE"
 vertical_alignment = 1
 
@@ -171,21 +171,21 @@ text = "상태"
 layout_mode = 2
 theme_override_styles/panel = SubResource("PanelDark")
 
-[node name="RunStatusLabel" type="Label" parent="MarginContainer/Content"]
+[node name="RunStatusLabel" type="Label" parent="MarginContainer/Content/RunStatusPanel"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.82, 0.66, 1)
-theme_override_font_sizes/font_size = 15
-text = ""
+theme_override_font_sizes/font_size = 14
+text = "RUN 0    |    HP 10/10    |    GOLD 100G    |    DICE 6    |    DIVINE 0"
 horizontal_alignment = 1
 vertical_alignment = 1
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 36)
 
 [node name="Title" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.93, 0.88, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 32
 text = "DUNGEON"
 horizontal_alignment = 1
 
@@ -197,8 +197,8 @@ theme_override_constants/separation = 5
 [node name="StatusLabel" type="Label" parent="MarginContainer/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.69, 0.54, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 15
 text = "일반 전투부터 시작하세요."
 horizontal_alignment = 1
 vertical_alignment = 1
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 28)
