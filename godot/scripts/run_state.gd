@@ -29,7 +29,6 @@ var current_event_type: String = ""
 var event_options: Array[String] = []
 var run_dice_faces: Array[Array] = []
 var special_dice_collection: Array[Dictionary] = []
-# 레거시 환생 UI 호환 필드. 완성된 주사위는 다음 런으로 계승되지 않는다.
 var inherited_die: Dictionary = {}
 var pending_inheritance_die: Dictionary = {}
 var forge_used_this_run: bool = false
@@ -53,7 +52,6 @@ var permanent_wins: int = 0
 var permanent_deaths: int = 0
 var unlocked_gods: Array[String] = []
 var run_completed: bool = false
-
 var route_event_stage_one: String = ""
 var route_event_stage_two: String = ""
 var route_event_branch_one: int = 0
@@ -63,7 +61,7 @@ func start_new_run() -> void:
 	active_run = true
 	run_number += 1
 	gold = STARTING_GOLD
-	current_hp = MAX_HP
+	current_hp = STARTING_HP
 	max_hp = MAX_HP
 	attack_bonus = 0
 	selected_build_id = ""
@@ -136,7 +134,6 @@ func select_route_event(stage: int, branch_index: int) -> bool:
 func initialize_run_dice(default_faces: PackedInt32Array) -> void:
 	if run_dice_faces.size() == STARTING_DICE_COUNT:
 		return
-	# 메타 진행도에는 주사위의 해금 여부만 저장한다. 면 구성/강화는 매 런 초기화한다.
 	var base_faces: Array[int] = []
 	for face: int in default_faces:
 		base_faces.append(face)
@@ -163,6 +160,22 @@ func get_die_faces(die_index: int) -> Array:
 	if die_index < 0 or die_index >= run_dice_faces.size():
 		return []
 	return run_dice_faces[die_index].duplicate(true)
+
+func get_run_summary() -> Dictionary:
+	return {
+		"run_number": run_number,
+		"active_run": active_run,
+		"current_hp": current_hp,
+		"max_hp": max_hp,
+		"gold": gold,
+		"dice_count": run_dice_faces.size(),
+		"max_dice_count": STARTING_DICE_COUNT,
+		"selected_build_id": selected_build_id,
+		"forge_used": forge_used_this_run,
+		"equipped_items": equipped_items.duplicate(),
+		"boss_cleared": boss_cleared,
+		"run_completed": run_completed,
+	}
 
 func heal(amount: int) -> int:
 	var requested: int = maxi(0, amount)
@@ -253,7 +266,6 @@ func record_divine_imprint(die_index: int, face_index: int, symbol_id: String) -
 func prepare_inheritance(die_faces: Array, die_name: String = "환생 기록", selected_die_index: int = -1) -> void:
 	if die_faces.size() != DICE_FACE_COUNT:
 		return
-	# 과거 UI 호출은 기록만 준비한다. 실제 면 구성은 저장/계승하지 않는다.
 	pending_inheritance_die = {"name": die_name, "selected_die_index": selected_die_index, "source_run": run_number}
 
 func confirm_inheritance() -> void:
@@ -322,7 +334,6 @@ func die() -> void:
 	record_death()
 	active_run = false
 	run_completed = false
-	# 런 전용 성장 데이터 폐기.
 	run_dice_faces.clear()
 	forge_history.clear()
 	face_upgrade_levels.clear()
@@ -345,5 +356,4 @@ func complete_run() -> bool:
 	return true
 
 func persist_completed_run_dice() -> void:
-	# 레거시 호출 호환용. 런 주사위는 영구 저장하지 않는다.
 	return
