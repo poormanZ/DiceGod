@@ -3,6 +3,10 @@ extends DivineRewardUI
 
 func _ready() -> void:
 	RunStatusOverlay.attach(self)
+	# 이전 버전에서 생성된 런이 주사위 목록을 잃은 경우에도
+	# 보스 각인 화면에 진입하기 전에 기본 주사위 6개를 복구합니다.
+	if RunState.active_run and RunState.run_dice_faces.is_empty():
+		RunState.initialize_run_dice(PackedInt32Array([1, 2, 3, 4, 5, 6]))
 	boss_id = BossRewardSystem.normalize_boss_id(str(RunState.current_boss_id))
 	if boss_id.is_empty():
 		# 구버전 세이브에서 ID가 없거나 잘못 저장된 경우에도
