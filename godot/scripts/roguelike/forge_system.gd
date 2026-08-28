@@ -3,18 +3,18 @@ extends RefCounted
 
 const FORGE_COST: int = 35
 const SYMBOL_NAMES: Dictionary = {
-	1: "⚔️ 검",
-	2: "🏹 활",
-	3: "杖 지팡이",
-	4: "✦ 표창",
-	5: "🛡️ 방패",
-	6: "✚ 힐"
+	1: "검",
+	2: "활",
+	3: "지팡이",
+	4: "표창",
+	5: "방패",
+	6: "힐"
 }
 
 static func get_symbol_name(symbol_id: int) -> String:
 	if SYMBOL_NAMES.has(symbol_id):
 		return str(SYMBOL_NAMES[symbol_id])
-	return "%s %s" % [DiceData.symbol_for(symbol_id), DiceData.name_for(symbol_id)]
+	return DiceData.name_for(symbol_id)
 
 static func get_symbol_ids() -> Array[int]:
 	return [1, 2, 3, 4, 5, 6]
