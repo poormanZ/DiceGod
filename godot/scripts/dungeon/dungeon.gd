@@ -192,7 +192,8 @@ func _make_route_button(title: String, description: String, icon: Texture2D, wid
 	var button: Button = Button.new()
 	button.text = "%s\n%s" % [title, description]
 	button.icon = icon
-	button.icon_max_width = 58
+	# Button에는 icon_max_width 속성이 없으므로 SVG 아이콘은 원본 크기로 렌더링한다.
+	# 아이콘 자체가 작게 제작되어 있어 별도의 비표준 프로퍼티가 필요하지 않다.
 	button.expand_icon = true
 	button.custom_minimum_size = Vector2(500 if wide else 310, 72)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
