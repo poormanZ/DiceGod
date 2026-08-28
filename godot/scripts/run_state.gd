@@ -29,6 +29,7 @@ var current_event_type: String = ""
 var event_options: Array[String] = []
 var run_dice_faces: Array[Array] = []
 var special_dice_collection: Array[Dictionary] = []
+# 레거시 환생 UI 호환 필드. 완성된 주사위는 다음 런으로 계승되지 않는다.
 var inherited_die: Dictionary = {}
 var pending_inheritance_die: Dictionary = {}
 var forge_used_this_run: bool = false
@@ -53,8 +54,6 @@ var permanent_deaths: int = 0
 var unlocked_gods: Array[String] = []
 var run_completed: bool = false
 
-# 매 런 시작 시 이벤트가 무작위로 하나씩 확정된다.
-# 일반 전투 → 확정 이벤트 1 → 엘리트 → 확정 이벤트 2 → 보스
 var route_event_stage_one: String = ""
 var route_event_stage_two: String = ""
 var route_event_branch_one: int = 0
@@ -81,11 +80,13 @@ func start_new_run() -> void:
 	current_event_type = ""
 	event_options.clear()
 	run_dice_faces.clear()
+	special_dice_collection.clear()
+	inherited_die.clear()
+	pending_inheritance_die.clear()
 	forge_used_this_run = false
 	forge_history.clear()
 	face_upgrade_levels.clear()
 	divine_symbol_history.clear()
-	pending_inheritance_die = inherited_die.duplicate(true)
 	current_boss_id = ""
 	boss_reward_claimed = false
 	death_pending = false
@@ -108,17 +109,11 @@ func _generate_dungeon_route() -> void:
 	rng.randomize()
 	route_event_stage_one = RANDOM_EVENT_TYPES[rng.randi_range(0, RANDOM_EVENT_TYPES.size() - 1)]
 	route_event_stage_two = RANDOM_EVENT_TYPES[rng.randi_range(0, RANDOM_EVENT_TYPES.size() - 1)]
-	# 두 개의 시각적 분기 중 확정 이벤트가 표시될 쪽. 플레이어가 이벤트를 고르는 구조는 아니다.
 	route_event_branch_one = rng.randi_range(0, 1)
 	route_event_branch_two = rng.randi_range(0, 1)
 
 func get_dungeon_route() -> Dictionary:
-	return {
-		"stage_one": route_event_stage_one,
-		"stage_two": route_event_stage_two,
-		"branch_one": route_event_branch_one,
-		"branch_two": route_event_branch_two
-	}
+	return {"stage_one": route_event_stage_one, "stage_two": route_event_stage_two, "branch_one": route_event_branch_one, "branch_two": route_event_branch_two}
 
 func get_route_event(stage: int) -> String:
 	if stage == 1:
@@ -128,7 +123,6 @@ func get_route_event(stage: int) -> String:
 	return ""
 
 func select_route_event(stage: int, branch_index: int) -> bool:
-	# 하위 호환용. 이벤트는 런 시작 시 이미 확정되므로 플레이어 선택으로 변경되지 않는다.
 	if branch_index < 0 or branch_index > 1:
 		return false
 	if stage == 1 and not route_event_stage_one.is_empty():
@@ -142,12 +136,7 @@ func select_route_event(stage: int, branch_index: int) -> bool:
 func initialize_run_dice(default_faces: PackedInt32Array) -> void:
 	if run_dice_faces.size() == STARTING_DICE_COUNT:
 		return
-	var progression_state: Node = get_node_or_null("/root/ProgressionState")
-	if progression_state != null and progression_state.has_method("get_persistent_dice_faces"):
-		var saved_faces: Array[Array] = progression_state.get_persistent_dice_faces()
-		if saved_faces.size() == STARTING_DICE_COUNT:
-			run_dice_faces = saved_faces
-			return
+	# 메타 진행도에는 주사위의 해금 여부만 저장한다. 면 구성/강화는 매 런 초기화한다.
 	var base_faces: Array[int] = []
 	for face: int in default_faces:
 		base_faces.append(face)
@@ -157,10 +146,6 @@ func initialize_run_dice(default_faces: PackedInt32Array) -> void:
 		base_faces = base_faces.slice(0, DICE_FACE_COUNT)
 	for _die_index: int in STARTING_DICE_COUNT:
 		run_dice_faces.append(base_faces.duplicate())
-	if not inherited_die.is_empty():
-		var inherited_faces: Array = inherited_die.get("faces", [])
-		if inherited_faces.size() == DICE_FACE_COUNT:
-			run_dice_faces[0] = inherited_faces.duplicate(true)
 
 func add_die(faces: Array) -> bool:
 	if faces.size() != DICE_FACE_COUNT or run_dice_faces.size() >= STARTING_DICE_COUNT:
@@ -265,31 +250,15 @@ func record_divine_imprint(die_index: int, face_index: int, symbol_id: String) -
 	divine_symbol_history.append({"die_index": die_index, "face_index": face_index, "symbol_id": symbol_id})
 	return true
 
-func prepare_inheritance(die_faces: Array, die_name: String = "환생 주사위", selected_die_index: int = -1) -> void:
+func prepare_inheritance(die_faces: Array, die_name: String = "환생 기록", selected_die_index: int = -1) -> void:
 	if die_faces.size() != DICE_FACE_COUNT:
 		return
-	var selected_forge: Array[Dictionary] = []
-	var selected_divine: Array[Dictionary] = []
-	var selected_upgrades: Dictionary = {}
-	for entry: Dictionary in forge_history:
-		if selected_die_index < 0 or int(entry.get("die_index", -1)) == selected_die_index:
-			selected_forge.append(entry.duplicate(true))
-	for entry: Dictionary in divine_symbol_history:
-		if selected_die_index < 0 or int(entry.get("die_index", -1)) == selected_die_index:
-			selected_divine.append(entry.duplicate(true))
-	if selected_die_index >= 0:
-		var prefix: String = "%d:" % selected_die_index
-		for key: Variant in face_upgrade_levels.keys():
-			if str(key).begins_with(prefix):
-				selected_upgrades[key] = face_upgrade_levels[key]
-	else:
-		selected_upgrades = face_upgrade_levels.duplicate(true)
-	pending_inheritance_die = {"name": die_name, "faces": die_faces.duplicate(true), "forge_history": selected_forge, "divine_symbols": selected_divine, "face_upgrade_levels": selected_upgrades, "source_run": run_number}
+	# 과거 UI 호출은 기록만 준비한다. 실제 면 구성은 저장/계승하지 않는다.
+	pending_inheritance_die = {"name": die_name, "selected_die_index": selected_die_index, "source_run": run_number}
 
 func confirm_inheritance() -> void:
 	if pending_inheritance_die.is_empty():
 		return
-	inherited_die = pending_inheritance_die.duplicate(true)
 	pending_inheritance_die.clear()
 	inheritance_confirmed = true
 
@@ -309,7 +278,6 @@ func set_event_options(options: Array[String]) -> void:
 	event_options = options.duplicate()
 
 func choose_event(event_type: String) -> void:
-	# 이벤트는 런 시작 시 확정되므로 다른 이벤트로 바꿀 수 없다.
 	if current_event_type.is_empty():
 		current_event_type = event_type
 	if event_type != current_event_type:
@@ -344,6 +312,9 @@ func record_victory() -> void:
 func record_death() -> void:
 	permanent_deaths += 1
 	death_pending = true
+	var progression_state: Node = get_node_or_null("/root/ProgressionState")
+	if progression_state != null and progression_state.has_method("record_run_loss"):
+		progression_state.record_run_loss()
 
 func die() -> void:
 	if not active_run and death_pending:
@@ -351,44 +322,28 @@ func die() -> void:
 	record_death()
 	active_run = false
 	run_completed = false
+	# 런 전용 성장 데이터 폐기.
+	run_dice_faces.clear()
+	forge_history.clear()
+	face_upgrade_levels.clear()
+	divine_symbol_history.clear()
+	purchased_items.clear()
+	equipped_items.clear()
 
 func finish_run() -> void:
 	active_run = false
 
 func complete_run() -> bool:
-	if run_completed:
-		return false
-	if not boss_cleared:
+	if run_completed or not boss_cleared:
 		return false
 	run_completed = true
 	active_run = false
 	record_victory()
-	persist_completed_run_dice()
+	var progression_state: Node = get_node_or_null("/root/ProgressionState")
+	if progression_state != null and progression_state.has_method("record_run_win"):
+		progression_state.record_run_win()
 	return true
 
 func persist_completed_run_dice() -> void:
-	var progression_state: Node = get_node_or_null("/root/ProgressionState")
-	if progression_state != null and progression_state.has_method("save_persistent_dice_faces"):
-		progression_state.save_persistent_dice_faces(run_dice_faces)
-
-func get_run_summary() -> Dictionary:
-	var dice_count: int = run_dice_faces.size()
-	var divine_count: int = divine_symbol_history.size()
-	return {
-		"run_number": run_number,
-		"gold": gold,
-		"current_hp": current_hp,
-		"max_hp": max_hp,
-		"selected_build_id": selected_build_id,
-		"dice_count": dice_count,
-		"divine_symbol_count": divine_count,
-		"battle_cleared": battle_cleared,
-		"elite_cleared": elite_cleared,
-		"boss_cleared": boss_cleared,
-		"current_boss_id": current_boss_id,
-		"permanent_runs": permanent_runs,
-		"permanent_wins": permanent_wins,
-		"permanent_deaths": permanent_deaths,
-		"inherited_die": inherited_die.duplicate(true),
-		"dungeon_route": get_dungeon_route()
-	}
+	# 레거시 호출 호환용. 런 주사위는 영구 저장하지 않는다.
+	return
