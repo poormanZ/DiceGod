@@ -3,6 +3,7 @@ extends Control
 
 # 현재 런의 던전 구조:
 # 일반 전투 -> 대장간 / 상점 -> 엘리트 전투 -> 캠프 / 도박장 -> 보스 전투
+# 각 노드는 단순 이동 버튼이 아니라 비용/위험/보상을 미리 보여주는 선택지다.
 # 유니코드 이모지를 UI 아이콘으로 사용하지 않고 SVG 이미지 리소스를 사용한다.
 
 const ICON_SWORD: Texture2D = preload("res://assets/ui/icon_sword.svg")
@@ -30,9 +31,6 @@ var route_stage_one_buttons: Array[Button] = []
 var route_stage_two_buttons: Array[Button] = []
 
 func _ready() -> void:
-	# project.godot가 던전 씬을 직접 main scene으로 실행하므로
-	# 별도의 런 시작 화면이 없는 경우 여기서 최초 런을 생성한다.
-	# 이미 진행 중인 런은 절대로 다시 초기화하지 않는다.
 	if RunState.run_number == 0 and RunState.run_dice_faces.is_empty():
 		RunState.start_new_run()
 	RunStatusOverlay.attach(self)
@@ -55,15 +53,15 @@ func _build_route_map() -> void:
 	map.add_child(route_map)
 
 	var start_row: HBoxContainer = _make_route_row()
-	route_start_button = _make_route_button("일반 전투", "시작 전투", ICON_SWORD, true)
+	route_start_button = _make_route_button("일반 전투", "전투 승리 → 골드 + 보상 선택", ICON_SWORD, true)
 	route_start_button.pressed.connect(_on_start_battle_button_pressed)
 	start_row.add_child(route_start_button)
 	route_map.add_child(start_row)
 
 	route_map.add_child(_make_route_arrow())
 	var first_row: HBoxContainer = _make_route_row()
-	var forge_button: Button = _make_route_button("대장간", "주사위 심볼 수정", ICON_FORGE)
-	var shop_button: Button = _make_route_button("상점", "장비 / 아이템 구매", ICON_SHOP)
+	var forge_button: Button = _make_route_button("대장간", "35G → 원하는 주사위 면 변경", ICON_FORGE)
+	var shop_button: Button = _make_route_button("상점", "80G 주사위 / 100G 장비", ICON_SHOP)
 	forge_button.pressed.connect(_on_fixed_event_pressed.bind(1, "forge"))
 	shop_button.pressed.connect(_on_fixed_event_pressed.bind(1, "shop"))
 	route_stage_one_buttons.append(forge_button)
@@ -74,15 +72,15 @@ func _build_route_map() -> void:
 
 	route_map.add_child(_make_route_arrow())
 	var elite_row: HBoxContainer = _make_route_row()
-	route_elite_button = _make_route_button("엘리트 전투", "두 경로가 여기서 합류", ICON_ELITE, true)
+	route_elite_button = _make_route_button("엘리트 전투", "위험 증가 → 더 큰 보상", ICON_ELITE, true)
 	route_elite_button.pressed.connect(_on_elite_button_pressed)
 	elite_row.add_child(route_elite_button)
 	route_map.add_child(elite_row)
 
 	route_map.add_child(_make_route_arrow())
 	var second_row: HBoxContainer = _make_route_row()
-	var camp_button: Button = _make_route_button("캠프", "HP 회복", ICON_CAMP)
-	var gamble_button: Button = _make_route_button("도박장", "골드 도박", ICON_GAMBLE)
+	var camp_button: Button = _make_route_button("캠프", "안전 선택 → HP 30 회복", ICON_CAMP)
+	var gamble_button: Button = _make_route_button("도박장", "골드 베팅 → 최대 3배, 실패 시 손실", ICON_GAMBLE)
 	camp_button.pressed.connect(_on_fixed_event_pressed.bind(2, "camp"))
 	gamble_button.pressed.connect(_on_fixed_event_pressed.bind(2, "gamble"))
 	route_stage_two_buttons.append(camp_button)
@@ -93,7 +91,7 @@ func _build_route_map() -> void:
 
 	route_map.add_child(_make_route_arrow())
 	var boss_row: HBoxContainer = _make_route_row()
-	route_boss_button = _make_route_button("보스 전투", "최종 전투", ICON_BOSS, true)
+	route_boss_button = _make_route_button("보스 전투", "최종 위험 → 보스 보상 / 신성 각인", ICON_BOSS, true)
 	route_boss_button.pressed.connect(_on_boss_button_pressed)
 	boss_row.add_child(route_boss_button)
 	route_map.add_child(boss_row)
@@ -125,19 +123,19 @@ func _update_progress() -> void:
 		_disable_all_nodes()
 		for button: Button in route_stage_two_buttons:
 			button.disabled = false
-		status_label.text = "엘리트를 돌파했습니다. 캠프 또는 도박장을 선택하세요."
+		status_label.text = "엘리트를 돌파했습니다. 회복 또는 고위험 도박을 선택하세요."
 	elif RunState.event_stage == 1 and RunState.event_resolved:
 		_disable_all_nodes()
-		status_label.text = "첫 번째 이벤트 완료! 엘리트 전투로 이동합니다."
+		status_label.text = "첫 번째 이벤트 완료! 다음은 엘리트 전투입니다."
 	elif RunState.reward_claimed:
 		_disable_all_nodes()
 		for button: Button in route_stage_one_buttons:
 			button.disabled = false
-		status_label.text = "전투 보상을 획득했습니다. 대장간 또는 상점을 선택하세요."
+		status_label.text = "전투 보상을 획득했습니다. 확정 강화 또는 상점을 선택하세요."
 	else:
 		_disable_all_nodes()
 		route_start_button.disabled = false
-		status_label.text = "일반 전투부터 시작하세요."
+		status_label.text = "일반 전투를 시작하세요. 승리하면 다음 선택지가 열립니다."
 
 func _advance_after_resolved_event() -> void:
 	if RunState.boss_cleared:
