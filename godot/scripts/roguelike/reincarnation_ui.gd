@@ -112,6 +112,6 @@ func _on_confirm() -> void:
 	var slot_count: int = maxi(0, ProgressionState.legacy_slots)
 	if slot_count > 0 and selected_legacies.is_empty(): return
 	if selected_legacies.size() > slot_count: return
-	run_state.set_selected_legacies(selected_legacies)
+	if not run_state.queue_legacy_selection(selected_legacies): return
 	if selected_die >= 0 and not ReincarnationSystem.confirm(run_state): return
 	confirmed.emit()
