@@ -17,6 +17,7 @@ var current_hp: int = STARTING_HP
 var max_hp: int = MAX_HP
 var attack_bonus: int = 0
 var selected_build_id: String = ""
+var selected_legacies: Array[String] = []
 var battle_cleared: bool = false
 var reward_claimed: bool = false
 var event_resolved: bool = false
@@ -67,6 +68,7 @@ func start_new_run() -> void:
 	max_hp = MAX_HP
 	attack_bonus = 0
 	selected_build_id = ""
+	selected_legacies = []
 	battle_cleared = false
 	reward_claimed = false
 	event_resolved = false
@@ -99,9 +101,6 @@ func start_new_run() -> void:
 	unlocked_dice_bonus = 0
 	gamble_result = ""
 	gamble_streak = 0
-	# 새 런에서는 전투에 들어가기 전에 반드시 6개의 기본 심볼 주사위를 준비합니다.
-	# 기존 구현은 run_dice_faces를 clear()한 뒤 다시 초기화하지 않아
-	# 던전/전투 UI에서 주사위 수가 0개로 표시되는 문제가 있었습니다.
 	var basic_dice: DiceData = load("res://resources/dice/basic_dice.tres") as DiceData
 	if basic_dice != null:
 		initialize_run_dice(basic_dice.face_values)
@@ -110,6 +109,15 @@ func start_new_run() -> void:
 	var progression_state: Node = get_node_or_null("/root/ProgressionState")
 	if progression_state != null:
 		progression_state.record_run_start()
+
+func set_selected_legacies(legacy_ids: Array[String]) -> void:
+	selected_legacies.clear()
+	for legacy_id: String in legacy_ids:
+		if LegacySystem.can_select(legacy_id, selected_legacies):
+			selected_legacies.append(legacy_id)
+
+func has_legacy_effect(effect: String) -> bool:
+	return LegacySystem.has_effect(selected_legacies, effect)
 
 func get_reroll_bonus() -> int:
 	return maxi(0, RoguelikeEquipmentSystem.bonus(self, "reroll"))
@@ -162,7 +170,7 @@ func get_die_faces(die_index: int) -> Array:
 	return run_dice_faces[die_index].duplicate(true)
 
 func get_run_summary() -> Dictionary:
-	return {"run_number": run_number, "active_run": active_run, "current_hp": current_hp, "max_hp": max_hp, "gold": gold, "dice_count": run_dice_faces.size(), "max_dice_count": STARTING_DICE_COUNT, "selected_build_id": selected_build_id, "forge_used": forge_used_this_run, "equipped_items": equipped_items.duplicate(), "equipped_by_slot": equipped_by_slot.duplicate(true), "boss_cleared": boss_cleared, "run_completed": run_completed, "reroll_bonus": get_reroll_bonus(), "max_rerolls": get_max_rerolls()}
+	return {"run_number": run_number, "active_run": active_run, "current_hp": current_hp, "max_hp": max_hp, "gold": gold, "dice_count": run_dice_faces.size(), "max_dice_count": STARTING_DICE_COUNT, "selected_build_id": selected_build_id, "selected_legacies": selected_legacies.duplicate(), "forge_used": forge_used_this_run, "equipped_items": equipped_items.duplicate(), "equipped_by_slot": equipped_by_slot.duplicate(true), "boss_cleared": boss_cleared, "run_completed": run_completed, "reroll_bonus": get_reroll_bonus(), "max_rerolls": get_max_rerolls()}
 
 func heal(amount: int) -> int:
 	var requested: int = maxi(0, amount)
@@ -261,7 +269,7 @@ func record_death() -> void:
 	if progression_state != null and progression_state.has_method("record_run_loss"): progression_state.record_run_loss()
 func die() -> void:
 	if not active_run and death_pending: return
-	record_death(); active_run = false; run_completed = false; run_dice_faces.clear(); forge_history.clear(); face_upgrade_levels.clear(); divine_symbol_history.clear(); purchased_items.clear(); equipped_items.clear(); equipped_by_slot.clear()
+	record_death(); active_run = false; run_completed = false; run_dice_faces.clear(); forge_history.clear(); face_upgrade_levels.clear(); divine_symbol_history.clear(); purchased_items.clear(); equipped_items.clear(); equipped_by_slot.clear(); selected_legacies.clear()
 func finish_run() -> void: active_run = false
 func complete_run() -> bool:
 	if run_completed or not boss_cleared: return false
