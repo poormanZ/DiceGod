@@ -9,6 +9,12 @@ const ATTACK_SYMBOLS_PER_FACE: int = 4
 const DEFENSE_SYMBOLS_PER_FACE: int = 1
 const HEAL_SYMBOLS_PER_FACE: int = 1
 
+const NORMAL_GOLD_AVERAGE: float = 40.0
+const ELITE_GOLD_AVERAGE: float = 96.6667
+const SHOP_DICE_COST: int = 80
+const SHOP_GEAR_COSTS: Array[int] = [100, 120, 140]
+const FORGE_COST: int = 35
+
 static func expected_symbol_count(symbol_probability: float = 1.0 / 6.0) -> float:
 	return float(DICE_COUNT) * symbol_probability
 
@@ -58,7 +64,6 @@ static func evaluate_builds() -> Dictionary:
 	}
 
 ## 대표적인 6면 결과를 시뮬레이션해 시너지의 공격/생존 편차를 빠르게 검증합니다.
-## 실제 전투와 같은 SymbolSkillSystem 규칙을 사용하므로 밸런스 조정 시 별도 수식을 만들지 않습니다.
 static func evaluate_synergy_profiles() -> Dictionary:
 	var profiles: Dictionary = {
 		"balanced": {1:1, 2:1, 3:1, 4:1, 5:1, 6:1},
@@ -91,5 +96,41 @@ static func evaluate_synergy_profiles() -> Dictionary:
 			"hits": int(evaluated.get("hits", 0)),
 			"status": int(evaluated.get("status", 0)),
 			"synergy_count": evaluated.get("synergies", []).size()
+		}
+	return result
+
+## 상점/대장간 가격이 한 런의 보상 흐름을 과도하게 압박하지 않는지 확인합니다.
+static func evaluate_economy() -> Dictionary:
+	var first_shop_purchase: float = NORMAL_GOLD_AVERAGE * 2.0
+	var forge_affordability: float = NORMAL_GOLD_AVERAGE / float(FORGE_COST)
+	var gear_cost_average: float = 0.0
+	for cost in SHOP_GEAR_COSTS:
+		gear_cost_average += float(cost)
+	gear_cost_average /= float(SHOP_GEAR_COSTS.size())
+	return {
+		"normal_gold_average": NORMAL_GOLD_AVERAGE,
+		"elite_gold_average": ELITE_GOLD_AVERAGE,
+		"two_normal_fights_gold": first_shop_purchase,
+		"forge_cost": FORGE_COST,
+		"forge_uses_per_two_normal_fights": forge_affordability,
+		"shop_dice_cost": SHOP_DICE_COST,
+		"shop_gear_average_cost": gear_cost_average,
+		"economy_warning": first_shop_purchase < float(SHOP_DICE_COST) or forge_affordability < 1.0
+	}
+
+## 보스별 체력/공격 압력 차이를 수치화해 전용 패턴이 의미 있는지 검증합니다.
+static func evaluate_boss_profiles() -> Dictionary:
+	var result: Dictionary = {}
+	for boss_id in CombatContentSystem.BOSSES.keys():
+		var boss: Dictionary = CombatContentSystem.BOSSES[boss_id]
+		var hp: int = int(boss.get("hp", 0))
+		var damage: int = int(boss.get("damage", 0))
+		var expected_turns: float = float(hp) / maxf(expected_basic_attack(), 0.1)
+		result[str(boss_id)] = {
+			"hp": hp,
+			"damage": damage,
+			"pattern": str(boss.get("pattern", "")),
+			"expected_player_attack_turns": expected_turns,
+			"pressure": float(damage) + (float(hp) / 10.0)
 		}
 	return result
