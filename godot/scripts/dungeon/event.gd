@@ -9,10 +9,10 @@ extends Control
 @onready var status_label: Label = $MarginContainer/Content/StatusLabel
 
 var resolved: bool = false
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 func _ready() -> void:
-	# 이벤트 종류는 새 런 시작 시 RunState가 이미 확정한다.
-	# 이 화면에서는 이벤트를 선택하지 않고, 확정된 이벤트를 보여준 뒤 실행한다.
+	rng.randomize()
 	risky_button.hide()
 	safe_button.hide()
 	skip_button.hide()
@@ -27,16 +27,18 @@ func _ready() -> void:
 	call_deferred("_execute_fixed_event", event_type)
 
 func _setup_event(event_type: String) -> void:
-	title_label.text = "🎲 랜덤 이벤트 %d/2" % RunState.event_stage
-	description_label.text = "이번 런에서 미리 결정된 이벤트입니다.\n이벤트 종류는 다음 런에서 새롭게 무작위 결정됩니다."
+	title_label.text = "🎲 랜덤 이벤트 %d/2 · %s" % [RunState.event_stage, RoguelikeEventSystem.get_event_title(event_type)]
+	description_label.text = "%s\n%s" % [RoguelikeEventSystem.get_event_description(event_type), RoguelikeEventSystem.get_event_risk(event_type)]
 	status_label.text = _event_text(event_type)
 
 func _event_text(event_type: String) -> String:
 	match event_type:
-		"camp": return "⛺ 캠프\nHP 회복"
+		"camp": return "⛺ 캠프\n안전한 회복"
 		"shop": return "🏪 상점\n장비 / 주사위 구매"
 		"forge": return "🔨 대장간\n주사위 면 수정 / 강화"
 		"gamble": return "🎰 도박장\n골드 도박"
+		"shrine": return "⛩ 신전\nHP를 골드로 교환"
+		"mystery": return "❓ 수수께끼\n위험한 랜덤 보상"
 	return event_type
 
 func _execute_fixed_event(event_type: String) -> void:
@@ -60,6 +62,21 @@ func _execute_fixed_event(event_type: String) -> void:
 		"gamble":
 			RunState.resolve_event("gamble_open")
 			get_tree().change_scene_to_file("res://scenes/dungeon/gambling.tscn")
+		"shrine":
+			var shrine_result: Dictionary = RoguelikeEventSystem.shrine(RunState)
+			RunState.resolve_event("shrine_%s" % ("success" if bool(shrine_result.get("success", false)) else "blocked"))
+			status_label.text = "⛩ " + str(shrine_result.get("result", "신전 이벤트 실패"))
+			await get_tree().create_timer(0.9).timeout
+			get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
+		"mystery":
+			var mystery_result: Dictionary = RoguelikeEventSystem.mystery(RunState, rng)
+			RunState.resolve_event("mystery_%d" % int(mystery_result.get("roll", 0)))
+			status_label.text = "❓ " + str(mystery_result.get("result", "수수께끼의 결과를 확인했습니다."))
+			await get_tree().create_timer(0.9).timeout
+			if not RunState.is_alive():
+				get_tree().change_scene_to_file("res://scenes/dungeon/reincarnation.tscn")
+			else:
+				get_tree().change_scene_to_file("res://scenes/dungeon/dungeon.tscn")
 
 func _on_risky_button_pressed() -> void:
 	pass
