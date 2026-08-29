@@ -4,8 +4,9 @@ extends Node
 const STARTING_GOLD: int = 100
 const STARTING_HP: int = 10
 const MAX_HP: int = 10
-const STARTING_DICE_COUNT: int = 6
-const DICE_FACE_COUNT: int = 6
+# 주사위 규격의 기준값은 DiceData가 소유합니다. RunState는 별도 값을 재정의하지 않고 참조만 합니다.
+const STARTING_DICE_COUNT: int = DiceData.STARTING_DICE_COUNT
+const DICE_FACE_COUNT: int = DiceData.FACE_COUNT
 const MAX_DIVINE_FACES: int = 2
 const RANDOM_EVENT_TYPES: Array[String] = ["camp", "shop", "forge", "gamble"]
 const EQUIPMENT_SLOTS: Array[String] = ["head", "body", "legs", "feet", "weapon", "neck", "ring"]
