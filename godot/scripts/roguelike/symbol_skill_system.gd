@@ -1,6 +1,13 @@
 class_name SymbolSkillSystem
 extends RefCounted
 
+## 심볼 시너지의 단일 규칙 집합입니다.
+## - 기본 심볼 효과는 항상 적용됩니다.
+## - 2개 시너지는 요구 수량을 만족하면 각각 1회 적용됩니다.
+## - 3개 시너지는 한 굴림에서 최대 2개까지만 적용됩니다.
+## - 시너지는 장비의 synergy_tag가 있을 때만 실제 전투에서 활성화됩니다.
+## - 동일 시너지는 요구 조건을 만족해도 중복 발동하지 않습니다.
+
 const BASE_SYMBOLS: Dictionary = {
 	1: {"attack": 1}, 2: {"attack": 1, "penetration": 1}, 3: {"attack": 1, "status": 1},
 	4: {"attack": 1, "hits": 1}, 5: {"block": 1}, 6: {"heal": 1},
@@ -35,13 +42,20 @@ const TRIPLE_SYNERGIES: Array[Dictionary] = [
 
 static func evaluate(results: Array[DiceRuntimeState], run_state: RunStateManager = null) -> Dictionary:
 	var counts: Dictionary = _count_results(results)
-	var total: Dictionary = {"attack":0,"block":0,"heal":0,"penetration":0,"hits":0,"status":0,"skills":[],"counts":counts,"synergy_tier":0,"synergies":[]}
-	for symbol: int in BASE_SYMBOLS.keys():
-		var count: int = int(counts.get(symbol, 0))
-		if count <= 0: continue
-		for key: String in BASE_SYMBOLS[symbol].keys(): total[key] = int(total.get(key, 0)) + int(BASE_SYMBOLS[symbol][key]) * count
+	var total: Dictionary = _new_total(counts)
+	_apply_base_effects(total, counts)
+	if run_state == null:
+		return total
+	_apply_equipped_synergies(total, counts, run_state)
+	return total
+
+## 밸런스 검증용 평가기입니다. 실제 전투의 장비 객체를 만들지 않고
+## 활성 synergy_tag만 주입하여 동일한 시너지 규칙을 평가합니다.
+static func evaluate_counts(counts: Dictionary, active_tags: Array[String]) -> Dictionary:
+	var total: Dictionary = _new_total(counts)
+	_apply_base_effects(total, counts)
 	for synergy: Dictionary in PAIR_SYNERGIES:
-		if _can_activate(synergy, counts, run_state):
+		if _matches(counts, synergy.get("requires", {})) and _has_active_tag(active_tags, str(synergy.get("gear", ""))):
 			_apply_effect(total, synergy)
 			total["skills"].append(str(synergy.get("name", "시너지")))
 			total["synergies"].append({"tier":2,"id":synergy.get("id",""),"name":synergy.get("name",""),"description":synergy.get("description","")})
@@ -49,7 +63,7 @@ static func evaluate(results: Array[DiceRuntimeState], run_state: RunStateManage
 	var triple_count: int = 0
 	for synergy: Dictionary in TRIPLE_SYNERGIES:
 		if triple_count >= 2: break
-		if _can_activate(synergy, counts, run_state):
+		if _matches(counts, synergy.get("requires", {})) and _has_active_tag(active_tags, str(synergy.get("gear", ""))):
 			_apply_effect(total, synergy)
 			total["skills"].append(str(synergy.get("name", "시너지")))
 			total["synergies"].append({"tier":3,"id":synergy.get("id",""),"name":synergy.get("name",""),"description":synergy.get("description","")})
@@ -65,6 +79,32 @@ static func get_synergy_preview(counts: Dictionary, run_state: RunStateManager =
 		if _can_activate(synergy, counts, run_state): result.append({"tier":3,"name":synergy.get("name",""),"description":synergy.get("description","")})
 	return result
 
+static func _new_total(counts: Dictionary) -> Dictionary:
+	return {"attack":0,"block":0,"heal":0,"penetration":0,"hits":0,"status":0,"skills":[],"counts":counts,"synergy_tier":0,"synergies":[]}
+
+static func _apply_base_effects(total: Dictionary, counts: Dictionary) -> void:
+	for symbol: int in BASE_SYMBOLS.keys():
+		var count: int = int(counts.get(symbol, 0))
+		if count <= 0: continue
+		for key: String in BASE_SYMBOLS[symbol].keys(): total[key] = int(total.get(key, 0)) + int(BASE_SYMBOLS[symbol][key]) * count
+
+static func _apply_equipped_synergies(total: Dictionary, counts: Dictionary, run_state: RunStateManager) -> void:
+	for synergy: Dictionary in PAIR_SYNERGIES:
+		if _can_activate(synergy, counts, run_state):
+			_apply_effect(total, synergy)
+			total["skills"].append(str(synergy.get("name", "시너지")))
+			total["synergies"].append({"tier":2,"id":synergy.get("id",""),"name":synergy.get("name",""),"description":synergy.get("description","")})
+			total["synergy_tier"] = maxi(int(total["synergy_tier"]), 2)
+	var triple_count: int = 0
+	for synergy: Dictionary in TRIPLE_SYNERGIES:
+		if triple_count >= 2: break
+		if _can_activate(synergy, counts, run_state):
+			_apply_effect(total, synergy)
+			total["skills"].append(str(synergy.get("name", "시너지")))
+			total["synergies"].append({"tier":3,"id":synergy.get("id",""),"name":synergy.get("name",""),"description":synergy.get("description","")})
+			total["synergy_tier"] = 3
+			triple_count += 1
+
 static func _can_activate(synergy: Dictionary, counts: Dictionary, run_state: RunStateManager) -> bool:
 	if not _matches(counts, synergy.get("requires", {})): return false
 	if run_state == null: return false
@@ -76,6 +116,9 @@ static func _has_synergy_tag(run_state: RunStateManager, tag: String) -> bool:
 		var gear: Dictionary = RoguelikeEquipmentSystem.get_gear(gear_id)
 		if str(gear.get("synergy_tag", "")) == tag: return true
 	return false
+
+static func _has_active_tag(active_tags: Array[String], tag: String) -> bool:
+	return tag.is_empty() or active_tags.has(tag)
 
 static func _count_results(results: Array[DiceRuntimeState]) -> Dictionary:
 	var counts: Dictionary = {}
