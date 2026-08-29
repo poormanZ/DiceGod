@@ -5,7 +5,7 @@ extends RefCounted
 ## - 기본 심볼 효과는 항상 적용됩니다.
 ## - 2개 시너지는 요구 수량을 만족하면 각각 1회 적용됩니다.
 ## - 3개 시너지는 한 굴림에서 최대 2개까지만 적용됩니다.
-## - 시너지는 장비의 synergy_tag가 있을 때만 실제 전투에서 활성화됩니다.
+## - 단일 심볼 시너지는 해당 심볼 장비 태그, 혼합 시너지는 구성 심볼 중 하나의 장비 태그가 필요합니다.
 ## - 동일 시너지는 요구 조건을 만족해도 중복 발동하지 않습니다.
 
 const BASE_SYMBOLS: Dictionary = {
@@ -20,12 +20,12 @@ const PAIR_SYNERGIES: Array[Dictionary] = [
 	{"id":"shuriken_pair","name":"연속 표창","requires":{4:2},"gear":"shuriken","hits":1,"description":"표창 2개: 추가 타격 +1"},
 	{"id":"shield_pair","name":"수호 반격","requires":{5:2},"gear":"shield","attack":1,"block":1,"description":"방패 2개: 보호 +1, 반격 +1"},
 	{"id":"heal_pair","name":"성스러운 치유","requires":{6:2},"gear":"heal","heal":1,"block":1,"description":"힐 2개: 회복 +1, 보호 +1"},
-	{"id":"blade_wall","name":"검벽","requires":{1:1,5:2},"gear":"warrior","attack":2,"block":2,"description":"검+방패: 공격과 보호"},
-	{"id":"shadow_ambush","name":"그림자 습격","requires":{2:1,4:2},"gear":"assassin","attack":2,"hits":1,"description":"활+표창: 관통 연타"},
-	{"id":"arcane_life","name":"생명 연성","requires":{3:1,6:2},"gear":"alchemist","heal":2,"status":1,"description":"지팡이+힐: 마법 회복"},
-	{"id":"holy_guard","name":"성역","requires":{5:1,6:1},"gear":"guardian","block":1,"heal":1,"description":"방패+힐: 보호와 회복"},
-	{"id":"blade_storm","name":"칼날 폭풍","requires":{1:1,4:1},"gear":"blade_storm","attack":1,"hits":1,"description":"검+표창: 공격과 연타"},
-	{"id":"arcane_arrow","name":"마력 화살","requires":{2:1,3:1},"gear":"arcane_arrow","attack":1,"penetration":1,"status":1,"description":"활+지팡이: 관통과 상태"}
+	{"id":"blade_wall","name":"검벽","requires":{1:1,5:2},"gear_tags":["sword","shield"],"attack":2,"block":2,"description":"검+방패: 공격과 보호"},
+	{"id":"shadow_ambush","name":"그림자 습격","requires":{2:1,4:2},"gear_tags":["bow","shuriken"],"attack":2,"hits":1,"description":"활+표창: 관통 연타"},
+	{"id":"arcane_life","name":"생명 연성","requires":{3:1,6:2},"gear_tags":["staff","heal"],"heal":2,"status":1,"description":"지팡이+힐: 마법 회복"},
+	{"id":"holy_guard","name":"성역","requires":{5:1,6:1},"gear_tags":["shield","heal"],"block":1,"heal":1,"description":"방패+힐: 보호와 회복"},
+	{"id":"blade_storm","name":"칼날 폭풍","requires":{1:1,4:1},"gear_tags":["sword","shuriken"],"attack":1,"hits":1,"description":"검+표창: 공격과 연타"},
+	{"id":"arcane_arrow","name":"마력 화살","requires":{2:1,3:1},"gear_tags":["bow","staff"],"attack":1,"penetration":1,"status":1,"description":"활+지팡이: 관통과 상태"}
 ]
 
 const TRIPLE_SYNERGIES: Array[Dictionary] = [
@@ -35,9 +35,9 @@ const TRIPLE_SYNERGIES: Array[Dictionary] = [
 	{"id":"shuriken_trinity","name":"수리검 폭우","requires":{4:3},"gear":"shuriken","attack":1,"hits":3,"description":"표창 3개: 피해 +1, 연타 +3"},
 	{"id":"shield_trinity","name":"철벽 진형","requires":{5:3},"gear":"shield","attack":1,"block":3,"description":"방패 3개: 보호 +3, 반격 +1"},
 	{"id":"heal_trinity","name":"성자의 기도","requires":{6:3},"gear":"heal","heal":3,"block":1,"description":"힐 3개: 회복 +3, 보호 +1"},
-	{"id":"warrior_triangle","name":"전쟁의 삼각형","requires":{1:2,5:1},"gear":"warrior","attack":2,"block":1,"description":"검 2+방패: 공격형 생존"},
-	{"id":"spell_guard","name":"마도 수호","requires":{3:2,6:1},"gear":"alchemist","status":2,"heal":1,"description":"지팡이 2+힐: 지속전"},
-	{"id":"assassin_triangle","name":"암살자의 삼각형","requires":{2:2,4:1},"gear":"assassin","penetration":2,"hits":2,"description":"활 2+표창: 관통 연타"}
+	{"id":"warrior_triangle","name":"전쟁의 삼각형","requires":{1:2,5:1},"gear_tags":["sword","shield"],"attack":2,"block":1,"description":"검 2+방패: 공격형 생존"},
+	{"id":"spell_guard","name":"마도 수호","requires":{3:2,6:1},"gear_tags":["staff","heal"],"status":2,"heal":1,"description":"지팡이 2+힐: 지속전"},
+	{"id":"assassin_triangle","name":"암살자의 삼각형","requires":{2:2,4:1},"gear_tags":["bow","shuriken"],"penetration":2,"hits":2,"description":"활 2+표창: 관통 연타"}
 ]
 
 static func evaluate(results: Array[DiceRuntimeState], run_state: RunStateManager = null) -> Dictionary:
@@ -55,7 +55,7 @@ static func evaluate_counts(counts: Dictionary, active_tags: Array[String]) -> D
 	var total: Dictionary = _new_total(counts)
 	_apply_base_effects(total, counts)
 	for synergy: Dictionary in PAIR_SYNERGIES:
-		if _matches(counts, synergy.get("requires", {})) and _has_active_tag(active_tags, str(synergy.get("gear", ""))):
+		if _matches(counts, synergy.get("requires", {})) and _has_required_tag(active_tags, synergy):
 			_apply_effect(total, synergy)
 			total["skills"].append(str(synergy.get("name", "시너지")))
 			total["synergies"].append({"tier":2,"id":synergy.get("id",""),"name":synergy.get("name",""),"description":synergy.get("description","")})
@@ -63,7 +63,7 @@ static func evaluate_counts(counts: Dictionary, active_tags: Array[String]) -> D
 	var triple_count: int = 0
 	for synergy: Dictionary in TRIPLE_SYNERGIES:
 		if triple_count >= 2: break
-		if _matches(counts, synergy.get("requires", {})) and _has_active_tag(active_tags, str(synergy.get("gear", ""))):
+		if _matches(counts, synergy.get("requires", {})) and _has_required_tag(active_tags, synergy):
 			_apply_effect(total, synergy)
 			total["skills"].append(str(synergy.get("name", "시너지")))
 			total["synergies"].append({"tier":3,"id":synergy.get("id",""),"name":synergy.get("name",""),"description":synergy.get("description","")})
@@ -108,17 +108,20 @@ static func _apply_equipped_synergies(total: Dictionary, counts: Dictionary, run
 static func _can_activate(synergy: Dictionary, counts: Dictionary, run_state: RunStateManager) -> bool:
 	if not _matches(counts, synergy.get("requires", {})): return false
 	if run_state == null: return false
-	var gear_tag: String = str(synergy.get("gear", ""))
-	return gear_tag.is_empty() or _has_synergy_tag(run_state, gear_tag)
-
-static func _has_synergy_tag(run_state: RunStateManager, tag: String) -> bool:
+	var active_tags: Array[String] = []
 	for gear_id: String in run_state.equipped_by_slot.values():
 		var gear: Dictionary = RoguelikeEquipmentSystem.get_gear(gear_id)
-		if str(gear.get("synergy_tag", "")) == tag: return true
-	return false
+		var tag: String = str(gear.get("synergy_tag", ""))
+		if not tag.is_empty() and not active_tags.has(tag): active_tags.append(tag)
+	return _has_required_tag(active_tags, synergy)
 
-static func _has_active_tag(active_tags: Array[String], tag: String) -> bool:
-	return tag.is_empty() or active_tags.has(tag)
+static func _has_required_tag(active_tags: Array[String], synergy: Dictionary) -> bool:
+	var gear_tag: String = str(synergy.get("gear", ""))
+	if not gear_tag.is_empty(): return active_tags.has(gear_tag)
+	var gear_tags: Array = synergy.get("gear_tags", [])
+	for tag: String in gear_tags:
+		if active_tags.has(tag): return true
+	return false
 
 static func _count_results(results: Array[DiceRuntimeState]) -> Dictionary:
 	var counts: Dictionary = {}
