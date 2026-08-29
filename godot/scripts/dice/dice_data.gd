@@ -13,15 +13,8 @@ const HEAL: int = 6
 const FACE_COUNT: int = 6
 const STARTING_DICE_COUNT: int = 6
 
+## 심볼 ID → 표시 이름 매핑입니다. symbol_for()/name_for()가 공용으로 사용합니다.
 const SYMBOLS: Dictionary = {
-	SWORD: "검",
-	BOW: "활",
-	STAFF: "지팡이",
-	SHURIKEN: "표창",
-	SHIELD: "방패",
-	HEAL: "힐"
-}
-const NAMES: Dictionary = {
 	SWORD: "검",
 	BOW: "활",
 	STAFF: "지팡이",
@@ -50,7 +43,7 @@ static func symbol_for(value: int) -> String:
 	return str(SYMBOLS.get(value, "?"))
 
 static func name_for(value: int) -> String:
-	return str(NAMES.get(value, "알 수 없음"))
+	return str(SYMBOLS.get(value, "알 수 없음"))
 
 static func is_attack(value: int) -> bool:
 	return value == SWORD or value == BOW or value == STAFF or value == SHURIKEN
