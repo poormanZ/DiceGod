@@ -104,7 +104,8 @@ func load_progression() -> void:
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if not parsed is Dictionary: return
 	var data: Dictionary = parsed
-	save_version = maxi(int(data.get("version", 1)), CURRENT_VERSION)
+	# 저장된 실제 버전을 그대로 읽어둡니다. (향후 버전별 마이그레이션 분기에 사용)
+	save_version = maxi(1, int(data.get("version", 1)))
 	total_runs = int(data.get("total_runs", 0)); total_wins = int(data.get("total_wins", 0)); total_losses = int(data.get("total_losses", 0))
 	unlocked_dice = _load_string_array(data.get("unlocked_dice", unlocked_dice), unlocked_dice)
 	unlocked_abilities = _load_string_array(data.get("unlocked_abilities", unlocked_abilities), unlocked_abilities)
@@ -118,6 +119,8 @@ func load_progression() -> void:
 	legacy_slots = maxi(0, int(data.get("legacy_slots", 0)))
 	pending_legacy_selection = _load_string_array(data.get("pending_legacy_selection", []), [])
 	meta_currency = maxi(0, int(data.get("meta_currency", 0)))
+	# 마이그레이션 분기(향후 save_version 기준 처리)가 끝난 뒤, 다음 저장부터는 현재 스키마 버전을 기록합니다.
+	save_version = CURRENT_VERSION
 
 func _load_string_array(value: Variant, fallback: Array[String]) -> Array[String]:
 	if not value is Array: return fallback.duplicate()
