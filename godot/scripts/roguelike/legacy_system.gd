@@ -21,26 +21,30 @@ static func get_all() -> Array[Dictionary]:
 		result.append(entry)
 	return result
 
-static func get(legacy_id: String) -> Dictionary:
+static func get_legacy(legacy_id: String) -> Dictionary:
 	var entry: Dictionary = LEGACIES.get(legacy_id, {}).duplicate(true)
 	if not entry.is_empty(): entry["id"] = legacy_id
 	return entry
 
 static func unlock_for_boss(boss_id: String) -> bool:
 	var found: bool = false
+	var newly_unlocked_count: int = 0
 	for legacy_id in LEGACIES.keys():
 		var entry: Dictionary = LEGACIES[legacy_id]
 		if str(entry.get("source", "")) == boss_id:
 			found = true
-			ProgressionState.unlock_legacy_option(str(legacy_id))
-	if found and ProgressionState.legacy_slots <= 0:
-		ProgressionState.increase_legacy_slots(1)
+			if ProgressionState.unlock_legacy_option(str(legacy_id)):
+				newly_unlocked_count += 1
+	# 보스 진행에 따라 새로운 유산이 해금될 때마다 슬롯을 하나씩 늘립니다.
+	# (docs/progression_design.md: 슬롯 수가 많아질수록 조합의 폭이 넓어짐)
+	if newly_unlocked_count > 0:
+		ProgressionState.increase_legacy_slots(newly_unlocked_count)
 	return found
 
 static func get_unlocked() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for legacy_id in ProgressionState.unlocked_legacy_options:
-		var entry: Dictionary = get(str(legacy_id))
+		var entry: Dictionary = get_legacy(str(legacy_id))
 		if not entry.is_empty(): result.append(entry)
 	return result
 
@@ -58,14 +62,14 @@ static func select(legacy_id: String, selected: Array[String]) -> bool:
 
 static func has_effect(selected: Array[String], effect: String) -> bool:
 	for legacy_id in selected:
-		var entry: Dictionary = get(str(legacy_id))
+		var entry: Dictionary = get_legacy(str(legacy_id))
 		if str(entry.get("effect", "")) == effect: return true
 	return false
 
 static func get_effects(selected: Array[String]) -> Array[String]:
 	var effects: Array[String] = []
 	for legacy_id in selected:
-		var entry: Dictionary = get(str(legacy_id))
+		var entry: Dictionary = get_legacy(str(legacy_id))
 		var effect: String = str(entry.get("effect", ""))
 		if not effect.is_empty() and not effects.has(effect): effects.append(effect)
 	return effects
