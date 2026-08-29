@@ -33,27 +33,47 @@ static func unlock_for_boss(boss_id: String) -> bool:
 		var entry: Dictionary = LEGACIES[legacy_id]
 		if str(entry.get("source", "")) == boss_id:
 			found = true
-			if ProgressionState.unlock_legacy_option(str(legacy_id)):
+			if _unlock_legacy(str(legacy_id)):
 				newly_unlocked_count += 1
-	# 보스 진행에 따라 새로운 유산이 해금될 때마다 슬롯을 하나씩 늘립니다.
-	# (docs/progression_design.md: 슬롯 수가 많아질수록 조합의 폭이 넓어짐)
 	if newly_unlocked_count > 0:
-		ProgressionState.increase_legacy_slots(newly_unlocked_count)
+			_increase_legacy_slots(newly_unlocked_count)
 	return found
+
+static func _progression() -> Node:
+	return Engine.get_main_loop().root.get_node_or_null("ProgressionState")
+
+static func _unlock_legacy(legacy_id: String) -> bool:
+	var progression: Node = _progression()
+	if progression == null: return false
+	return bool(progression.call("unlock_legacy_option", legacy_id))
+
+static func _increase_legacy_slots(amount: int) -> void:
+	var progression: Node = _progression()
+	if progression != null: progression.call("increase_legacy_slots", amount)
+
+static func _unlocked_legacies() -> Array:
+	var progression: Node = _progression()
+	if progression == null: return []
+	return progression.get("unlocked_legacy_options")
+
+static func _legacy_slots() -> int:
+	var progression: Node = _progression()
+	if progression == null: return 0
+	return int(progression.get("legacy_slots"))
 
 static func get_unlocked() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for legacy_id in ProgressionState.unlocked_legacy_options:
+	for legacy_id in _unlocked_legacies():
 		var entry: Dictionary = get_legacy(str(legacy_id))
 		if not entry.is_empty(): result.append(entry)
 	return result
 
 static func is_unlocked(legacy_id: String) -> bool:
-	return ProgressionState.unlocked_legacy_options.has(legacy_id)
+	return _unlocked_legacies().has(legacy_id)
 
 static func can_select(legacy_id: String, selected: Array[String]) -> bool:
 	if not is_unlocked(legacy_id) or selected.has(legacy_id): return false
-	return selected.size() < maxi(0, ProgressionState.legacy_slots)
+	return selected.size() < maxi(0, _legacy_slots())
 
 static func select(legacy_id: String, selected: Array[String]) -> bool:
 	if not can_select(legacy_id, selected): return false
@@ -89,8 +109,4 @@ static func get_event_preview(selected: Array[String], event_type: String, base_
 
 static func get_forge_options(selected: Array[String]) -> Array[int]:
 	var result: Array[int] = ForgeSystem.get_symbol_ids()
-	if has_effect(selected, "defensive_forge") and not result.has(5):
-		result.append(5)
-	if has_effect(selected, "flame_event_choice") and not result.has(1):
-		result.append(1)
 	return result
