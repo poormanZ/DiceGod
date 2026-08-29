@@ -242,6 +242,7 @@ func _handle_victory() -> void:
 func _handle_defeat() -> void:
 	is_battle_over = true
 	RunState.current_hp = 0
+	RunState.die()
 	run_disable_action_buttons()
 	_show_feedback("패배... 적의 공격을 견디지 못했습니다.")
 
