@@ -4,8 +4,6 @@ extends SceneTree
 ## 구형 빌드/장비/특수 주사위 시스템을 직접 참조하지 않습니다.
 
 func _init() -> void:
-	# SceneTree._init() 시점에는 project.godot의 autoload 노드가
-	# 아직 root에 모두 등록되지 않을 수 있으므로 한 프레임 뒤에 검증합니다.
 	call_deferred("_run_validation")
 
 func _run_validation() -> void:
@@ -32,6 +30,7 @@ func _run_validation() -> void:
 	_assert(not run_state.is_alive() or run_state.current_hp > 0, "run state is valid")
 	_validate_symbol_synergies()
 	_validate_balance_profiles()
+	_validate_boss_patterns()
 	print("DiceGod roadmap validation: PASS")
 	quit(0)
 
@@ -67,6 +66,27 @@ func _validate_balance_profiles() -> void:
 		_assert(int(profile.get("attack", -1)) >= 0, "%s attack metric is valid" % profile_name)
 		_assert(int(profile.get("block", -1)) >= 0, "%s block metric is valid" % profile_name)
 		_assert(int(profile.get("heal", -1)) >= 0, "%s heal metric is valid" % profile_name)
+
+func _validate_boss_patterns() -> void:
+	var boss_ids: Array = CombatContentSystem.BOSSES.keys()
+	_assert(boss_ids.size() == 8, "all eight bosses are registered")
+	for boss_id_variant: Variant in boss_ids:
+		var boss_id: String = str(boss_id_variant)
+		var patterns: Array = BossPatternSystem.get_patterns(boss_id)
+		_assert(patterns.size() >= 2, "%s has at least two behavior patterns" % boss_id)
+		var first: Dictionary = BossPatternSystem.preview(boss_id, 0)
+		var second: Dictionary = BossPatternSystem.preview(boss_id, 1)
+		_assert(not str(first.get("id", "")).is_empty(), "%s first pattern has id" % boss_id)
+		_assert(not str(second.get("id", "")).is_empty(), "%s second pattern has id" % boss_id)
+		_assert(not str(first.get("telegraph", "")).is_empty(), "%s first pattern has telegraph" % boss_id)
+		_assert(not str(second.get("telegraph", "")).is_empty(), "%s second pattern has telegraph" % boss_id)
+		var result: Dictionary = BossPatternSystem.execute(boss_id, 0, 50, 10)
+		_assert(int(result.get("damage", -1)) >= 0, "%s pattern damage is valid" % boss_id)
+		_assert(int(result.get("hp_damage", -1)) >= 0, "%s pattern HP damage is valid" % boss_id)
+	_assert(BossPatternSystem.preview("flame_god", 0).get("status", "") == "burn", "flame applies burn")
+	_assert(BossPatternSystem.preview("blood_god", 0).get("type", "") == "drain", "blood uses drain pattern")
+	_assert(BossPatternSystem.preview("storm_god", 0).get("type", "") == "multi", "storm uses multi-hit pattern")
+	_assert(BossPatternSystem.preview("void_god", 0).get("type", "") == "pierce", "void uses shield-piercing pattern")
 
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
