@@ -49,8 +49,8 @@ func _setup_choices(type: String) -> void:
 			risky_button.text = "HP 10 → 120G"
 			risky_button.show()
 			safe_button.text = "혈왕의 기억: HP 대신 30G"
-		if LegacySystem.has_effect(RunState.selected_legacies, "hp_trade_choice"):
-			safe_button.show()
+			if LegacySystem.has_effect(RunState.selected_legacies, "hp_trade_choice"):
+				safe_button.show()
 			skip_button.text = "지나가기"
 			skip_button.show()
 		"mystery":
@@ -98,7 +98,8 @@ func _on_risky_button_pressed() -> void:
 		"mystery":
 			var result: Dictionary = RoguelikeEventSystem.mystery(RunState, rng)
 			_finish(str(result.get("result", "수수께끼 결과 없음")))
-		_: _finish("안전하게 이벤트를 통과했습니다.")
+		_:
+			_finish("안전하게 이벤트를 통과했습니다.")
 
 func _on_safe_button_pressed() -> void:
 	if resolved: return
