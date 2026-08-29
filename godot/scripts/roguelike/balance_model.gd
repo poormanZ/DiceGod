@@ -56,3 +56,40 @@ static func evaluate_builds() -> Dictionary:
 		"critical": {"attack": expected_basic_attack() * 1.5, "survival": expected_basic_defense() * BASE_HP},
 		"divine_two_faces": {"attack": expected_basic_attack() * 1.35, "survival": expected_basic_defense() * BASE_HP}
 	}
+
+## 대표적인 6면 결과를 시뮬레이션해 시너지의 공격/생존 편차를 빠르게 검증합니다.
+## 실제 전투와 같은 SymbolSkillSystem 규칙을 사용하므로 밸런스 조정 시 별도 수식을 만들지 않습니다.
+static func evaluate_synergy_profiles() -> Dictionary:
+	var profiles: Dictionary = {
+		"balanced": {1:1, 2:1, 3:1, 4:1, 5:1, 6:1},
+		"attack": {1:3, 2:1, 4:1, 5:1},
+		"defense": {1:1, 5:3, 6:2},
+		"heal": {3:1, 5:1, 6:4},
+		"crit_chain": {1:1, 2:2, 4:2, 5:1},
+		"spell": {2:1, 3:3, 6:2}
+	}
+	var result: Dictionary = {}
+	for profile_name: String in profiles.keys():
+		var counts: Dictionary = profiles[profile_name]
+		var active_tags: Array[String] = []
+		for synergy: Dictionary in SymbolSkillSystem.PAIR_SYNERGIES:
+			var requirements: Dictionary = synergy.get("requires", {})
+			var matched: bool = true
+			for symbol in requirements.keys():
+				if int(counts.get(symbol, 0)) < int(requirements[symbol]):
+					matched = false
+					break
+			if matched:
+				var tag: String = str(synergy.get("gear", ""))
+				if not tag.is_empty() and not active_tags.has(tag): active_tags.append(tag)
+		var evaluated: Dictionary = SymbolSkillSystem.evaluate_counts(counts, active_tags)
+		result[profile_name] = {
+			"attack": int(evaluated.get("attack", 0)),
+			"block": int(evaluated.get("block", 0)),
+			"heal": int(evaluated.get("heal", 0)),
+			"penetration": int(evaluated.get("penetration", 0)),
+			"hits": int(evaluated.get("hits", 0)),
+			"status": int(evaluated.get("status", 0)),
+			"synergy_count": evaluated.get("synergies", []).size()
+		}
+	return result
